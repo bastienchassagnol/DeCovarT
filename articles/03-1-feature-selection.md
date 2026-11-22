@@ -1566,7 +1566,7 @@ doi:10.1214/009117904000000450 The Gaussian approximation with
 \operatorname{Var}S_M=\lvert M\rvert, which ignores the edges, is T1 for
 the module. The bound of Chen & Shao is the result that MEAD uses for
 its central limit theorem across genes
-([Section 8.2](#sec-fs-appendix)).
+([Section 8.3](#sec-fs-appendix)).
 
 > **Theorem 3 (T3, Chernoff bound with Poisson cumulant generating
 > functions)**
@@ -1658,7 +1658,7 @@ weights; the equal-weight proper colouring is the special case used here
 (this remark is not checked against the paper). The dependent Bernstein
 inequality of Zhang & Li, used by DECALS, has a constant equal to
 \bar\chi_G and an unknown absolute constant in the exponent
-([Equation 51](#eq-fs-bernstein-dep), [Section 8.2](#sec-fs-appendix)).
+([Equation 52](#eq-fs-bernstein-dep), [Section 8.3](#sec-fs-appendix)).
 
 #### 4.2.2 Comparing the statements
 
@@ -2778,36 +2778,44 @@ rejected hypothesis passes its weight along the edges, and the procedure
 is a shortcut of a closed test TODO-cite: Bretz, Maurer, Brannath &
 Posch 2009, A graphical approach to sequentially rejective multiple test
 procedures, Stat. Med. 28(4):586-604, doi:10.1002/sim.3495. Here
-(**?@fig-fs-posthoc-graph**) each A\_{gj} starts with weight 1/J and
-passes all of it to B\_{gj} (a fixed sequence, logical because B implies
-A), and each B\_{gj} passes its weight equally to the other enrichment
-hypotheses. With no edge into the B layer the procedure is Holm on the A
-family. `graphicalMCP::graph_test_shortcut()` runs it TODO-cite:
-graphicalMCP R package; use citation(“graphicalMCP”).
+([Figure 11](#fig-fs-posthoc-graph)) each A\_{gj} starts with weight 1/J
+and passes all of it to B\_{gj} (a fixed sequence, logical because B
+implies A), and each B\_{gj} passes its weight equally to the other
+enrichment hypotheses. With no edge into the B layer the procedure is
+Holm on the A family. `graphicalMCP::graph_test_shortcut()` runs it
+TODO-cite: graphicalMCP R package; use citation(“graphicalMCP”).
 
-``` tikz
-%%| label: fig-fs-posthoc-graph
-%%| fig-cap: "Within-gene graph for $J=3$ types. Enrichment hypotheses $A_j$ (blue, initial weight $1/3$) pass their weight to the unique-superiority hypothesis $B_j$ of the same type (weight 1, a fixed sequence); each $B_j$ passes its weight to the two other enrichment hypotheses (weight $1/2$). The graph is tested at the stage-wise level $\\alpha_I$ of @eq-fs-alpha-stage."
-%%| filename: fig-fs-posthoc-graph
-%%| alt: Graph with three blue boxes A1, A2, A3 in a top row, each labelled with weight one third, and three grey boxes B1, B2, B3 below, each with weight zero. A solid arrow of weight one goes from each A down to the B of the same type. Dashed arrows of weight one half go from each B up to the two other A boxes.
-\begin{tikzpicture}[every node/.append style={text width=1.6cm}]
-\node[keybox] (A1) at (0,1.8) {$A_1$\\ $1/3$};
-\node[keybox] (A2) at (3.2,1.8) {$A_2$\\ $1/3$};
-\node[keybox] (A3) at (6.4,1.8) {$A_3$\\ $1/3$};
-\node[dimbox] (B1) at (0,-1) {$B_1$\\ $0$};
-\node[dimbox] (B2) at (3.2,-1) {$B_2$\\ $0$};
-\node[dimbox] (B3) at (6.4,-1) {$B_3$\\ $0$};
-\draw[edge] (A1) -- node[elabel, left] {1} (B1);
-\draw[edge] (A2) -- node[elabel, left] {1} (B2);
-\draw[edge] (A3) -- node[elabel, right] {1} (B3);
-\draw[dashededge] (B1) -- node[elabel, pos=0.25] {1/2} (A2);
-\draw[dashededge] (B2) -- node[elabel, pos=0.25] {1/2} (A1);
-\draw[dashededge] (B2) -- node[elabel, pos=0.25] {1/2} (A3);
-\draw[dashededge] (B3) -- node[elabel, pos=0.25] {1/2} (A2);
-\draw[dashededge] (B1) to[bend right=12] node[elabel, pos=0.15] {1/2} (A3);
-\draw[dashededge] (B3) to[bend left=12] node[elabel, pos=0.15] {1/2} (A1);
-\end{tikzpicture}
-```
+![](03-1-feature-selection_files/mediabag/fig-fs-posthoc-graph.svg)
+
+Figure 11: “Within-gene graph for J=3 types. Enrichment hypotheses A_j
+(blue, initial weight 1/3) pass their weight to the unique-superiority
+hypothesis B_j of the same type (weight 1, a fixed sequence); each B_j
+passes its weight to the two other enrichment hypotheses (weight 1/2).
+The graph is tested at the stage-wise level \\alpha_I of
+[Equation 50](#eq-fs-alpha-stage).”
+
+**Two-sided variant.** A\_{gj} and B\_{gj} look for genes *above* the
+other types only; a type marked by the loss of a gene is missed. The
+two-sided hypotheses keep the same contrasts:
+
+A^{(2)}\_{gj}:\\ \Delta\_{gj}\neq0, \qquad B^{(2)}\_{gj}:\\
+\operatorname{sign}(\eta\_{gj}-\eta\_{gk})=\operatorname{sign}(\Delta\_{gj})\neq0\\
+\\ \forall k\neq j , \tag{51}
+
+that is, type j is above every other type or below every other type.
+p^{A(2)}\_{gj} is the two-sided p-value of the contrast;
+p^{B(2)}\_{gj}=\max\_{k\neq j}p^{(2)}\_{gjk} over the two-sided pairwise
+p-values, set to 1 when a pairwise estimate has the other sign. Since
+\Delta\_{gj} is the mean of the J-1 differences, B^{(2)}\_{gj} implies
+A^{(2)}\_{gj} with the same sign, so the graph of
+[Figure 11](#fig-fs-posthoc-graph) and the level \alpha_I carry over
+unchanged; the sign of a rejected two-sided hypothesis is read from the
+estimate. No fold-change threshold enters the tests (\delta=0, so the
+omnibus screen stays valid); a threshold such as
+\|\log_2\mathrm{FC}\|\ge1 is applied afterwards to report a panel and is
+drawn on the volcano plots only. For the permutation family,
+\|t^{\*}\|\ge\|t\| is counted on the same label permutations as the
+one-sided test.
 
 **Scope of the guarantee.** Cells of one specimen are not independent
 biological replicates; the tests generalise to new cells of that
@@ -2835,7 +2843,130 @@ there.
 
 Table 7: Post hoc strategies considered and dropped.
 
-### 8.2 Concentration results in MEAD and DECALS
+### 8.2 Classifier-based marker selection: choices
+
+The marginal two-stage selection (omnibus gate, then the post hoc
+contrasts of [Section 8.1](#sec-fs-deg-posthoc)) asks whether each gene,
+on its own, differs between types. Sparse classifiers ask a joint
+question: which set of genes predicts the type. The two are compared on
+the same slots in the reproducibility book; this section states why each
+classifier was chosen and what was left out. The comparison is about the
+genes selected, not about DE discoveries: a gene can differ between
+types and be redundant for prediction.
+
+> **Note 6: Counts are predictors, the type is the outcome**
+>
+> In a classifier the response is the categorical type and the counts
+> are predictors, so the likelihood is multinomial, not negative
+> binomial; the count model belongs to the normalisation step
+> (\log(1+x/s) or Pearson residuals), fitted on training cells only.
+> PLN-LDA is the exception that models the counts themselves: a Poisson
+> log-normal law per type, with the library size as an explicit offset,
+> and Bayes’ rule for the type ([Chiquet et al.
+> 2021](#ref-chiquetPoissonLognormalModelVersatile2021)) TODO-cite:
+> PLN-LDA, Chiquet, Mariadassou & Robin, PLNmodels vignette “PLNLDA”;
+> page to check.
+
+> **Note 7: Multinomial elastic net: ungrouped, symmetric, no p-values**
+>
+> `glmnet` fits P(Y=k\mid x)\propto\exp(\beta\_{0k}+x^\top\beta_k) with
+> the penalty \lambda\\\alpha\\\beta\\\_1+(1-\alpha)\\\beta\\\_2^2/2\\
+> TODO-cite: Friedman, Hastie & Tibshirani 2010, J. Stat. Softw. 33(1),
+> key glmnet2010; page to check. `type.multinomial = "ungrouped"` gives
+> each type its own sparse coefficient vector (type-specific markers);
+> `"grouped"` keeps or drops a gene in all K equations at once.
+> “Grouped” groups the K coefficients of one gene, not co-expressed
+> genes. The parameterisation is symmetric (no reference type), so only
+> differences \beta_k-\beta\_\ell have a log-odds meaning. Penalised
+> coefficients have no valid naive standard errors; the classifier is
+> judged on held-out prediction and selection stability, and formal
+> inference stays with the post hoc contrasts.
+
+> **Note 8: Sparse-group lasso on co-expression modules**
+>
+> `msgl` adds a group penalty
+> (1-\alpha)\sum_m\gamma_m\\\beta\_{G_m}\\\_2 to the lasso term, so
+> whole modules enter or leave while genes inside a selected module can
+> still be zero TODO-cite: Vincent & Hansen 2014, Sparse group lasso and
+> high dimensional multinomial classification, Comput. Stat. Data Anal.
+> 71:771-786, doi:10.1016/j.csda.2013.06.004; page to check. Groups
+> cannot overlap, so each gene belongs to one module (Ward clustering of
+> 1-\|r\| on training cells). Overlapping groups (`grpregOverlap`) and
+> `gglasso`, `SGL`, `grpreg` are not multinomial; `grpnet` (group
+> elastic net) is left for later.
+>
+> `msgl` has no slot for external covariates: its design matrix holds
+> the penalised features only. A cell line could enter only as an extra
+> group with zero penalty weight, a workaround rather than a covariate
+> in the model, so `msgl` is not used for the cell-line sensitivity. Its
+> cost also grows quickly with the number of cells: with 2,000 genes, a
+> 48 h fold of about 8,700 cells took 38.6 h in the reproducibility
+> book.
+
+> **Note 9: Trees predict well; their importances are fragile**
+>
+> Random forests and boosted trees capture interactions and non-linear
+> effects without a link function TODO-cite: Breiman 2001, Random
+> forests, Mach. Learn. 45:5-32, doi:10.1023/A:1010933404324; page to
+> check TODO-cite: Chen & Guestrin 2016, XGBoost, KDD,
+> doi:10.1145/2939672.2939785; page to check. Impurity importance is
+> biased towards variables with many split points, and permutation
+> importance spreads over correlated genes TODO-cite: Strobl,
+> Boulesteix, Zeileis & Hothorn 2007, BMC Bioinformatics 8:25,
+> doi:10.1186/1471-2105-8-25; page to check. They are used first as
+> predictive comparators; their gene lists are read through stability
+> across resamples, not as independent effects.
+>
+> With strongly unbalanced types, class weights may not stop a forest
+> from predicting the majority type everywhere. A balanced random forest
+> bootstraps the same number of cells from every type for each tree
+> TODO-cite: Chen, Liaw & Breiman 2004, Using random forest to learn
+> imbalanced data, Tech. Rep. 666, Dept. Statistics, UC Berkeley; page
+> to check: each tree sees few cells, but every type in equal shares.
+
+> **Warning 3: Why not time splines**
+>
+> Spline models of time-course omics (linear mixed-model splines, and
+> the time-series extensions of sPLS-DA built on them) assume repeated
+> measures of the same subject over time TODO-cite: Straube et al. 2015,
+> A linear mixed model spline framework for analysing time course
+> ‘omics’ data, PLoS ONE 10(8):e0134540,
+> doi:10.1371/journal.pone.0134540; page to check. Single-cell
+> sequencing destroys the cell: a cell seen at 48 h is not the cell seen
+> at 72 h, and no individual trajectory is observed. Claims can only be
+> about populations at each time, so each time point is analysed on its
+> own, and temporal generalisation, if wanted, is tested by holding out
+> a time, not by a smooth within-cell curve.
+
+> **Warning 4: Why not MINT sPLS-DA**
+>
+> MINT integrates independent studies that measure the same features and
+> the same outcome categories, with study-specific shifts TODO-cite:
+> Rohart et al. 2017, MINT, BMC Bioinformatics 18:128,
+> doi:10.1186/s12859-017-1553-8; page to check. The two cell lines of
+> the Suppinger reference are not such studies: they are confounded with
+> time (one line at 72 h, the other at 96 h) and, at 48 h, with the type
+> mix (one type is sampled in one line only), so a study-specific
+> centring would remove type signal. `multilevel` designs fail for the
+> same reason: destructive sampling gives no repeated cell.
+
+> **Note 10: Cell line at 48 h: covariate or ComBat**
+>
+> Two corrections are compared with the uncorrected fit. An unpenalised
+> cell-line covariate keeps the correction inside the model and is
+> estimated on training cells only; it applies to methods whose design
+> admits one (penalty factor 0 in `glmnet`, a fixed effect in PLN-LDA, a
+> plain predictor for trees and sPLS-DA). The highly variable genes are
+> chosen once per time point on the unadjusted counts of all cells,
+> without the cell line, so the three fits share one gene list.
+> ComBat-seq adjusts the counts with an NB model per gene and batch
+> TODO-cite: Zhang, Parmigiani & Johnson 2020, ComBat-seq, NAR Genom.
+> Bioinform. 2(3):lqaa078, doi:10.1093/nargab/lqaa078; page to check;
+> run without the type labels, it uses no outcome, but where a type is
+> sampled in one line only it removes type signal with the batch. Giving
+> the labels to ComBat-seq would leak the outcome into the predictors.
+
+### 8.3 Concentration results in MEAD and DECALS
 
 **MEAD.** MEAD’s asymptotics are of another kind than those of
 [Section 4.2.1](#sec-fs-five-bounds). Its central limit theorem runs
@@ -2927,7 +3058,7 @@ to be checked.
 > \mathbb{P}\Bigl(\sum\_{g\in M}Y_g\ge t\Bigr) \le
 > \bar\chi_G\exp\Bigl\[-\gamma\min\Bigl\\\frac{t^{2}}{\bar\chi_G^{2}\sum\_{g}\lVert
 > Y_g\rVert\_{\psi_1}^{2}},\\ \frac{t}{\bar\chi_G\max_g\lVert
-> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{51}
+> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{52}
 >
 > With no edge, d\_{\max}=0, \lvert\mathcal{E}\rvert=0 and \bar\chi_G=1:
 > the one-sided form of [Equation 16](#eq-fs-bernstein) (our remark). A
@@ -2988,6 +3119,11 @@ Chen, Zeyuan Johnson, Elior Rahmani, and Eran Halperin. 2025. ‘Unico: A
 Unified Model for Cell-Type Resolution Genomics from Heterogeneous Omics
 Data’. *Genome Biology* 26 (1).
 <https://doi.org/10.1186/s13059-025-03776-3>.
+
+Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2021. ‘The
+Poisson-Lognormal Model as a Versatile Framework for the Joint Analysis
+of Species Abundances’. *Frontiers in Ecology and Evolution* 9.
+<https://doi.org/10.3389/fevo.2021.588292>.
 
 Chu, Tinyi, Zhong Wang, Dana Pe’er, and Charles G. Danko. 2022. ‘Cell
 Type and Gene Expression Deconvolution with BayesPrism Enables Bayesian
