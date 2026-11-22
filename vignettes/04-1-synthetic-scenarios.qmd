@@ -1286,6 +1286,8 @@ Elliptical (Student) bulk would only rescale these terms
   contrast $\mathbf{e}_j-\mathbf{e}_k$ that maximises it.
 :::
 
+[TODO (reply to Elias, 2026-11-20): make $f_{\mathrm{cov}}$ an explicit design factor at fixed `BarOmega` (vary $n_i$ and the scale of $\boldsymbol\Sigma_B$), extend `.information_blocks()` to the single-cell law, and compare four nested estimators: mean only, diagonal GLS, dense GLS quasi-score, DeCovarT.]{.highlight}
+
 ::: {#nte-desc-network .callout-note}
 ## Network sparsity
 
@@ -2315,21 +2317,6 @@ is the package counterpart of that editorial checklist.
 | Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
 
 : Nature Methods reporting items covered by the simulation API. {#tbl-nmeth}
-
-## NeurIPS code completeness {#sec-neurips}
-
-The [ML Code Completeness Checklist](https://github.com/paperswithcode/releasing-research-code)
-used at NeurIPS is five items.
-
-| Checklist item | Where it lives |
-|:--|:--|
-| Specification of dependencies | `DESCRIPTION` (Imports / Suggests with versions) |
-| Fitting (“training”) code | `fit_decovart()`, `deconvolute_ratios()` |
-| Evaluation code | `compute_benchmark_metrics()`, `run_simulation_benchmark()` |
-| Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
-| README table of results plus commands | README / vignette chunks (this article; [§2.2](R1-bivariate-toy.html), [§2.3](R2-covariance-driven.html)) |
-
-: NeurIPS / Papers with Code completeness mapped onto the package. {#tbl-neurips}
 
 ## rOpenSci statistical standards {#sec-srr}
 

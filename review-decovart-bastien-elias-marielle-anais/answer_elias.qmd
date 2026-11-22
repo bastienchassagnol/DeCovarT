@@ -1,0 +1,800 @@
+---
+title: "`DeCovarT` : réponses aux remarques d'Elias"
+subtitle: "Sélection de gènes, régularisation, modèle génératif et plan de simulations"
+author: "Bastien Chassagnol"
+date: 2026-11-20
+lang: fr
+bibliography: references.bib
+link-citations: true
+number-sections: true
+crossref:
+  eq-prefix: "équation"
+  sec-prefix: "section"
+  tbl-prefix: "tableau"
+  tbl-title: "Tableau"
+extensions:
+  highlight-text:
+    styles:
+      elias:  {colour: "#1d4e89"}
+      accord: {colour: "#2e7d32"}
+      nuance: {colour: "#c45c26"}
+filters:
+  - highlight-text
+format:
+  pdf:
+    pdf-engine: lualatex
+    documentclass: article
+    papersize: a4
+    geometry: margin=2.3cm
+    fontsize: 11pt
+    colorlinks: true
+    toc: true
+    toc-depth: 1
+    include-in-header:
+      text: |
+        % LuaLaTeX loads unicode-math: bold italic symbols, Latin and Greek
+        \AtBeginDocument{\renewcommand{\boldsymbol}[1]{\symbfit{#1}}}
+---
+
+**Code couleur.** [Remarque d'Elias]{.elias} ·
+[Je suis d'accord, ou je reprends son idée]{.accord} ·
+[Je nuance, je corrige mon brouillon, ou c'est à compléter]{.nuance}.
+
+
+Codes GitHub en support:
+
+  - Le package `DeCovarT` ([site `DeCovarT`](https://bastienchassagnol.github.io/DeCovarT/)) pour la théorie et les fonctions centrales pour executer les methdoes d'ifnérence.
+  - Le répertoire GitHub dédié à la reproductibilité et au chargement des figues sur des cas d'applications réelles (donc non synthétiques), `DeCovarT_reproducibility`](https://bastienchassagnol.github.io/DeCovarT_reproducibility/)
+
+
+# Sélection de gènes : les gènes nuls dans un type {#sec-genes}
+
+::: {.elias}
+Les gènes nuls dans un type sont souvent les meilleurs marqueurs, non ? Donc je
+reverrais la *presence gate*.
+:::
+
+::: {.accord}
+Pour la **prédiction**, oui : un gène exprimé dans un seul type porte beaucoup
+d'information sur la proportion de ce type, et c'est pour cela que CIBERSORT ou
+les méthodes à marqueurs les recherchent.
+:::
+
+::: {.nuance}
+Pour un **modèle de vraisemblance jointe**, trois raisons font que je garde la
+porte de présence.
+
+**1. Identifiabilité en présence d'un facteur de plateforme par gène.** Dans le
+modèle de MEAD, $\boldsymbol{Y}_{\cdot i}=\gamma_i\boldsymbol{\Lambda}\boldsymbol{U}\boldsymbol{p}_{\cdot i}$,
+avec $\boldsymbol{\Lambda}=\operatorname{diag}(\lambda_g)$ des rapports
+d'échelle propres à chaque gène entre plateformes. Le théorème 1 de
+@xieStatisticalInferenceCell2026 [p. 7] demande que $\boldsymbol{U}$ soit de
+rang plein et qu'aucune partition des gènes ne sépare le signal. Leur
+contre-exemple : si tous les gènes sont des marqueurs parfaits
+($u_{gk}>0$ pour $g\in I_k$, $u_{gk'}=0$ sinon), alors pour tout
+$\boldsymbol{\delta}>0$,
+
+:::
+
+$$
+\tilde\lambda_g=\frac{\lambda_g}{\delta_k}\ (g\in I_k),\qquad
+\tilde p_{ik}=\frac{\delta_kp_{ik}}{\sum_l\delta_lp_{il}},\qquad
+\tilde\gamma_i=\gamma_i\sum_l\delta_lp_{il}
+\quad\Longrightarrow\quad
+\tilde\gamma_i\tilde{\boldsymbol{\Lambda}}\boldsymbol{U}\tilde{\boldsymbol{p}}_{\cdot i}
+=\gamma_i\boldsymbol{\Lambda}\boldsymbol{U}\boldsymbol{p}_{\cdot i},
+$$ {#eq-mead-counter}
+
+::: {.nuance}
+
+<!-- chk: V47d -->
+donc $\boldsymbol{p}$ n'est pas identifiable (vérifié, V47d). Précision par
+rapport à mon brouillon : le modèle de base de `DeCovarT` n'a pas de
+$\lambda_g$ libre (une seule échelle $c_i$), donc @eq-mead-counter ne s'applique
+pas tel quel. Il s'applique dès qu'on ajoute le facteur de plateforme par gène
+$\tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}}$
+([vignette 5.1, mesure de Poisson](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-poisson-measurement)),
+c'est-à-dire le biais multiplicatif par gène qu'Elias propose de simuler
+(@sec-simulations).
+
+**2. Variance nulle.** La porte
+([vignette 3.1, presence gate](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-presence))
+impose $\min_j n_{gj}\ge 2$ et $\min_j v_{gj}>0$. Un gène nul dans toutes les
+cellules du type $j$ fait de la loi de ce type une masse ponctuelle : la
+vraisemblance gaussienne du type est non bornée et la covariance empirique
+$\boldsymbol{V}_j$ est singulière. Je corrige mon brouillon : le mélange
+$\boldsymbol{S}_W(\boldsymbol{p})=\sum_jp_j\boldsymbol{\Sigma}_{W,j}$ reste,
+lui, défini positif à l'intérieur du simplexe, et ne devient singulier que sur
+la face où tous les types qui expriment ce gène sont absents (V47e, cas
+$G=2$ : $\det\boldsymbol{S}_W(p)=(1-p)\{pbs+(1-p)(bd-r^2)\}$).
+<!-- chk: V47e -->
+Le problème concerne donc l'estimation par type (validation croisée, cible de
+*shrinkage* qui exige $V_{gg}>0$), pas la vraisemblance du bulk. La porte est
+nécessaire, pas suffisante : elle ne rend ni $\boldsymbol{V}_j$ inversible
+($\operatorname{rank}\boldsymbol{V}_j\le\min(C_j-1,G)$), ni $\boldsymbol{p}$
+identifiable.
+
+**3. Une alternative à l'exclusion.** Plutôt que d'exclure un gène jamais
+observé dans un type, on peut lui donner une expression résiduelle. Pour $0$
+compte sur une exposition totale $L$ (somme des tailles de librairie des
+cellules du type) et un a priori $\mathrm{Gamma}(\alpha,\beta)$ sur le taux de
+Poisson,
+
+:::
+
+$$
+\mathbb{E}(\lambda_{gj}\mid 0\text{ compte})=\frac{\alpha}{\beta+L}
+=\begin{cases}1/L & \text{a priori plat }(\alpha=1,\beta\to0),\\
+1/(2L) & \text{a priori de Jeffreys }(\alpha=1/2).\end{cases}
+$$ {#eq-pseudocount}
+
+::: {.nuance}
+
+<!-- chk: V47f -->
+Ma proposition « $1/(\text{taille de librairie}\times n_{\text{cellules}})$ »
+est donc la moyenne a posteriori sous l'a priori plat (V47f) ; Jeffreys donne
+la moitié. Cela fixe une moyenne, mais la variance par type resterait un choix
+de modélisation (bayésien), d'où la porte en attendant.
+:::
+
+# Seuils de régularisation et courbes de *recall* {#sec-seuils}
+
+::: {.elias}
+Tracer les courbes $\mathrm{recall}_k$ en fonction du nombre de gènes, en
+superposant type par type les seuils $G+1$ (existence de la covariance
+empirique) et $d^2\log G$ (récupération du support). Les types rares devraient
+atteindre ces seuils en premier, et c'est là qu'on devrait voir l'effet de la
+méthode.
+:::
+
+::: {.accord}
+**Le seuil $G+1$ : oui.** Je l'ajoute sur les figures. La
+[vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-regimes)
+distingue trois couches : (1) une estimation régularisée existe dès $C_j\ge2$
+(graphical lasso, *shrinkage*) ; (2) l'estimateur du maximum de vraisemblance
+non contraint existe si et seulement si $C_j\ge G+1$, et même alors la
+précision empirique est biaisée,
+$\mathbb{E}(\boldsymbol{V}_j^{-1})=\frac{C_j}{C_j-G-2}\boldsymbol{\Omega}_j$
+([éq. inverse-Wishart](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#eq-inverse-wishart-bias)) ;
+(3) le support n'est récupéré que si
+$C_j\gtrsim d^2\log G$ [@ravikumarHighdimensionalCovarianceEstimation2011],
+ou $d\log G$ pour la sélection de voisinage
+[@meinshausenHighdimensionalGraphsVariable2006].
+:::
+
+::: {.nuance}
+**Le seuil $d^2\log G$ : peu utile ici.** L'objectif n'est plus un réseau mais
+une covariance régularisée par type, branchée dans la vraisemblance. Le
+*plug-in* n'a besoin que de la couche 1 ; la couche 3 ne sert qu'à lire les
+zéros biologiquement. Ce seuil est en outre invérifiable en pratique (quel
+degré maximal $d$ ? l'irreprésentabilité n'est jamais testable sur données
+réelles, comme on l'a discuté avec Julien Chiquet). À titre indicatif, pour
+$G=1\,417$ et $d=10$, $d^2\log G\approx726$ et $d\log G\approx73$.
+
+**Le *recall* n'est pas la bonne mesure.** L'estimateur retenu est le
+*shrinkage* linéaire de @schäferShrinkageApproachLargescale2005, cible D,
+qui garde les variances et contracte les corrélations
+([vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-shrinkage)) :
+
+:::
+
+$$
+\hat\Sigma_{gg}=V_{gg},\qquad
+\hat\Sigma_{gg'}=(1-\lambda)\,R_{j,gg'}\sqrt{V_{gg}V_{g'g'}} .
+$$ {#eq-shrink}
+
+::: {.nuance}
+
+Aucune corrélation n'est mise à zéro
+([livre, lecture du *shrinkage*](https://bastienchassagnol.github.io/DeCovarT_reproducibility/03-covariance-estimation.html#sec-cov-shrinkage-reading)),
+donc il n'y a pas d'arête présente ou absente à compter. Et une entrée de
+covariance agrège toutes les dépendances, directes ou relayées par d'autres
+gènes : elle ne se lit pas comme une arête.
+:::
+
+::: {.nuance}
+**Ce qu'on observe sur les types rares.** Le niveau choisi sur cellules
+retenues (@tbl-lambda) croît quand le nombre de cellules décroît, comme Elias
+l'anticipe. Le livre le lit par le **nombre de cellules**. Mon brouillon le
+lisait par la **potence** des lignées ; les deux sont confondus ici, puisque
+les types rares sont justement les états pluripotents (pluripotence naïve,
+pluripotence ectopique). Les données ne permettent pas de trancher.
+
+| Temps | Type | $\lambda$ | Cellules |
+|:--|:--|--:|--:|
+| 48 h | Épiblaste | 0,47 | 10 590 |
+| 48 h | Sortie de pluripotence naïve | 0,90 | 265 |
+| 48 h | Pluripotence naïve | 0,94 | 36 |
+| 72 h | Ligne primitive | 0,84 | 4 279 |
+| 72 h | Pluripotence naïve | 0,94 | 66 |
+| 96 h | Mésoderme présomitique | 0,84 | 3 589 |
+| 96 h | Mésoderme caudal | 0,90 | 1 061 |
+| 96 h | Intestin | 0,94 | 140 |
+| 96 h | Front de différenciation des somites | 0,97 | 29 |
+
+: Niveau de *shrinkage* choisi par validation croisée sur cellules retenues,
+panel Welch (extrait du [livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/03-covariance-estimation.html#sec-cov-results-discussion)). {#tbl-lambda}
+
+**Correction sur les lignées.** Les deux lignées single-cell sont **B-S**
+(Bra-mCherry/Sox2-Venus) et **SBR** (Sox1-GFP/Bra-mCherry) : 72 h ne vient que
+de SBR, 96 h que de B-S, et 48 h est la seule date profilée dans les deux
+([livre, plan hiérarchique](https://bastienchassagnol.github.io/DeCovarT_reproducibility/01-data-suppinger.html#sec-geo-design)).
+Mon hypothèse « le bulk vient de la même lignée qu'une des deux » est fausse :
+les bulks sont faits à partir de cellules souches **Embryomax 129sv/ev**, trois
+lots indépendants de 96 gastruloïdes par condition
+[@suppingerMultimodalCharacterizationMurine2023, p. 25]. Il y a donc bien un
+effet « lignée » entre référence et bulk, l'analogue le plus proche de l'effet
+donneur d'Elias (@sec-design).
+:::
+
+::: {.accord}
+**Trois façons de choisir $\lambda$**, testées dans le livre :
+
+1. **Validation croisée emboîtée sur les cellules** (imparfaite : les cellules
+   d'un seul spécimen ne sont pas des réplicats indépendants). Toutes les
+   règles battent la diagonale dans 66 cellules unité × règle sur 66, et la
+   règle « 1 erreur-type » ne choisit la diagonale pour aucune unité
+   ([livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/03-covariance-estimation.html#sec-cov-nested-results)).
+   Le niveau commun vaut 0,88 à 48 h, 0,94 à 72 h et 0,91 à 96 h.
+2. **Pseudo-bulks** de 500 cellules (découpage 80/20) : la vraisemblance
+   choisit 0,9 à 72 et 96 h, et 0,5 et 0,625 une fois le rapport par gène
+   corrigé ([livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-deconvolution-pipeline.html#sec-deconv-selection)).
+   Le niveau répond donc au désaccord bulk–référence, pas seulement à l'erreur
+   d'échantillonnage de la référence.
+3. **Vraisemblance des vrais bulks**, avec $c_i$ et $\phi_i$ estimés
+   conjointement et sans jamais donner la vraie composition :
+
+:::
+
+$$
+\hat\lambda=\arg\max_{\lambda}\sum_{i}\max_{\boldsymbol{p}_{\cdot i}}
+\Bigl\{-\tfrac{G}{2}\log\hat\phi_i(\boldsymbol{p}_{\cdot i})
+-\tfrac12\log\det\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i};\lambda)\Bigr\}
+$$ {#eq-bulk-selection}
+
+::: {.accord}
+
+([vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-bulk-selection)).
+C'est le choix par défaut : 0,1 à 48 h, 0,5 à 72 et 96 h sur le panel Welch,
+et à 96 h une RMSE de 0,034 contre 0,098 avec les niveaux choisis sur les
+cellules. Les cellules choisissent 0,66 à 0,94, le bulk 0,10 à 0,50 : le bulk
+demande beaucoup moins de régularisation que les cellules, sans jamais aller
+jusqu'à la diagonale.
+:::
+
+# Vraisemblance ou critère pénalisé ? {#sec-criteres}
+
+::: {.nuance}
+**Question ouverte.** Choisir $\lambda$ par @eq-bulk-selection maximise la
+vraisemblance seule. On peut l'objecter : `RNA-Sieve` et `ReDeconv` se lisent
+comme des modèles emboîtés plus parcimonieux que `DeCovarT` (covariance
+diagonale, une seule source de variabilité technique), et ajouter des
+paramètres augmente toujours la vraisemblance. Faut-il un AIC ou un BIC ?
+
+La [vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-other-criteria)
+écarte déjà l'EBIC [@foygelExtendedBayesianInformation2010] : il compte
+$|E|+G$ paramètres, classe des ajustements creux mais pas des intensités de
+*shrinkage*. Quatre arguments théoriques me semblent répondre au reste ; je
+les donne comme arguments, pas comme résultats.
+
+1. **Ce qui est ajusté sur le bulk.** La covariance est un *plug-in* estimé
+   sur les cellules de référence. Sur le bulk, on n'ajuste que $J-1$
+   proportions et $(c_i,\phi_i)$, autant pour `DeCovarT` que pour une
+   covariance diagonale ou une moyenne seule. Les pénalités AIC/BIC sont donc
+   les mêmes d'un bras à l'autre et s'annulent. L'objection « plus de
+   paramètres, plus de vraisemblance » vise les paramètres estimés sur les
+   mêmes données, pas ceux tirés de la référence. La vraisemblance du bulk est
+   même hors échantillon pour la covariance (cellules → bulk). Comparer les
+   densités d'un même $\boldsymbol{y}$ sous différents *plug-in* est légitime
+   tant que la constante de normalisation ($\log\det$) est gardée, ce que fait
+   @eq-bulk-selection.
+2. **Le seul paramètre ajusté sur le bulk est $\lambda$**, un par date : un
+   coût AIC de 1, négligeable devant des écarts de vraisemblance d'ordre $G$.
+   Mais ce choix n'est pas hors échantillon. La correction propre est un
+   *leave-one-bulk-out* sur $\lambda$, ou la correction de Takeuchi
+   $\operatorname{tr}(\boldsymbol{J}^{-1}\boldsymbol{K})$, valable pour un
+   modèle mal spécifié ou pénalisé, que la
+   [vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#eq-uacv)
+   retrouve dans la validation croisée approchée universelle. AIC et BIC
+   supposent le maximum de vraisemblance d'un modèle correct ; ni l'un ni
+   l'autre n'est vrai ici.
+3. **Entre bras non emboîtés** (covariance pleine *vs* diagonale), comparer
+   les log-vraisemblances par échantillon avec un test apparié de type Vuong,
+   l'unité étant l'échantillon bulk et non le gène (les gènes ne sont pas
+   indépendants). Avec trois réplicats par date, la puissance est faible.
+4. **Entre bras réellement emboîtés**, quand un paramètre de covariance est
+   ajusté sur le bulk (une couche $\boldsymbol{\Sigma}_B$ libre, un bruit
+   résiduel $\boldsymbol{D}_i$), le test du rapport de vraisemblance avec la
+   calibration $\bar\chi^2$ des composantes de variance au bord
+   [@selfAsymptoticPropertiesMaximum1987;
+   [vignette 2.2](https://bastienchassagnol.github.io/DeCovarT/articles/02-2-single-cell-inference.html#sec-sc-tests)].
+
+En résumé : la vraisemblance classe les niveaux d'un bras, pas les bras entre
+eux (vignette 3.2). Pour comparer les méthodes, il faut des compositions
+connues (pseudo-bulks, simulations) ou des bulks tenus à l'écart. Elias,
+est-ce que cette lecture te convient ?
+:::
+
+# Ce que le modèle apporte {#sec-forces}
+
+::: {.elias}
+Le cadrage en erreurs sur les variables et l'échelle des modèles de bruit ;
+privilégier une covariance robuste plutôt que la précision ; un modèle
+multivarié apporte surtout une incertitude bien calibrée ; la séparation entre
+$a_i$, $n_i$ et $S_j$ ; la distinction entre existence et identifiabilité.
+:::
+
+::: {.accord}
+**Échelle des modèles de bruit.** Toutes les méthodes ajustent un modèle à
+erreurs sur les variables dont le régresseur est la référence
+([vignette 5.1, *errors in variables*](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-eiv)).
+L'[échelle à sept échelons](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-ladder)
+place MuSiC à l'échelon 2 (moindres carrés pondérés, diagonale), `DeCovarT`
+single-cell à l'échelon 4 (covariance pleine, linéaire en $\boldsymbol{p}$) et
+`DeCovarT` populationnel à l'échelon 5 (quadratique en $\boldsymbol{p}$).
+
+**Covariance plutôt que précision.** Trois raisons
+([vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#nte-cov-why)) :
+une entrée de précision dépend de tout le panel (marginaliser des régulateurs
+latents la rend « creuse plus rang faible ») ; les mélanges
+$\sum_jp_j\boldsymbol{\Sigma}_{W,j}$ ont des inverses denses même si chaque
+$\boldsymbol{\Omega}_j$ est creuse ; et la question est de savoir quel objet
+porte l'hypothèse structurelle. Si j'ai le temps, je compare tout de même au
+graphical lasso [@friedmanSparseInverseCovariance2008] et à `PLNnetwork`
+[@chiquetVariationalInferenceSparse2018], dont le modèle de Poisson
+log-normal colle mieux à la nature multiplicative des comptages.
+:::
+
+::: {.nuance}
+**Les précisions presque diagonales.** Mon brouillon disait que pour la
+plupart des types on ne capturait que la diagonale de la précision. La
+[vignette 3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-grn-screening)
+montre que c'est un **seuil de détection**, pas une absence estimée : le
+graphical lasso sur $\boldsymbol{R}_j$ rend une précision diagonale dès que
+$\max_{g\neq g'}|R_{j,gg'}|\le\lambda$, et la plus grande corrélation nulle
+vaut environ $\sqrt{4\log G/C_j}$ (0,35 pour $G=500$, $C_j=200$). Une
+précision diagonale dit seulement qu'aucune corrélation partielle n'est grande
+devant $\sqrt{\log G/C_j}$. Le *shrinkage* évite ce seuil.
+:::
+
+::: {.accord}
+**Facteurs techniques et biologiques.** Le modèle de mesure (Poisson sur une
+expression latente, facteurs de taille biologique et technique, terme de bruit
+extrinsèque) est dans la
+[vignette 5.1](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-measurement),
+d'après @sarkarSeparatingMeasurementExpression2021 et
+@fangExtrinsicBiologicalStochasticity2025. Le facteur de taille biologique
+fait partie du bulk et doit rester ; la part technique ne s'en sépare qu'avec
+des contrôles externes (*spike-ins*, ARN ambiant, ARN poolé). Le modèle
+finalement retenu
+([vignette 2.1, échelle globale](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-av-scale))
+est
+
+:::
+
+$$
+\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}
+\sim\mathcal{N}_G\bigl(c_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\;
+\phi_i\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})\bigr),
+\qquad c_i=a_in_i,\quad\phi_i=a_i^{2}n_i,
+$$ {#eq-sc-model}
+
+::: {.accord}
+
+avec $\tilde{\boldsymbol{\mu}}_{\cdot j}=S_j\boldsymbol{\theta}_{\cdot j}$, de
+sorte que $\boldsymbol{p}$ est une fraction de cellules et non de transcrits.
+:::
+
+::: {.nuance}
+**Estimer les nuisances conjointement ou les brancher de l'extérieur.** Mon
+brouillon disait qu'on retrouverait « les mêmes estimations et incertitudes ».
+Les mêmes estimations asymptotiquement, oui, si les facteurs techniques sont
+indépendants de la composition. Pas les mêmes incertitudes : l'information de
+@eq-sc-model a $I_{p_j\phi}=\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})/(2\phi)\neq0$
+et $I_{p_jc}\neq0$, donc les échelles ne sont pas orthogonales à la
+composition [@coxParameterOrthogonalityApproximate1987]. Les estimer élargit
+les intervalles du complément de Schur
+([vignette 2.2](https://bastienchassagnol.github.io/DeCovarT/articles/02-2-single-cell-inference.html#sec-sc-information)) ;
+les brancher de l'extérieur donnerait des intervalles plus étroits, valides
+seulement si l'erreur du *plug-in* est propagée. Les *spike-ins* restent la
+seule mesure absolue du contenu en ARN par cellule.
+:::
+
+::: {.accord}
+**Existence et identifiabilité.** Au niveau populationnel
+($\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^2\boldsymbol{\Sigma}_j$), la
+[vignette 1.2](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-mle-properties)
+établit : identifiabilité dès que $\boldsymbol{\mu}$ est de rang plein, ou que
+les covariances séparent des types de moyennes colinéaires (seules des
+moyennes égales *et* des covariances proportionnelles la cassent) ; existence
+du maximum sur le simplexe compact, éventuellement au bord ; pas d'unicité
+(log-vraisemblance non concave, un contre-exemple explicite) ; consistance et
+normalité asymptotique quand $N$ bulks i.i.d. partagent une composition.
+:::
+
+::: {.nuance}
+**Question ouverte importante : ces propriétés passent-elles au modèle
+single-cell** (@eq-sc-model : mélange de cellules, covariance linéaire en
+$\boldsymbol{p}$, deux échelles libres) ? Mon état des lieux :
+
+- *Existence* : oui, de la même façon. Si chaque $\boldsymbol{\Sigma}_{W,j}$
+  est définie positive, $\boldsymbol{S}_W(\boldsymbol{p})$ l'est sur tout le
+  simplexe fermé (combinaison convexe), et la vraisemblance profilée
+  $-\frac G2\log Q(\boldsymbol{p})-\frac12\log\det\boldsymbol{S}_W(\boldsymbol{p})$
+  est continue tant que $Q>0$, ce qui est presque sûr si $G>J$.
+- *Identifiabilité* : la condition de rang suffit encore (la contrainte du
+  simplexe fixe $c$). Sans elle, il faut que $\boldsymbol{S}_W(\boldsymbol{p})$
+  sépare les types **à une échelle près**, puisque $\phi$ est libre : des
+  covariances proportionnelles suffisent alors à casser l'identifiabilité.
+- *Asymptotique* : un seul échantillon, donc pas de limite en $N$. La
+  [vignette 1.2](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-regularity)
+  invoque la limite de petite dispersion en $n_i$
+  [@jørgensenSmallDispersionAsymptotics1987], dont les conditions recoupent
+  les nôtres, avec une réserve écrite : le terme $\log\det$ n'est pas
+  multiplié par $n_i$, ce n'est donc pas exactement un modèle de dispersion,
+  et **la preuve reste à écrire**. @sec-resultats montre que, dans cette
+  limite, le quasi-score devient efficace.
+- *Mélange ou somme* : sommer $m_j=n_ip_j$ cellules fixées donne
+  $\phi\boldsymbol{S}_W(\boldsymbol{p})$, linéaire (V6b) ; tirer $n_i$
+  cellules i.i.d. du mélange ajoute $a^2np(1-p)\boldsymbol{\Delta}\boldsymbol{\Delta}^\top$,
+  quadratique (V6d–e). L'estimande (fraction réalisée ou attendue) change donc
+  la loi.
+  <!-- chk: V6b V6d V6e -->
+- *Unicité* : je m'attends à la même non-concavité, sans l'avoir montré.
+
+C'est le point sur lequel j'aimerais l'avis d'Elias, Marielle et Anaïs.
+:::
+
+# Modèle génératif et plan expérimental {#sec-design}
+
+::: {.elias}
+Comme la méthode vise des gastruloïdes issus d'une même lignée, il est légitime
+de supposer qu'il n'y a pas d'effet donneur au sens génétique. Il faudra bien
+cadrer ce que la méthode fait et ne fait pas par rapport à MuSiC.
+:::
+
+::: {.accord}
+D'accord sur le cadrage. Le plus proche d'un effet donneur serait plusieurs
+réplicats biologiques d'une même lignée, ou plusieurs lignées. On peut reprendre
+l'idée de MuSiC [@wangBulkTissueCell2019] en élargissant le mot « donneur » à
+« réplicat biologique », avec au moins deux niveaux : la lignée, puis la
+variabilité entre gastruloïdes d'une même lignée (plus faible, mais attendue).
+:::
+
+::: {.nuance}
+Deux corrections viennent de la relecture du papier source. D'abord, les bulks
+viennent d'une **troisième lignée** (129sv/ev, @sec-seuils) : il y a donc un
+effet lignée entre référence et bulk, que le modèle actuel n'a pas. Ensuite,
+la référence single-cell est **une seule** ressource 10x issue d'une série de
+spécimens, sans réplicats biologiques. On ne peut donc pas estimer de
+variabilité entre gastruloïdes sur Suppinger.
+
+Le jeu de données de Villaronga-Luque *et al.* (2025, *Cell Stem Cell*,
+[doi:10.1016/j.stem.2025.03.012](https://doi.org/10.1016/j.stem.2025.03.012))
+le permet : des structures individuelles (gastruloïdes et *trunk-like
+structures*) sont marquées par MULTI-seq, 72, 48, 24 et 24 structures aux jours
+2 à 5, soit 21 026 cellules après contrôle qualité (p. 4). On aurait de vrais
+réplicats biologiques, toujours dans une même lignée, une fois mis de côté les
+devenirs neuraux pour ne garder que les structures mésodermiques.
+:::
+
+::: {.elias}
+Tu as pu tester le $n_i$ estimé sur un cas où on connaît le vrai nombre de
+cellules ?
+:::
+
+::: {.accord}
+Seulement en simulation : le nombre de cellules d'un bulk Suppinger n'est pas
+publié (96 gastruloïdes par échantillon, cellules par gastruloïde non
+rapportées ;
+[livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-deconvolution-pipeline.html#sec-deconv-scale-models)).
+Le scénario single-cell
+([R3](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.html#sec-fig05-intervals))
+connaît $n_i\in\{10^3,10^5\}$ et donne des intervalles pour $c$, $\phi$, $a$
+et $n$. En général, on n'aura au mieux qu'un ordre de grandeur, d'après la
+littérature.
+:::
+
+::: {.elias}
+Même sans effet donneur, il peut rester une variance « cachée » entre réplicats
+ou entre lots, et $n_i$ serait alors largement sous-estimé. Dans l'éq. 2, toute
+la variance du bulk vient de l'échantillonnage des cellules ; avec $10^4$ à
+$10^6$ cellules, le bruit relatif est quasi nul. Un modèle « références de
+populations » combiné au modèle single-cell serait
+
+:::
+
+$$
+\operatorname{Cov}(\boldsymbol{y}_i)\approx a_i^2n_i^2\sum_jp_j^2\boldsymbol{\Sigma}_{B,j}
++a_i^2n_i\sum_jp_j\boldsymbol{\Sigma}_{W,j},
+$$ {#eq-elias-two-level}
+
+::: {.elias}
+
+et $n_i$ devient un « nombre effectif ».
+:::
+
+::: {.accord}
+C'est exactement la couche 4 de la
+[vignette 2.1](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-av-replicates),
+$\operatorname{Cov}(\boldsymbol{y}_i)=c_i^2\boldsymbol{S}_B(\boldsymbol{p})+\phi_i\boldsymbol{S}_W(\boldsymbol{p})+\boldsymbol{D}_i$
+avec $\boldsymbol{S}_B(\boldsymbol{p})=\sum_jp_j^2\boldsymbol{\Sigma}_{B,j}$ :
+@eq-elias-two-level est le cas $\boldsymbol{D}_i=0$ avec $c_i=a_in_i$
+(vérifié, V47c). Le bruit relatif sans $\boldsymbol{\Sigma}_B$ décroît bien en
+$n^{-1/2}$. Et si l'on ajuste le modèle à une couche à des données qui en ont
+deux, $\hat n=c^2/\hat\phi\to S_W/S_B$ quand $n\to\infty$ ($G=1$, V47c) : un
+nombre effectif borné, sans rapport avec le vrai nombre de cellules. C'est
+cohérent avec ce qu'on voit à 96 h : $\hat n<1$ cellule
+([livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-deconvolution-pipeline.html#sec-deconv-fixed-results)).
+<!-- chk: V47c -->
+:::
+
+::: {.nuance}
+Il faut au moins $G+1$ réplicats pour une covariance inter-réplicats empirique
+inversible, donc le *shrinkage* devient indispensable, comme le dit Elias. Avec
+une référence à un seul spécimen, $\boldsymbol{\Sigma}_B$ n'est pas estimable ;
+la seule voie est une itération à la `DECALS`
+[@caiStatisticalInferenceCelltype2024] sur les bulks eux-mêmes
+([vignette 1.2, Firth et corrections](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-firth)).
+Le jeu de Villaronga-Luque permettrait de l'estimer à partir de pseudo-bulks
+par structure.
+:::
+
+# Premiers résultats : ce que la covariance apporte {#sec-resultats}
+
+::: {.elias}
+Comme la variance du modèle est très petite pour $n$ grand, le signal porté par
+la covariance elle-même (le terme en trace) est négligeable devant celui des
+moyennes. La covariance ne me semble aider que par la pondération des gènes.
+Ce que je proposais est une version « covariance complète » de MuSiC.
+:::
+
+::: {.accord}
+D'accord, et cela se montre. Pour $\boldsymbol{y}\sim\mathcal{N}(\boldsymbol{m}(\boldsymbol{p}),\boldsymbol{V}(\boldsymbol{p}))$,
+$\boldsymbol{W}=\boldsymbol{V}^{-1}$, $\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{m}$,
+le score se coupe en deux :
+
+:::
+
+$$
+\frac{\partial\ell}{\partial p_j}=
+\underbrace{\partial_j\boldsymbol{m}^\top\boldsymbol{W}\boldsymbol{r}}_{\text{quasi-score GLS}}
++\underbrace{\tfrac12\bigl\{\boldsymbol{r}^\top\boldsymbol{W}\partial_j\boldsymbol{V}\boldsymbol{W}\boldsymbol{r}
+-\operatorname{tr}(\boldsymbol{W}\partial_j\boldsymbol{V})\bigr\}}_{\text{score de covariance}} .
+$$ {#eq-score-split}
+
+::: {.accord}
+
+Les deux termes sont non corrélés, le second est de moyenne nulle, et
+l'information se décompose en
+
+:::
+
+$$
+I_{jk}=\underbrace{\partial_j\boldsymbol{m}^\top\boldsymbol{W}\partial_k\boldsymbol{m}}_{I^{\mathrm{mean}}_{jk}}
++\underbrace{\tfrac12\operatorname{tr}\bigl(\boldsymbol{W}\partial_j\boldsymbol{V}\boldsymbol{W}\partial_k\boldsymbol{V}\bigr)}_{I^{\mathrm{cov}}_{jk}}
+$$ {#eq-fisher-split}
+
+::: {.accord}
+
+(V47a, V23a). L'équation GLS itérée (IRLS, poids recalculés à
+$\boldsymbol{p}$ courant) n'utilise que le premier terme : sa variance
+asymptotique est $(I^{\mathrm{mean}})^{-1}$, celle du maximum de vraisemblance
+$(I^{\mathrm{mean}}+I^{\mathrm{cov}})^{-1}$. Dans @eq-sc-model,
+$\phi=c^2/n$ donne $I^{\mathrm{mean}}\propto n$ alors que $I^{\mathrm{cov}}$ ne
+dépend pas de $n$ : $I^{\mathrm{cov}}/I^{\mathrm{mean}}=O(1/n)$ (V47b). Quand
+$n\to\infty$, `DeCovarT` et un GLS à covariance pleine sont donc équivalents au
+premier ordre. Précision par rapport à mon brouillon : ce n'est pas le
+déterminant seul qui disparaît, mais tout le score de covariance (le
+$\log\det$ et la dépendance en $\boldsymbol{p}$ de la pondération). La
+correspondance avec la régression robuste vient de là : même IRLS, même
+problème dès que la distance de Mahalanobis l'emporte.
+<!-- chk: V47a V47b V23a -->
+
+MuSiC est bien l'échelon 2 de cette échelle : moindres carrés pondérés, poids
+diagonaux recalculés après un premier ajustement
+([vignette 5.1, MuSiC](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-music)) ;
+la version « covariance complète » est le GLS de la
+[vignette 5.3](https://bastienchassagnol.github.io/DeCovarT/articles/05-3-extensions-roadmap.html#sec-robust-gls).
+Les voisins théoriques les plus proches de `DeCovarT` single-cell sont
+`RNA-Sieve` [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021] et `ReDeconv`
+[@luTranscriptomeSizeMatters2025], qui somment aussi des cellules
+indépendantes (variance linéaire en $p_{ji}$) mais gène par gène
+([vignette 5.1, ReDeconv](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-redeconv) ;
+[où se place `DeCovarT`](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-decovart-dag)).
+
+Ce que `DeCovarT` ajoute à MuSiC tient donc en deux points : une
+vraisemblance, donc des intervalles et des tests (rapport de vraisemblance,
+test au bord ;
+[vignette 2.2](https://bastienchassagnol.github.io/DeCovarT/articles/02-2-single-cell-inference.html#sec-sc-tests)),
+et une version multivariée qui change peu l'estimation ponctuelle mais change
+les intervalles. Un test omnibus de changement de composition entre groupes
+d'échantillons, suivi de comparaisons par type, reste une perspective.
+:::
+
+::: {.nuance}
+Trois nuances. (1) Avec une couche $\boldsymbol{\Sigma}_B$
+(@eq-elias-two-level), la part de covariance
+$f_{\mathrm{cov}}=I^{\mathrm{cov}}/(I^{\mathrm{mean}}+I^{\mathrm{cov}})$ ne
+tend **pas** vers zéro : les deux informations restent d'ordre 1 (limite
+$2/11\approx0{,}18$ dans l'exemple de V47c). (2) Sur Suppinger, $\hat n<1$
+cellule à 96 h : le régime ajusté est très loin de $n\to\infty$, et le terme
+de covariance n'y est pas négligeable. (3) Mon brouillon disait qu'une
+approche univariée est trop conservative quand les gènes sont liés par des
+boucles positives. Le signe dépend de la géométrie (V47g) : pour deux gènes de
+corrélation $\rho$, la variance réelle de l'estimateur « indépendant » vaut
+$1+\rho$ fois la variance annoncée si les deux gènes montent ensemble avec le
+type, $1-\rho$ fois s'ils varient en sens opposé. Des marqueurs co-régulés qui
+montent ensemble rendent donc l'intervalle univarié **trop étroit**, pas trop
+large.
+<!-- chk: V47g V25c -->
+:::
+
+::: {.elias}
+Comparer `DeCovarT` non seulement à la moyenne seule, mais aussi à « moyenne
++ diagonale de la covariance ».
+:::
+
+::: {.accord}
+Fait, à deux niveaux. Sur un échantillon à 96 h
+([livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-deconvolution-pipeline.html#tbl-deconv-one-sample)),
+pour une composition observée (0,215 ; 0,727 ; 0,028) en mésoderme caudal,
+présomitique et intestin : moyenne seule (NNLS) 1 ; 0 ; 0, diagonale
+0,408 ; 0,590 ; 0,002, covariance pleine 0,219 ; 0,781 ; 0. Sur le panel
+Welch, la séparation de Mahalanobis entre mésoderme caudal et présomitique
+vaut 3,5 fois la séparation diagonale (mais 0,22 fois sur le panel de 635
+gènes). En faisant varier $\lambda$, la performance s'améliore jusqu'à un
+niveau intermédiaire et n'atteint jamais le plateau $\lambda=1$, qui est la
+diagonale. La stratégie finalement retenue (*shrinkage* brut, échelles
+libres, niveau choisi par @eq-bulk-selection, panel Welch) a une RMSE moyenne
+de 0,033
+([livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-deconvolution-pipeline.html#sec-deconv-strategy-ranking)).
+À 96 h, MEAD (0,048) et `RNA-Sieve` (0,056) sont proches, ce qui est attendu :
+ils diffèrent surtout par une covariance diagonale.
+:::
+
+::: {.nuance}
+Réserve : la RMSE de 0,034 à $\lambda=0{,}5$ n'est pas tout à fait hors
+échantillon, puisque ce niveau n'a pas été fixé à l'avance. Et
+l'expérience réelle ne compte que trois réplicats par date.
+:::
+
+## À creuser {#sec-a-creuser}
+
+::: {.nuance}
+La déconvolution semble plus difficile sur pseudo-bulk (même à composition
+voisine) que sur vrai bulk. Première explication, mécanique : un pseudo-bulk
+de 500 cellules a un bruit relatif environ $\sqrt{10^4/500}\approx4{,}5$ fois
+plus grand qu'un bulk de $10^4$ cellules (V47c), et il est tiré des mêmes
+cellules que la référence (découpage 80/20). L'hypothèse biologique (le bulk
+moyennerait une partie de la variabilité intrinsèque des populations) reste à
+tester, idéalement sur le jeu de Villaronga-Luque.
+:::
+
+# Plan de simulations {#sec-simulations}
+
+::: {.elias}
+Ajouter un effet donneur et un biais multiplicatif par gène (le même pour tous
+les échantillons, appliqué au bulk mais pas à la référence), puis passer à des
+pseudo-bulks semi-synthétiques construits sur un vrai jeu single-cell
+multi-donneurs : jamais les mêmes donneurs dans la référence et le
+pseudo-bulk, et une correction de type Fang–Pachter avant d'agréger. Sans ça,
+les résultats seront optimistes pour toutes les méthodes.
+:::
+
+::: {.accord}
+D'accord sur le diagnostic. Voici ce que couvre déjà le scénario single-cell
+[R3](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.html#sec-sc-generative)
+($2^6=64$ scénarios, $N=200$ bulks chacun, dix méthodes) :
+
+| Élément proposé par Elias | Dans R3 ? |
+|:--|:--|
+| échelle de plateforme globale $a$ appliquée au bulk seul | oui ($a\in\{1,5\}$) |
+| biais multiplicatif **par gène** sur le bulk | non |
+| effet donneur ($\boldsymbol{\Sigma}_{B,j}$) dans le générateur | non |
+| pseudo-bulks semi-synthétiques multi-donneurs | non |
+| correction Fang–Pachter avant agrégation | non |
+| couche de comptage (Poisson) | non : cellules gaussiennes, 21 à 29 % de valeurs négatives |
+| erreur d'estimation de la référence pour `DeCovarT` | non : vrais moments fournis |
+
+: Couverture du scénario R3 ([limites listées dans la vignette](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.html#sec-fig05-caveats)). {#tbl-r3}
+:::
+
+::: {.nuance}
+**Ce qui manque**, par ordre de priorité : (1) un biais par gène
+$\tilde b_g$ sur le bulk, qui teste aussi la porte de présence
+(@eq-mead-counter) ; (2) une couche $\boldsymbol{\Sigma}_{B,j}$ et une
+référence qui ne la voit pas ; (3) une couche de comptage, pour tester
+l'approximation centrale limite et la correction de bruit extrinsèque de
+@fangExtrinsicBiologicalStochasticity2025 ; (4) des pseudo-bulks
+semi-synthétiques à donneurs disjoints (Villaronga-Luque, par structure) ;
+(5) une référence estimée, et non ses vrais moments.
+
+**Recouvrement ou information tangente ?** Jusqu'ici je pilotais surtout le
+recouvrement moyen des lois des types (`BarOmega` de MixSim ;
+[vignette 4.2](https://bastienchassagnol.github.io/DeCovarT/articles/04-2-distances-overlap-metrics.html#sec-fig03-scale),
+[R2](https://bastienchassagnol.github.io/DeCovarT/articles/R2-covariance-driven.html#sec-scenario-grid)) :
+on multiplie chaque $\boldsymbol{\Sigma}_j$ par $s$ en gardant les zéros
+structurels, avec 12 tirages de covariance (4 topologies × 3 cibles
+$\{0{,}02;0{,}08;0{,}20\}$). Le recouvrement mélange l'information des
+moyennes et celle des covariances ; c'est un bon prédicteur de l'erreur pour
+toutes les méthodes, donc un mauvais outil pour les distinguer. La matrice
+d'information tangente
+([vignette 4.1](https://bastienchassagnol.github.io/DeCovarT/articles/04-1-synthetic-scenarios.html#nte-desc-fisher))
+les sépare : $f_{\mathrm{cov}}$ est la part de l'information qui vient de la
+covariance. Je propose d'en faire un **facteur explicite** du plan : faire
+varier $n_i$ et l'échelle de $\boldsymbol{\Sigma}_B$ à `BarOmega` fixé, et
+comparer quatre estimateurs emboîtés :
+
+1. moyenne seule (NNLS) ;
+2. GLS diagonal, à la MuSiC ;
+3. GLS à covariance pleine (le quasi-score de @eq-score-split), qui
+   n'existe pas encore dans le paquet et serait à ajouter ;
+4. maximum de vraisemblance `DeCovarT`.
+
+L'écart 2 → 3 isole la pondération multivariée ; l'écart 3 → 4 isole le score
+de covariance, c'est-à-dire ce qui distingue vraiment `DeCovarT` d'une
+régression GLS sans hypothèse de loi. Attendu : 3 et 4 coïncident quand
+$f_{\mathrm{cov}}\approx0$ (grand $n$, pas de $\boldsymbol{\Sigma}_B$) et ne
+divergent que si $f_{\mathrm{cov}}$ n'est pas petit. Deux remarques. Les
+formes diffèrent selon le modèle : au niveau populationnel
+$I^{\mathrm{cov}}_{jk}=2p_jp_k\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_j\boldsymbol{\Omega}\boldsymbol{\Sigma}_k)$,
+invariant en $s$ (d'où la hausse de $f_{\mathrm{cov}}$ avec le recouvrement
+dans R2), alors qu'en single-cell c'est $n$ qui pilote ; les fonctions
+`expected_fisher_unconstrained()` et `.information_blocks()` sont
+populationnelles et seraient à étendre. Et la pénalité de Firth
+([vignette 1.2](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-firth))
+porte sur $\log\det I$, donc sur $I^{\mathrm{mean}}+I^{\mathrm{cov}}$ : à
+grand $n$, elle ne voit plus que la partie moyenne.
+:::
+
+# Perspectives {#sec-perspectives}
+
+::: {.elias}
+Pour le papier, je mettrais de côté les parties Lyapunov et réseaux bayésiens
+dynamiques.
+:::
+
+::: {.accord}
+D'accord : en annexe ou en perspective seulement
+([note `CardamomOT`, d'un modèle statique à un modèle dynamique](../answer-cardamomOT/summary_side_comparison.pdf)).
+En single-cell sur une série temporelle, et plus encore en bulk, on pourrait
+peut-être séparer l'effet de taille lié à l'extraction biologique de celui lié
+à l'extraction technique, par type cellulaire (ou au moins entre single-cell et
+bulk).
+:::
+
+::: {.nuance}
+En revanche, une covariance statique ne sépare pas les sources de la
+variabilité biologique. La note `CardamomOT` (sections « modèle de mesure » et
+« diagonale ») établit deux faits : la covariance débruitée estime
+$s^2\boldsymbol{\Sigma}_{\mathrm{Lyap}}$, la covariance stationnaire, et non la
+matrice de régulation $\boldsymbol{A}$ ; et l'application
+$(\boldsymbol{A},\boldsymbol{Q})\mapsto\boldsymbol{\Sigma}$ n'est pas
+inversible ($G(G+1)/2$ entrées libres contre jusqu'à $G^2+G$ paramètres). J'en
+tire, et c'est ma synthèse plutôt qu'un résultat de la note, qu'une fois le
+bruit de Poisson retiré notre covariance capture en une seule composante toute
+la covariance du processus de Lyapunov, sans pouvoir distinguer les
+fluctuations intrinsèques des effets extrinsèques (taille de cellule,
+régulation par d'autres gènes).
+:::
+
+# Questions pour Elias, Marielle et Anaïs {#sec-questions}
+
+1. **Critère de sélection** (@sec-criteres) : la vraisemblance du bulk est-elle
+   défendable pour choisir $\lambda$ au sein d'un bras, et faut-il un
+   *leave-one-bulk-out* ou une correction de Takeuchi ?
+2. **Propriétés du maximum de vraisemblance single-cell** (@sec-forces) :
+   comment écrire la preuve de petite dispersion avec une covariance qui
+   dépend de $\boldsymbol{p}$ et une référence estimée ?
+3. **Plan de simulations** (@sec-simulations) : $f_{\mathrm{cov}}$ comme
+   facteur explicite, et la comparaison à quatre estimateurs emboîtés,
+   vous semblent-ils le bon moyen d'isoler l'apport de la covariance ?
+4. **Réplicats** (@sec-design) : le jeu de Villaronga-Luque est-il le bon
+   support pour estimer $\boldsymbol{\Sigma}_B$ et construire des pseudo-bulks
+   à donneurs disjoints ?
+
+# Références {.unnumbered}
+
+::: {#refs}
+:::

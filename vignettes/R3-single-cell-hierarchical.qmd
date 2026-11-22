@@ -408,6 +408,8 @@ with these changes:
   the reference; the precision of a bulk also grows with $n_i$, which the
   expected Wald standard error reported with each scenario captures.
 
+[TODO (reply to Elias, 2026-11-20): extend the generator with (1) a gene-wise multiplicative bias $\tilde b_g$ on the bulk only, (2) a between-replicate layer $\boldsymbol\Sigma_{B,j}$ absent from the reference, (3) a count layer with a Fang–Pachter extrinsic-noise correction before aggregation, (4) semi-synthetic pseudo-bulks with disjoint donors in reference and bulk, (5) an estimated rather than true reference.]{.highlight}
+
 ## See also
 
 - [Covariance-driven scenario](R2-covariance-driven.html)

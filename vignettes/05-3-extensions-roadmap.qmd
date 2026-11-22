@@ -520,6 +520,8 @@ individual method [@whiteCommunityAssessmentMethodsDeconvolve2024].
 
 # Robust regression, GLS, and gene weights {#sec-robust-gls}
 
+[TODO (reply to Elias, 2026-11-20): implement the dense GLS quasi-score with $\boldsymbol S(\boldsymbol p)$ re-evaluated at each step (full-covariance MuSiC) as a benchmark comparator; it differs from DeCovarT only by the covariance score (ledger V47a).]{.highlight}
+
 Let $W=\mathrm{diag}(w_{1},\ldots,w_{G})$ be gene-specific precision
 weights (DWLS dampening, voom mean–variance weights, or inverse
 leverage). Weighted least squares minimises

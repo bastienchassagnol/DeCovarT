@@ -1,9 +1,9 @@
 {
   "meta": {
-    "date": "2026-11-18",
+    "date": "2026-11-20",
     "sympy": "1.14.0",
-    "numpy": "2.5.5",
-    "python": "3.13.12"
+    "numpy": "2.5.4",
+    "python": "3.14.3"
   },
   "records": [
     {
@@ -126,7 +126,7 @@
       "tex_line": "266, 1060",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2066"
+        "03-1:2160"
       ]
     },
     {
@@ -149,7 +149,7 @@
       "tex_line": "268",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2251"
+        "03-1:2345"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "tex_line": "640, 1062",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2066"
+        "03-1:2160"
       ]
     },
     {
@@ -175,7 +175,7 @@
       "tex_line": "1064",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2066"
+        "03-1:2160"
       ]
     },
     {
@@ -256,7 +256,10 @@
       "detail": "Hessian at $\\bm 0$ of $\\sum_j m_jK_j(a\\bm t)$ is $a^2n\\{p\\bm\\Sigma_1+(1-p)\\bm\\Sigma_2\\}$; $\\partial_p^2=\\bm 0$; conditional on the counts $m_j$",
       "detail_full": "Hessian at 0 of K_y(t) = sum_j m_j K_j(a t) equals a^2 n {p Sigma_1 + (1-p) Sigma_2}; d2/dp2 = 0. Holds conditional on the composition m_j = n p_j",
       "tex_line": "940, 1030",
-      "script": "verification/sympy/check_V6_sc_vs_population.py"
+      "script": "verification/sympy/check_V6_sc_vs_population.py",
+      "qmd_lines": [
+        "answer_elias:428"
+      ]
     },
     {
       "id": "V6c",
@@ -276,7 +279,10 @@
       "detail": "Hessian at $\\bm 0$ of $n\\log\\sum_jp_je^{K_j(a\\bm t)}$ minus the fixed-count covariance equals $a^2np(1-p)(\\bm\\mu_1-\\bm\\mu_2)(\\bm\\mu_1-\\bm\\mu_2)^{\\mathsf T}$",
       "detail_full": "Hessian at 0 of n log sum_j p_j exp K_j(a t) minus the fixed-composition covariance = a^2 n p (1-p) (mu_1 - mu_2)(mu_1 - mu_2)^T; linearity in p is verified only given the cell counts m_j",
       "tex_line": "943, 1036",
-      "script": "verification/sympy/check_V6_sc_vs_population.py"
+      "script": "verification/sympy/check_V6_sc_vs_population.py",
+      "qmd_lines": [
+        "answer_elias:428"
+      ]
     },
     {
       "id": "V6e",
@@ -286,7 +292,10 @@
       "detail": "averaging $\\prod_j\\varphi_j^{m_j}$ over $\\bm m\\sim\\mathrm{Mult}(n,\\bm p)$ gives $\\varphi_{\\mathrm{mix}}^{\\,n}$ ($n\\le8$ at $J=2$, $n\\le5$ at $J=3$); law of total covariance with $\\operatorname{Cov}\\bm m=n\\{\\operatorname{diag}(\\bm p)-\\bm p\\bm p^{\\mathsf T}\\}$ returns the printed term; $\\partial_p^2=-2a^2n\\bm\\Delta\\bm\\Delta^{\\mathsf T}\\neq\\bm 0$",
       "detail_full": "c.f. average over the multinomial equals phi_mix^n: True (J = 2, n = 1..8; J = 3, n = 1..5). E m = [n*p, n*(1 - p)], Cov m = Matrix([\n[-n*p*(p - 1),  n*p*(p - 1)],\n[ n*p*(p - 1), -n*p*(p - 1)]]). Total covariance minus printed form = Matrix([\n[0, 0],\n[0, 0]]); d2/dp2 + 2 a^2 n Delta Delta^T = Matrix([\n[0, 0],\n[0, 0]])",
       "tex_line": "943, 1036",
-      "script": "verification/sympy/check_V6_sc_vs_population.py"
+      "script": "verification/sympy/check_V6_sc_vs_population.py",
+      "qmd_lines": [
+        "answer_elias:428"
+      ]
     },
     {
       "id": "V7a",
@@ -373,15 +382,15 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{2556801}{1024}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 2556801/1024; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{283821409}{331776}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 283821409/331776; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:478",
+        "03-1:521",
         "03-2:584",
         "03-2:627",
-        "summary_side_comparison:304"
+        "summary_side_comparison:263"
       ]
     },
     {
@@ -408,7 +417,7 @@
       "tex_line": "303, 319",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:478",
+        "03-1:521",
         "03-2:584",
         "03-2:627"
       ]
@@ -702,7 +711,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:462"
+        "03-1:505"
       ]
     },
     {
@@ -715,7 +724,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:462"
+        "03-1:505"
       ]
     },
     {
@@ -728,7 +737,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:478"
+        "03-1:521"
       ]
     },
     {
@@ -741,7 +750,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2305"
+        "03-1:2399"
       ]
     },
     {
@@ -754,7 +763,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2305"
+        "03-1:2399"
       ]
     },
     {
@@ -767,7 +776,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2285"
+        "03-1:2379"
       ]
     },
     {
@@ -780,7 +789,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2314"
+        "03-1:2408"
       ]
     },
     {
@@ -793,7 +802,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1056"
+        "03-1:1148"
       ]
     },
     {
@@ -806,7 +815,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1056"
+        "03-1:1148"
       ]
     },
     {
@@ -819,7 +828,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1056"
+        "03-1:1148"
       ]
     },
     {
@@ -832,7 +841,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1015"
+        "03-1:1107"
       ]
     },
     {
@@ -845,7 +854,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:983"
+        "03-1:1075"
       ]
     },
     {
@@ -854,14 +863,14 @@
       "kind": "numeric",
       "status": "pass",
       "detail": "Stationary point and closed form symbolic; MC seed 20261101: mean of $n=50$ NB($\\mu=3,r=2$), $2\\times10^5$ replicates, at $u=1$ tail 0.0080 vs bound 0.0584; range filter $K=3$, $\\mu_k=(1,3,6)$, $r=2$, $\\bm\\alpha=(0.98,0.01,0.01)$, $n=c_k=100$, $2\\times10^4$ replicates; first bound below 1 at $t=1.3$: 0.950 vs 0.0000",
-      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.6792986861138575), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254735), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.099328342876186), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.3106088129755633), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
+      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.679298686113857), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254736), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.0993283428761904), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.310608812975563), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1103",
-        "03-1:1128",
-        "03-1:1138",
-        "03-1:1154"
+        "03-1:1195",
+        "03-1:1220",
+        "03-1:1230",
+        "03-1:1246"
       ]
     },
     {
@@ -887,8 +896,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "03-1:2158",
-        "03-1:2182"
+        "03-1:2252",
+        "03-1:2276"
       ]
     },
     {
@@ -941,7 +950,8 @@
       "tex_line": "1073",
       "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
       "qmd_lines": [
-        "summary_side_comparison:273"
+        "summary_side_comparison:241",
+        "answer_elias:566"
       ]
     },
     {
@@ -964,8 +974,7 @@
       "tex_line": "867",
       "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
       "qmd_lines": [
-        "summary_side_comparison:610",
-        "summary_side_comparison:679"
+        "summary_side_comparison:509"
       ]
     },
     {
@@ -988,7 +997,7 @@
       "tex_line": "873, 920",
       "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
       "qmd_lines": [
-        "summary_side_comparison:500"
+        "summary_side_comparison:415"
       ]
     },
     {
@@ -1001,7 +1010,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:566"
+        "summary_side_comparison:471"
       ]
     },
     {
@@ -1014,7 +1023,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:187"
+        "summary_side_comparison:164"
       ]
     },
     {
@@ -1027,7 +1036,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:171"
+        "summary_side_comparison:149",
+        "answer_elias:604"
       ]
     },
     {
@@ -1040,8 +1050,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:644",
-        "summary_side_comparison:713"
+        "summary_side_comparison:543"
       ]
     },
     {
@@ -1054,7 +1063,7 @@
       "tex_line": "1291, 1294",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:879"
+        "summary_side_comparison:651"
       ]
     },
     {
@@ -1067,7 +1076,7 @@
       "tex_line": "1303, 1445",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:889"
+        "summary_side_comparison:660"
       ]
     },
     {
@@ -1080,7 +1089,7 @@
       "tex_line": "1348",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:897"
+        "summary_side_comparison:668"
       ]
     },
     {
@@ -1139,7 +1148,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:864"
+        "03-1:956"
       ]
     },
     {
@@ -1152,7 +1161,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:864"
+        "03-1:956"
       ]
     },
     {
@@ -1165,7 +1174,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:894"
+        "03-1:986"
       ]
     },
     {
@@ -1178,7 +1187,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1205"
+        "03-1:1297"
       ]
     },
     {
@@ -1191,7 +1200,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1218"
+        "03-1:1310"
       ]
     },
     {
@@ -1204,7 +1213,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1355"
+        "03-1:1447"
       ]
     },
     {
@@ -1217,7 +1226,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1367"
+        "03-1:1459"
       ]
     },
     {
@@ -1230,7 +1239,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1419"
+        "03-1:1511"
       ]
     },
     {
@@ -1243,7 +1252,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1407"
+        "03-1:1499"
       ]
     },
     {
@@ -1256,7 +1265,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1194"
+        "03-1:1286"
       ]
     },
     {
@@ -1269,7 +1278,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1249"
+        "03-1:1341"
       ]
     },
     {
@@ -1412,7 +1421,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1593"
+        "03-1:1685"
       ]
     },
     {
@@ -1425,7 +1434,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1599"
+        "03-1:1691"
       ]
     },
     {
@@ -1438,7 +1447,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1619"
+        "03-1:1711"
       ]
     },
     {
@@ -1620,7 +1629,7 @@
       "detail_full": "z^2(n) - z^2(a) n / a simplified to 0; the median scales with every z^2, root from sympy.solve",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1732"
+        "03-1:1824"
       ]
     },
     {
@@ -1633,7 +1642,7 @@
       "detail_full": "direct substitution",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1695"
+        "03-1:1787"
       ]
     },
     {
@@ -1646,7 +1655,7 @@
       "detail_full": "generic symmetric 3 x 3 W; Gaussianity of z_g follows from linearity, not checked here",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1784"
+        "03-1:1876"
       ]
     },
     {
@@ -1659,7 +1668,7 @@
       "detail_full": "generic symmetric 3 x 3 Sigma, gene 1 against genes 2 and 3",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1784"
+        "03-1:1876"
       ]
     },
     {
@@ -1672,7 +1681,7 @@
       "detail_full": "2 x 2: W_11 - 1/Sigma_11 = Sigma_12^2 / (Sigma_11 det Sigma) >= 0 (exact); 5 x 5: 25 random rational SPD matrices and their block-diagonal versions (rational-sampling)",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1826"
+        "03-1:1918"
       ]
     },
     {
@@ -1685,7 +1694,7 @@
       "detail_full": "generic symmetric 3 x 3 W, module {1, 2}; uses Var(W r) = W (V46c)",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1804"
+        "03-1:1896"
       ]
     },
     {
@@ -1698,7 +1707,98 @@
       "detail_full": "diagonal sum exact in rho; conditional forms at 25 rational rho in (0, 1) plus rho = 1/2 and 3/10",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1826"
+        "03-1:1918"
+      ]
+    },
+    {
+      "id": "V47a",
+      "claim": "Gaussian score = GLS quasi-score $\\bm m'^\\top\\bm V^{-1}\\bm r$ + covariance score $\\tfrac12\\{\\bm r^\\top\\bm V^{-1}\\bm V'\\bm V^{-1}\\bm r-\\operatorname{tr}(\\bm V^{-1}\\bm V')\\}$; uncorrelated, with variances $I_{\\mathrm{mean}}$ and $I_{\\mathrm{cov}}=\\tfrac12\\operatorname{tr}\\{(\\bm V^{-1}\\bm V')^2\\}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$, $J=2$, $p=1/3$, $c=2$, $\\phi=3/2$; Gaussian moments of $\\bm z$ with $\\bm r=\\bm L\\bm z$: $I_{\\mathrm{mean}}=\\frac{9024}{1007}$, $I_{\\mathrm{cov}}=\\frac{882153}{1014049}$",
+      "detail_full": "$G=2$, $J=2$, $p=1/3$, $c=2$, $\\phi=3/2$; Gaussian moments of $\\bm z$ with $\\bm r=\\bm L\\bm z$: $I_{\\mathrm{mean}}=\\frac{9024}{1007}$, $I_{\\mathrm{cov}}=\\frac{882153}{1014049}$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:566"
+      ]
+    },
+    {
+      "id": "V47b",
+      "claim": "Single-cell law with $\\phi=c^2/n$: $I_{\\mathrm{mean}}\\propto n$, $I_{\\mathrm{cov}}$ free of $n$, so $I_{\\mathrm{cov}}/I_{\\mathrm{mean}}=O(1/n)$ and ML and GLS agree to first order as $n\\to\\infty$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$, $J=2$, symbolic $p$, $c$, $n$; $n\\,I_{\\mathrm{cov}}/I_{\\mathrm{mean}}$ has a finite limit",
+      "detail_full": "$G=2$, $J=2$, symbolic $p$, $c$, $n$; $n\\,I_{\\mathrm{cov}}/I_{\\mathrm{mean}}$ has a finite limit",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:566"
+      ]
+    },
+    {
+      "id": "V47c",
+      "claim": "Two-level sum: $\\operatorname{Cov}\\bm y=a^2n^2\\sum_jp_j^2\\bm\\Sigma_{B,j}+a^2n\\sum_jp_j\\bm\\Sigma_{W,j}=c^2\\bm S_B(\\bm p)+\\phi\\bm S_W(\\bm p)$; with $\\bm\\Sigma_B\\neq0$, $f_{\\mathrm{cov}}$ keeps a positive limit and $\\hat n=c^2/\\hat\\phi\\to S_W/S_B$ ($G=1$); without it the relative noise is $O(n^{-1/2})$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$J=2$, symbolic; at $p_1=1/3$, $B=(1,2)$, $W=(3,5)$, $\\mu=(4,1)$: $\\lim f_{\\mathrm{cov}}=\\frac{2}{11}\\approx0.182$; noise ratio $\\sqrt{10^4/500}\\approx4.47$",
+      "detail_full": "$J=2$, symbolic; at $p_1=1/3$, $B=(1,2)$, $W=(3,5)$, $\\mu=(4,1)$: $\\lim f_{\\mathrm{cov}}=\\frac{2}{11}\\approx0.182$; noise ratio $\\sqrt{10^4/500}\\approx4.47$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:511"
+      ]
+    },
+    {
+      "id": "V47d",
+      "claim": "MEAD counter-example: with perfect markers, $\\tilde\\gamma\\tilde{\\bm\\Lambda}\\bm U\\tilde{\\bm p}=\\gamma\\bm\\Lambda\\bm U\\bm p$ for $\\tilde\\lambda_g=\\lambda_g/\\delta_k$, $\\tilde p_k=\\delta_kp_k/\\sum_l\\delta_lp_l$, $\\tilde\\gamma=\\gamma\\sum_l\\delta_lp_l$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=4$ genes, $K=2$ types, symbolic $\\lambda$, $u$, $\\delta$, $\\gamma$, $p$; $\\tilde{\\bm p}\\neq\\bm p$ when $\\delta_1\\neq\\delta_2$",
+      "detail_full": "$G=4$ genes, $K=2$ types, symbolic $\\lambda$, $u$, $\\delta$, $\\gamma$, $p$; $\\tilde{\\bm p}\\neq\\bm p$ when $\\delta_1\\neq\\delta_2$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:92"
+      ]
+    },
+    {
+      "id": "V47e",
+      "claim": "A gene with zero variance in type 1 gives $\\det\\bm\\Sigma_{W,1}=0$, but $\\det\\bm S_W(p)=(1-p)\\{pbs+(1-p)(bd-r^2)\\}>0$ on $(0,1)$: singular only on the face $p=1$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$, $\\bm\\Sigma_{W,1}=\\operatorname{diag}(0,s)$, $\\bm\\Sigma_{W,2}=\\begin{pmatrix}b&r\\\\r&d\\end{pmatrix}$ positive definite",
+      "detail_full": "$G=2$, $\\bm\\Sigma_{W,1}=\\operatorname{diag}(0,s)$, $\\bm\\Sigma_{W,2}=\\begin{pmatrix}b&r\\\\r&d\\end{pmatrix}$ positive definite",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:112"
+      ]
+    },
+    {
+      "id": "V47f",
+      "claim": "Zero counts over exposure $L$ with a $\\mathrm{Gamma}(\\alpha,\\beta)$ prior: posterior mean $\\alpha/(\\beta+L)$, that is $1/L$ for the flat prior and $1/(2L)$ for Jeffreys",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "conjugate integral computed by SymPy, symbolic $\\alpha$, $\\beta$, $L$",
+      "detail_full": "conjugate integral computed by SymPy, symbolic $\\alpha$, $\\beta$, $L$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:131"
+      ]
+    },
+    {
+      "id": "V47g",
+      "claim": "Actual over reported variance of the independence (univariate) estimator: $1+\\rho$ for loadings $(1,1)$, $1-\\rho$ for $(1,-1)$; positive correlation makes the interval too narrow or too wide depending on the loadings",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "two genes, $\\bm\\Sigma=\\sigma^2\\begin{pmatrix}1&\\rho\\\\\\rho&1\\end{pmatrix}$, one coefficient",
+      "detail_full": "two genes, $\\bm\\Sigma=\\sigma^2\\begin{pmatrix}1&\\rho\\\\\\rho&1\\end{pmatrix}$, one coefficient",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V47_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:604"
       ]
     }
   ]

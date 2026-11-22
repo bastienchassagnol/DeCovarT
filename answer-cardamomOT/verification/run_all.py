@@ -281,8 +281,9 @@ def main() -> int:
 
     cited = _chk_lines(TEX)
     cited_qmd = _qmd_lines(VIGNETTES)
-    for key, locs in _qmd_lines(NOTE).items():  # the note's own Quarto files
-        cited_qmd.setdefault(key, []).extend(locs)
+    for folder in (NOTE, NOTE.parent / "review-decovart-bastien-elias-marielle-anais"):  # note + reply to Elias
+        for key, locs in _qmd_lines(folder).items():
+            cited_qmd.setdefault(key, []).extend(locs)
     for r in records:
         if r["id"] in cited_qmd:
             r["qmd_lines"] = cited_qmd[r["id"]]

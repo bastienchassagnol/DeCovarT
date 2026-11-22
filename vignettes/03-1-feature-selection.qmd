@@ -532,6 +532,8 @@ also removes perfect markers, whose effect under gene-wise platform
 ratios is in @sec-fs-cross-platform.
 :::
 
+[TODO (reply to Elias, 2026-11-20): alternative to exclusion for a gene never detected in a type: a Gamma–Poisson posterior mean $\alpha/(\beta+L)$, with $L$ the summed library sizes of the type ($1/L$ flat prior, $1/(2L)$ Jeffreys; ledger V47f). The within-type variance would still need a prior.]{.highlight}
+
 
 {{< pagebreak >}}
 
