@@ -19,7 +19,7 @@ their split, quoted when a method is reviewed.
 | \$c\$; \$C_j\$ | Cell, and the number of reference cells of type \$j\$. |
 
 Indices. The scalar \$R\$ is the number of reference donors.
-{#tinytable_art2u9aqgq096w9x1xzv .table .tinytable
+{#tinytable_fj4j1nybjz8epvs2s42b .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
 
@@ -37,7 +37,7 @@ quarto-disable-processing="true"}
 | ^(b) Content weight used when a method normalises by transcriptome size. Not the cell-fraction estimand, which remains \$\boldsymbol{p}\$. Dividing counts by library size is not an observation model: genes that share a divisor become correlated. |  |
 
 Cell fractions and transcript fractions.
-{#tinytable_3tq1r3j7rou6qe7vga7n .table .tinytable
+{#tinytable_gwrlkkfx8u7zdnzksveu .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
 
@@ -54,7 +54,7 @@ quarto-disable-processing="true"}
 | ^(b) \$S_j\$ summarises the raw-count mean. It is not a divisor applied to the counts. \$\boldsymbol{\theta}\$ is not used for this split. |  |
 
 Purified profiles and per-cell means of raw counts.
-{#tinytable_hyzs9siir5ut88goq2ob .table .tinytable
+{#tinytable_kar200kq6lc9a5p6ma2y .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
 
@@ -80,7 +80,7 @@ quarto-disable-processing="true"}
 | ^(c) \$\boldsymbol{\Gamma}\_g\$ couples cell types within one gene. The opposite orientation from \$\boldsymbol{\Sigma}\_j\$. |  |
 
 Gene–gene covariance within a type, and variation across donors or
-types. {#tinytable_i9rn1sq9evtx9w6j0by9 .table .tinytable
+types. {#tinytable_wbzg54on4fwqtgr8qr0x .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
 
@@ -101,7 +101,7 @@ quarto-disable-processing="true"}
 | ^(b) Measurement noise. Not the deviance \$\mathcal{D}\_g\$ of a count model. |  |
 
 Size factors, capture efficiencies, and measurement noise.
-{#tinytable_7m67h45e2qb7zec3ixpe .table .tinytable
+{#tinytable_nlbq3sqzn4820829u1hb .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
 
@@ -122,7 +122,7 @@ quarto-disable-processing="true"}
 | ^(c) Purified-profile paradigm: one profile per type. The likelihood in the package fits this covariance. It is not a preferred reference over the single-cell signatures. |  |
 
 The bulk profile and the two reference paradigms. Neither is a
-gold-standard reference. {#tinytable_tha1q821ohks4q1mw7uo .table
+gold-standard reference. {#tinytable_svg2rlo349e1zattt570 .table
 .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
@@ -137,7 +137,7 @@ quarto-disable-processing="true"}
 | \$\delta\_{gj}\$ | Detection rate of gene \$g\$ in type \$j\$: the fraction of cells with a non-zero count. |
 
 Dispersion, deviance, and detection rate.
-{#tinytable_vw4elk3v6yxurdk0ou72 .table .tinytable
+{#tinytable_6aumzr0edp4f6tfw4kjf .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}
 
@@ -148,7 +148,7 @@ quarto-disable-processing="true"}
 | Overlap | Overlap |
 | \$\varpi\_{\ell \mid j}\$, \$\varpi\_{j\ell}\$, \$\bar{\varpi}\$ | Probability of misclassifying a draw of type \$j\$ into type \$\ell\$; pairwise overlap \$\varpi\_{j\ell} = \varpi\_{\ell \mid j} + \varpi\_{j \mid \ell}\$; and its average over pairs. |
 
-MixSim overlap between cell types. {#tinytable_751zwc0g4e8ya0ltlxig
+MixSim overlap between cell types. {#tinytable_woaqykov2pi11dqqb2n9
 .table .tinytable
 style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;"
 quarto-disable-processing="true"}

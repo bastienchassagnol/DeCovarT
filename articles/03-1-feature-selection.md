@@ -592,6 +592,12 @@ with a hypergeometric tail, as the reproducibility book does.
 > The gate also removes perfect markers, whose effect under gene-wise
 > platform ratios is in [Section 4](#sec-fs-cross-platform).
 
+TODO (reply to Elias, 2026-11-20): alternative to exclusion for a gene
+never detected in a type: a Gamma–Poisson posterior mean
+\alpha/(\beta+L), with L the summed library sizes of the type (1/L flat
+prior, 1/(2L) Jeffreys; ledger V47f). The within-type variance would
+still need a prior.
+
 ## 3 Tier (ii): cross-cell consistency
 
 MuSiC introduced “marker gene consistency” with two parts ([Wang et al.

@@ -414,6 +414,10 @@ covariances and the Wald and ILR intervals are undefined (`NA`); the
 profile interval and the boundary test are the procedures that remain
 valid.
 
+TODO (reply to Elias, 2026-11-20): an omnibus likelihood-ratio test of a
+composition change between groups of bulk samples, followed by per-type
+post hoc tests.
+
 ## What these intervals do not cover
 
 - **The reference is a plug-in.** Every method except the reference

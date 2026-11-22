@@ -1018,6 +1018,12 @@ in `supplementary` / the descriptors RDS.
 > - f\_{\mathrm{cov}}^{\max}: the same fraction along the pairwise
 >   contrast \mathbf{e}\_j-\mathbf{e}\_k that maximises it.
 
+TODO (reply to Elias, 2026-11-20): make f\_{\mathrm{cov}} an explicit
+design factor at fixed `BarOmega` (vary n_i and the scale of
+\boldsymbol\Sigma_B), extend `.information_blocks()` to the single-cell
+law, and compare four nested estimators: mean only, diagonal GLS, dense
+GLS quasi-score, DeCovarT.
+
 > **Note 11: Network sparsity**
 >
 > When an adjacency array is supplied, density uses that support;
@@ -1740,23 +1746,6 @@ is the package counterpart of that editorial checklist.
 | Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
 
 Table 15: Nature Methods reporting items covered by the simulation API.
-
-### NeurIPS code completeness
-
-The [ML Code Completeness
-Checklist](https://github.com/paperswithcode/releasing-research-code)
-used at NeurIPS is five items.
-
-| Checklist item | Where it lives |
-|:---|:---|
-| Specification of dependencies | `DESCRIPTION` (Imports / Suggests with versions) |
-| Fitting (“training”) code | [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md), [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md) |
-| Evaluation code | [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md), [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md) |
-| Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
-| README table of results plus commands | README / vignette chunks (this article; [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/R1-bivariate-toy.md), [§2.3](https://bastienchassagnol.github.io/DeCovarT/articles/R2-covariance-driven.md)) |
-
-Table 16: NeurIPS / Papers with Code completeness mapped onto the
-package.
 
 ### rOpenSci statistical standards
 

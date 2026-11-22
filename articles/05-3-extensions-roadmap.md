@@ -428,6 +428,11 @@ assessment found that a mean-rank ensemble beat every individual method
 
 ## Robust regression, GLS, and gene weights
 
+TODO (reply to Elias, 2026-11-20): implement the dense GLS quasi-score
+with \boldsymbol S(\boldsymbol p) re-evaluated at each step
+(full-covariance MuSiC) as a benchmark comparator; it differs from
+DeCovarT only by the covariance score (ledger V47a).
+
 Let W=\mathrm{diag}(w\_{1},\ldots,w\_{G}) be gene-specific precision
 weights (DWLS dampening, voom mean–variance weights, or inverse
 leverage). Weighted least squares minimises (\boldsymbol{y}\_{\cdot

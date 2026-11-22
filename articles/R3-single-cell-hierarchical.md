@@ -336,6 +336,47 @@ with these changes:
   the reference; the precision of a bulk also grows with n_i, which the
   expected Wald standard error reported with each scenario captures.
 
+TODO (reply to Elias, 2026-11-20): extend the generator with (1) a
+gene-wise multiplicative bias \tilde b_g on the bulk only, (2) a
+between-replicate layer \boldsymbol\Sigma\_{B,j} absent from the
+reference, (3) a count layer with a Fang–Pachter extrinsic-noise
+correction before aggregation, (4) semi-synthetic pseudo-bulks with
+disjoint donors in reference and bulk, (5) an estimated rather than true
+reference.
+
+TODO (reply to Elias, 2026-11-22): add a scenario that moves only the
+covariance part of the tangent Fisher information. Single-cell form
+only: in a contrast \boldsymbol d, I^{\mathrm{mean}}\_{\boldsymbol
+d}=n_i(\tilde{\boldsymbol\mu}\boldsymbol d)^\top\boldsymbol
+S_W(\boldsymbol p_0)^{-1}(\tilde{\boldsymbol\mu}\boldsymbol d) grows
+with n_i, while I^{\mathrm{cov}}\_{\boldsymbol
+d}=\tfrac12\operatorname{tr}\[\\\boldsymbol
+S_W^{-1}\sum_jd_j\boldsymbol\Sigma\_{W,j}\\^2\] does not. Generator:
+\boldsymbol\Sigma\_{W,j}(t)=\boldsymbol S+\sum_q t_q a\_{jq}\boldsymbol
+E_q with \boldsymbol p_0^\top\boldsymbol a_q=0, which keeps \boldsymbol
+S_W(\boldsymbol p_0)=\boldsymbol S and hence the whole tangent mean
+Fisher matrix fixed, while \mathbf I_T^{\mathrm{cov}}=\tfrac12(\mathbf
+B^\top\mathbf A\mathbf T)\mathbf G_E(\mathbf B^\top\mathbf A\mathbf
+T)^\top (ledger V48h–j). Calibrate t to
+f\_{\mathrm{cov}}\in\\0,0.05,0.10,0.25,0.50\\ by t^\star=\sqrt{f^\star
+M/\\(1-f^\star)K\\} within the SPD range 1+t\\a_j\lambda_k(\boldsymbol
+S^{-1/2}\boldsymbol E\boldsymbol S^{-1/2})\>0; use Q\ge J-1 modes; cross
+with several n_i; keep c_i and \phi_i known (with estimated scales, take
+\operatorname{tr}(\boldsymbol S^{-1}\boldsymbol E_q)=0 so that
+I\_{d\phi}=0). Compare NNLS, diagonal GLS, dense GLS quasi-score (to
+implement) and DeCovarT; check the Monte Carlo score variance against
+I^{\mathrm{mean}}+I^{\mathrm{cov}} and RMSE and coverage against
+(\mathbf I_T^{\mathrm{mean}}+\mathbf I_T^{\mathrm{cov}})^{-1} and
+(\mathbf I_T^{\mathrm{mean}})^{-1}. Rewrite
+[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
+and `.information_blocks()` for the single-cell law. Closest precedents:
+the two-class Bhattacharyya split at fixed average covariance (Fukunaga
+1990) and the heteroscedastic Chernoff criterion (Loog and Duin 2004,
+doi:10.1109/TPAMI.2004.13); overlap generators (Qiu and Joe 2006;
+MixSim) fix only a total separation. Details: review note
+`review-decovart-bastien-elias-marielle-anais/answer_elias.qmd`,
+appendix “Plan de simulation à information moyenne fixée”.
+
 ### See also
 
 - [Covariance-driven

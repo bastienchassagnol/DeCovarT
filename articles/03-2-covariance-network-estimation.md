@@ -701,6 +701,10 @@ graph, the only graph whose estimate then exists (pp. 4–5). This
 intermediate threshold governs the refit of `SILGGM`
 ([Sec. 3.2](#sec-cov-npn)).
 
+TODO (reply to Elias, 2026-11-20): overlay the per-type threshold
+C_j=G+1 on the regularisation-path and panel-size figures, so that rare
+types reaching it first are visible.
+
 #### Layer 3: the support is recovered
 
 Support recovery by the graphical lasso needs C_j\gtrsim d^{2}\log G, an
@@ -1297,6 +1301,13 @@ eigenvectors of (1-\lambda)\boldsymbol{R}\_j+\lambda\mathbf{I} do not
 depend on \lambda, so one eigendecomposition of the training correlation
 scores every held-out level.
 
+TODO (reply to Elias, 2026-11-20): the bulk likelihood is in-sample for
+\lambda. Add a leave-one-bulk-out selection, or a Takeuchi correction
+\operatorname{tr}(\boldsymbol J^{-1}\boldsymbol K), and compare arms
+(full vs diagonal plug-in) with a Vuong-type paired test over bulk
+samples; nested covariance layers fitted on the bulk need a boundary
+likelihood-ratio test.
+
 ### Other criteria and diagnostics
 
 The cross-validated score selects. The diagnostics below describe a
@@ -1354,6 +1365,9 @@ selected fit; they need no true graph.
 > reported for the sparse arms only, beside the cross-validated choice.
 
 ## Discussion and conclusions
+
+TODO (reply to Elias, 2026-11-20): compare the shrinkage plug-in with a
+graphical-lasso and a `PLNnetwork` plug-in on the same panels.
 
 ### The diagonal of the precision and near-diagonal estimates
 

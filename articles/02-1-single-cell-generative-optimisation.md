@@ -1355,6 +1355,13 @@ be a between-replicate covariance to carry a sampling interpretation.
 The diagonal-\boldsymbol{\Sigma}\_{B,j} remark of
 [Sec. 4.1.4](#sec-cc-replicates) applies.
 
+TODO (reply to Elias, 2026-11-20): estimate \boldsymbol\Sigma\_{B,j}
+from per-structure pseudo-bulks of a design with true biological
+replicates (Villaronga-Luque et al. 2025, Cell Stem Cell,
+doi:10.1016/j.stem.2025.03.012, MULTI-seq per structure; not in Zotero).
+With \boldsymbol\Sigma_B\neq0, \hat n_i=c_i^2/\hat\phi_i tends to a
+bounded effective number (ledger V47c).
+
 #### Strategy 2, DECALS and MEAD
 
 Both are reviewed in full

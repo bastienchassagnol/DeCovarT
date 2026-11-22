@@ -765,7 +765,13 @@ this result to DeCovarT.
     information is dominated by its mean part,
     n_i\mathbf{J}\_{\boldsymbol{\psi}}^{\top}\tilde{\boldsymbol{\mu}}^{\top}\boldsymbol{S}\_W^{-1}\tilde{\boldsymbol{\mu}}\mathbf{J}\_{\boldsymbol{\psi}},
     and the quasi-score of [Sec. 6.3](#sec-decovart-glm) becomes
-    efficient in this limit. The proof still has to be written.
+    efficient in this limit. The proof still has to be written. TODO
+    (reply to Elias, 2026-11-20): write the small-dispersion proof for
+    the single-cell mixture (covariance linear in \boldsymbol p,
+    profiled c and \phi, estimated reference), and state its
+    identifiability condition: with \phi free, equal means and
+    proportional \boldsymbol\Sigma\_{W,j} suffice to break it. Ledger
+    V47a–b gives I^{\mathrm{cov}}/I^{\mathrm{mean}}=O(1/n_i).
 2.  **Every type must grow.** The Gaussian law of the bulk is itself a
     central-limit approximation over the cells of each type, so the
     limit needs every count m\_{ji}=n_ip\_{ji} to grow, not only n_i. A
