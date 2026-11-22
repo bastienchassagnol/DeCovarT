@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-11-20",
+    "date": "2026-11-22",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
     "python": "3.14.3"
@@ -126,7 +126,7 @@
       "tex_line": "266, 1060",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2160"
+        "03-1:2162"
       ]
     },
     {
@@ -149,7 +149,7 @@
       "tex_line": "268",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2345"
+        "03-1:2347"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "tex_line": "640, 1062",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2160"
+        "03-1:2162"
       ]
     },
     {
@@ -175,7 +175,7 @@
       "tex_line": "1064",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2160"
+        "03-1:2162"
       ]
     },
     {
@@ -256,10 +256,7 @@
       "detail": "Hessian at $\\bm 0$ of $\\sum_j m_jK_j(a\\bm t)$ is $a^2n\\{p\\bm\\Sigma_1+(1-p)\\bm\\Sigma_2\\}$; $\\partial_p^2=\\bm 0$; conditional on the counts $m_j$",
       "detail_full": "Hessian at 0 of K_y(t) = sum_j m_j K_j(a t) equals a^2 n {p Sigma_1 + (1-p) Sigma_2}; d2/dp2 = 0. Holds conditional on the composition m_j = n p_j",
       "tex_line": "940, 1030",
-      "script": "verification/sympy/check_V6_sc_vs_population.py",
-      "qmd_lines": [
-        "answer_elias:428"
-      ]
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
     },
     {
       "id": "V6c",
@@ -279,10 +276,7 @@
       "detail": "Hessian at $\\bm 0$ of $n\\log\\sum_jp_je^{K_j(a\\bm t)}$ minus the fixed-count covariance equals $a^2np(1-p)(\\bm\\mu_1-\\bm\\mu_2)(\\bm\\mu_1-\\bm\\mu_2)^{\\mathsf T}$",
       "detail_full": "Hessian at 0 of n log sum_j p_j exp K_j(a t) minus the fixed-composition covariance = a^2 n p (1-p) (mu_1 - mu_2)(mu_1 - mu_2)^T; linearity in p is verified only given the cell counts m_j",
       "tex_line": "943, 1036",
-      "script": "verification/sympy/check_V6_sc_vs_population.py",
-      "qmd_lines": [
-        "answer_elias:428"
-      ]
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
     },
     {
       "id": "V6e",
@@ -292,10 +286,7 @@
       "detail": "averaging $\\prod_j\\varphi_j^{m_j}$ over $\\bm m\\sim\\mathrm{Mult}(n,\\bm p)$ gives $\\varphi_{\\mathrm{mix}}^{\\,n}$ ($n\\le8$ at $J=2$, $n\\le5$ at $J=3$); law of total covariance with $\\operatorname{Cov}\\bm m=n\\{\\operatorname{diag}(\\bm p)-\\bm p\\bm p^{\\mathsf T}\\}$ returns the printed term; $\\partial_p^2=-2a^2n\\bm\\Delta\\bm\\Delta^{\\mathsf T}\\neq\\bm 0$",
       "detail_full": "c.f. average over the multinomial equals phi_mix^n: True (J = 2, n = 1..8; J = 3, n = 1..5). E m = [n*p, n*(1 - p)], Cov m = Matrix([\n[-n*p*(p - 1),  n*p*(p - 1)],\n[ n*p*(p - 1), -n*p*(p - 1)]]). Total covariance minus printed form = Matrix([\n[0, 0],\n[0, 0]]); d2/dp2 + 2 a^2 n Delta Delta^T = Matrix([\n[0, 0],\n[0, 0]])",
       "tex_line": "943, 1036",
-      "script": "verification/sympy/check_V6_sc_vs_population.py",
-      "qmd_lines": [
-        "answer_elias:428"
-      ]
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
     },
     {
       "id": "V7a",
@@ -382,8 +373,8 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{283821409}{331776}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 283821409/331776; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{14600041}{2304}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 14600041/2304; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
@@ -522,7 +513,7 @@
       "tex_line": "744",
       "script": "verification/sympy/check_V13_bulk_sampling.py",
       "qmd_lines": [
-        "01-2:2106",
+        "01-2:2107",
         "03-2:396"
       ]
     },
@@ -536,8 +527,8 @@
       "tex_line": "748, 802",
       "script": "verification/sympy/check_V13_bulk_sampling.py",
       "qmd_lines": [
-        "01-2:1973",
-        "01-2:2106",
+        "01-2:1974",
+        "01-2:2107",
         "03-2:412"
       ]
     },
@@ -670,8 +661,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
       "qmd_lines": [
-        "01-2:1967",
-        "01-2:2177"
+        "01-2:1968",
+        "01-2:2178"
       ]
     },
     {
@@ -684,8 +675,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
       "qmd_lines": [
-        "01-2:1967",
-        "01-2:2177"
+        "01-2:1968",
+        "01-2:2178"
       ]
     },
     {
@@ -698,7 +689,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
       "qmd_lines": [
-        "01-2:2177"
+        "01-2:2178"
       ]
     },
     {
@@ -750,7 +741,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2399"
+        "03-1:2401"
       ]
     },
     {
@@ -763,7 +754,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2399"
+        "03-1:2401"
       ]
     },
     {
@@ -776,7 +767,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2379"
+        "03-1:2381"
       ]
     },
     {
@@ -789,7 +780,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2408"
+        "03-1:2410"
       ]
     },
     {
@@ -802,7 +793,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1148"
+        "03-1:1150"
       ]
     },
     {
@@ -815,7 +806,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1148"
+        "03-1:1150"
       ]
     },
     {
@@ -828,7 +819,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1148"
+        "03-1:1150"
       ]
     },
     {
@@ -841,7 +832,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1107"
+        "03-1:1109"
       ]
     },
     {
@@ -854,7 +845,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1075"
+        "03-1:1077"
       ]
     },
     {
@@ -867,10 +858,10 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1195",
-        "03-1:1220",
-        "03-1:1230",
-        "03-1:1246"
+        "03-1:1197",
+        "03-1:1222",
+        "03-1:1232",
+        "03-1:1248"
       ]
     },
     {
@@ -896,8 +887,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "03-1:2252",
-        "03-1:2276"
+        "03-1:2254",
+        "03-1:2278"
       ]
     },
     {
@@ -951,7 +942,7 @@
       "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
       "qmd_lines": [
         "summary_side_comparison:241",
-        "answer_elias:566"
+        "answer_elias:832"
       ]
     },
     {
@@ -1037,7 +1028,7 @@
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
         "summary_side_comparison:149",
-        "answer_elias:604"
+        "answer_elias:879"
       ]
     },
     {
@@ -1148,7 +1139,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:956"
+        "03-1:958"
       ]
     },
     {
@@ -1161,7 +1152,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:956"
+        "03-1:958"
       ]
     },
     {
@@ -1174,7 +1165,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:986"
+        "03-1:988"
       ]
     },
     {
@@ -1187,7 +1178,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1297"
+        "03-1:1299"
       ]
     },
     {
@@ -1200,7 +1191,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1310"
+        "03-1:1312"
       ]
     },
     {
@@ -1213,7 +1204,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1447"
+        "03-1:1449"
       ]
     },
     {
@@ -1226,7 +1217,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1459"
+        "03-1:1461"
       ]
     },
     {
@@ -1239,7 +1230,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1511"
+        "03-1:1513"
       ]
     },
     {
@@ -1252,7 +1243,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1499"
+        "03-1:1501"
       ]
     },
     {
@@ -1265,7 +1256,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1286"
+        "03-1:1288"
       ]
     },
     {
@@ -1278,7 +1269,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1341"
+        "03-1:1343"
       ]
     },
     {
@@ -1421,7 +1412,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1685"
+        "03-1:1687"
       ]
     },
     {
@@ -1434,7 +1425,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1691"
+        "03-1:1693"
       ]
     },
     {
@@ -1447,7 +1438,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1711"
+        "03-1:1713"
       ]
     },
     {
@@ -1525,7 +1516,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V38_raw_decomposition.py",
       "qmd_lines": [
-        "03-2:1170"
+        "03-2:1172"
       ]
     },
     {
@@ -1564,7 +1555,7 @@
       "detail_full": "values 0.8244, 0.2805, 0.4785 (rounded to 2 decimals)",
       "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
       "qmd_lines": [
-        "03-2:1498"
+        "03-2:1504"
       ]
     },
     {
@@ -1577,7 +1568,7 @@
       "detail_full": "G=1417: 725.6, 72.56; G=3420: 813.7, 81.37; G=5821: 866.9, 86.69",
       "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
       "qmd_lines": [
-        "03-2:697"
+        "03-2:699"
       ]
     },
     {
@@ -1629,7 +1620,7 @@
       "detail_full": "z^2(n) - z^2(a) n / a simplified to 0; the median scales with every z^2, root from sympy.solve",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1824"
+        "03-1:1826"
       ]
     },
     {
@@ -1642,7 +1633,7 @@
       "detail_full": "direct substitution",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1787"
+        "03-1:1789"
       ]
     },
     {
@@ -1655,7 +1646,7 @@
       "detail_full": "generic symmetric 3 x 3 W; Gaussianity of z_g follows from linearity, not checked here",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1876"
+        "03-1:1878"
       ]
     },
     {
@@ -1668,7 +1659,7 @@
       "detail_full": "generic symmetric 3 x 3 Sigma, gene 1 against genes 2 and 3",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1876"
+        "03-1:1878"
       ]
     },
     {
@@ -1681,7 +1672,7 @@
       "detail_full": "2 x 2: W_11 - 1/Sigma_11 = Sigma_12^2 / (Sigma_11 det Sigma) >= 0 (exact); 5 x 5: 25 random rational SPD matrices and their block-diagonal versions (rational-sampling)",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1918"
+        "03-1:1920"
       ]
     },
     {
@@ -1694,7 +1685,7 @@
       "detail_full": "generic symmetric 3 x 3 W, module {1, 2}; uses Var(W r) = W (V46c)",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1896"
+        "03-1:1898"
       ]
     },
     {
@@ -1707,7 +1698,7 @@
       "detail_full": "diagonal sum exact in rho; conditional forms at 25 rational rho in (0, 1) plus rho = 1/2 and 3/10",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1918"
+        "03-1:1920"
       ]
     },
     {
@@ -1720,7 +1711,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:566"
+        "answer_elias:733",
+        "answer_elias:832"
       ]
     },
     {
@@ -1733,7 +1725,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:566"
+        "answer_elias:733",
+        "answer_elias:832"
       ]
     },
     {
@@ -1746,7 +1739,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:511"
+        "answer_elias:1175"
       ]
     },
     {
@@ -1759,7 +1752,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:92"
+        "answer_elias:377"
       ]
     },
     {
@@ -1772,7 +1765,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:112"
+        "answer_elias:404"
       ]
     },
     {
@@ -1785,7 +1778,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:131"
+        "answer_elias:426"
       ]
     },
     {
@@ -1798,7 +1791,138 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:604"
+        "answer_elias:879"
+      ]
+    },
+    {
+      "id": "V48a",
+      "claim": "Small dispersion: with $\\phi_i=c_i^2/n_i$ the expected log-likelihood is stationary at $p_0$ with curvature $-I(p_0)=-\\{n_i\\bm\\Delta^\\top\\bm S_W^{-1}\\bm\\Delta+\\tfrac12\\operatorname{tr}[(\\bm S_W^{-1}(\\bm\\Sigma_{W,1}-\\bm\\Sigma_{W,2}))^2]\\}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$, $J=2$, symbolic $p_0$, $c$, $n$; expectation of a quadratic form under the true law",
+      "detail_full": "$G=2$, $J=2$, symbolic $p_0$, $c$, $n$; expectation of a quadratic form under the true law",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:733"
+      ]
+    },
+    {
+      "id": "V48b",
+      "claim": "Single-cell log-likelihood not concave: $\\bm\\mu_{\\cdot1}=(2,1)$, $\\bm\\mu_{\\cdot2}=(1,2)$, $\\bm\\Sigma_{W,1}=\\mathbf I$, $\\bm\\Sigma_{W,2}=4\\mathbf I$, $c=\\phi=1$, $\\bm y=\\tilde{\\bm\\mu}(1/2,1/2)$: $\\ell''(1/2)=16/25>0$ at the true composition",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "exact second derivative; grid maximiser on $(0,1)$ at $p\\approx1.000$ (boundary $p=1$ attracts the fit)",
+      "detail_full": "exact second derivative; grid maximiser on $(0,1)$ at $p\\approx1.000$ (boundary $p=1$ attracts the fit)",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:758"
+      ]
+    },
+    {
+      "id": "V48c",
+      "claim": "Effective number of cells: with $\\hat\\phi_i=Q/G$ and $\\operatorname{Cov}\\bm y=c_i^2\\bm S_B+\\phi_i\\bm S_W$, $\\mathbb E(1/\\hat n_i)=\\mathbb E(\\hat\\phi_i)/c_i^2=\\operatorname{tr}(\\bm S_W^{-1}\\bm S_B)/G+1/n_i$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$, $J=2$, symbolic $p$, $c$, $n$, composition known",
+      "detail_full": "$G=2$, $J=2$, symbolic $p$, $c$, $n$, composition known",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:1175"
+      ]
+    },
+    {
+      "id": "V48d",
+      "claim": "Scales and composition are not orthogonal: $I_{d\\phi}=\\sum_jd_j\\operatorname{tr}(\\bm S_W^{-1}\\bm\\Sigma_{W,j})/(2\\phi_i)$, $I_{dc}=c_i(\\tilde{\\bm\\mu}\\bm d)^\\top\\bm S_W^{-1}\\tilde{\\bm\\mu}\\bm p/\\phi_i$; $I_{d\\phi}=0$ for identical $\\bm\\Sigma_{W,j}$ only",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$-\\mathbb E$ of mixed second derivatives, $G=2$; at $p=1/2$: $I_{d\\phi}=- \\frac{82}{431 \\phi}$",
+      "detail_full": "$-\\mathbb E$ of mixed second derivatives, $G=2$; at $p=1/2$: $I_{d\\phi}=- \\frac{82}{431 \\phi}$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:650",
+        "answer_elias:1277"
+      ]
+    },
+    {
+      "id": "V48e",
+      "claim": "Whitened residuals are orthogonal to fitted values at the GLS fixed point ($\\bm m^\\top\\bm W\\bm r=0$), not at the maximum-likelihood estimate, where $\\tilde{\\bm\\mu}^\\top\\bm W\\bm r\\neq0$ balances the covariance score",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$G=2$, $J=2$, ML, grid then Newton ($\\hat p=0.518$, $\\hat c=1.278$): $\\max|\\tilde{\\bm\\mu}^\\top\\bm W\\bm r|=0.0844$; GLS $|\\bm m^\\top\\bm W\\bm r|=6.8e-15$",
+      "detail_full": "$G=2$, $J=2$, ML, grid then Newton ($\\hat p=0.518$, $\\hat c=1.278$): $\\max|\\tilde{\\bm\\mu}^\\top\\bm W\\bm r|=0.0844$; GLS $|\\bm m^\\top\\bm W\\bm r|=6.8e-15$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:1277"
+      ]
+    },
+    {
+      "id": "V48f",
+      "claim": "Independence estimator: actual over reported variance $=\\bm x^\\top\\bm D^{-1}\\bm\\Sigma\\bm D^{-1}\\bm x/\\bm x^\\top\\bm D^{-1}\\bm x$, $1+\\rho$ for $\\bm x=(1,1)$ and $1-\\rho$ for $\\bm x=(1,-1)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "two genes, $\\bm D=\\operatorname{diag}(\\bm\\Sigma)$, symbolic $\\sigma$, $\\rho$",
+      "detail_full": "two genes, $\\bm D=\\operatorname{diag}(\\bm\\Sigma)$, symbolic $\\sigma$, $\\rho$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:879"
+      ]
+    },
+    {
+      "id": "V48g",
+      "claim": "One perfect marker gene: information $n_i m^2/(p s)+1/(2p^2)$ on $p$; with a free gene-wise factor the profiled information is $1/(2p^2)$, the $O(n_i)$ mean part vanishes",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "mean $c_i b m p$, variance $\\phi_i s p$, $\\phi_i=c_i^2/n_i$, Schur complement in $b$",
+      "detail_full": "mean $c_i b m p$, variance $\\phi_i s p$, $\\phi_i=c_i^2/n_i$, Schur complement in $b$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:1240"
+      ]
+    },
+    {
+      "id": "V48h",
+      "claim": "$\\bm\\Sigma_{W,j}=\\bm S+\\varepsilon_j\\bm E$ with $\\bm p_0^\\top\\bm\\varepsilon=0$ keeps $\\bm S_W(\\bm p_0)=\\bm S$ (Mahalanobis term fixed) while $I^{\\mathrm{cov}}=\\tfrac12(\\bm d^\\top\\bm\\varepsilon)^2\\operatorname{tr}\\{(\\bm S^{-1}\\bm E)^2\\}$; $\\operatorname{tr}(\\bm S^{-1}\\bm E)=0$ gives $I_{d\\phi}=0$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$, $J=2$, symbolic $\\varepsilon$ and $p_0$; $\\phi_i$ factor omitted (common to both cases)",
+      "detail_full": "$G=2$, $J=2$, symbolic $\\varepsilon$ and $p_0$; $\\phi_i$ factor omitted (common to both cases)",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:1020"
+      ]
+    },
+    {
+      "id": "V48i",
+      "claim": "Calibration: $t^\\star=\\sqrt{f^\\star M/\\{(1-f^\\star)K\\}}$ gives $f_{\\mathrm{cov}}=f^\\star$; $\\bm\\Sigma_{W,j}(t)=\\bm S^{1/2}(\\mathbf I+ta_j\\bm H)\\bm S^{1/2}$ and $\\operatorname{tr}\\{(\\bm S^{-1}\\bm E)^2\\}=\\lVert\\bm H\\rVert_F^2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "symbolic $M$, $K$, $f^\\star$; whitening identity at $G=2$",
+      "detail_full": "symbolic $M$, $K$, $f^\\star$; whitening identity at $G=2$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:1412"
+      ]
+    },
+    {
+      "id": "V48j",
+      "claim": "Several modes: $\\mathbf I_T^{\\mathrm{cov}}=\\tfrac12(\\mathbf B^\\top\\mathbf A\\mathbf T)\\mathbf G_E(\\mathbf B^\\top\\mathbf A\\mathbf T)^\\top$ with $\\mathbf G_E(q,r)=\\operatorname{tr}(\\bm S^{-1}\\bm E_q\\bm S^{-1}\\bm E_r)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$J=3$, $Q=2$, $G=2$, normalised Helmert basis, symbolic $t_1$, $t_2$",
+      "detail_full": "$J=3$, $Q=2$, $G=2$, normalised Helmert basis, symbolic $t_1$, $t_2$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V48_elias_review.py",
+      "qmd_lines": [
+        "answer_elias:1412"
       ]
     }
   ]
