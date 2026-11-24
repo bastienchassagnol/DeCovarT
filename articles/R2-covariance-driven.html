@@ -108,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.3 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_covariance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">22 Nov 2026</p>
+      <p class="date">24 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/R2-covariance-driven.qmd" class="external-link"><code>vignettes/R2-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -125,37 +125,44 @@
 </details>
 </div>
 <p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 20</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_covariance_driven.R</code> (seed <code>20260807</code>).</p>
-<div id="fig-covariance-design" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="R2-covariance-driven_files/mediabag/fig-covariance-design.svg">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.</p>
-</figcaption></figure>
-</div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-covariance-design</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-covariance-design</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 8 deconvolution methods.</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (P) at (0,0) {3 compositions<span class="fu">\\</span> <span class="ss">$H^{</span><span class="sc">\star</span><span class="ss">}=1,</span><span class="sc">\ </span><span class="ss">0.5,</span><span class="sc">\ </span><span class="ss">0.1$</span>};</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (G) at (3.6,0) {<span class="ss">$2</span><span class="sc">\times</span><span class="ss"> 2$</span> graph assignments<span class="fu">\\</span> CT1, CT2: scale-free or cluster SBM};</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (C) at (7.2,0) {CT3 graph held at scale-free};</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (K) at (10.8,0) {3 target <span class="fu">\texttt</span>{BarOmega} levels <span class="ss">$</span><span class="sc">\bar\varpi</span><span class="ss">$</span><span class="fu">\\</span> low, moderate, high};</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (S) at (5.4,-2.2) {36 scenarios<span class="fu">\\</span> <span class="ss">$4</span><span class="sc">\times</span><span class="ss">3</span><span class="sc">\times</span><span class="ss">3$</span>};</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (A) at (5.4,-3.9) {8 methods, 5 interval constructions};</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">\foreach</span> <span class="fu">\n</span> in {P,G,C,K} <span class="fu">\draw</span>[edge] (<span class="fu">\n</span>.south) -- (S.north);</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (S) -- (A);</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
 <div class="cell" data-eval="true" data-layout-align="default">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>config:</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Covariance-driven G=20, J=3"]</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSf["CT1 SF, CT2 SF"]</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSb["CT1 SF, CT2 SBM"]</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSf["CT1 SBM, CT2 SF"]</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSb["CT1 SBM, CT2 SBM"]</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfLo["Low overlap"]</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfMo["Moderate overlap"]</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfHi["High overlap"]</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbLo["Low overlap"]</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbMo["Moderate overlap"]</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbHi["High overlap"]</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfLo["Low overlap"]</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfMo["Moderate overlap"]</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfHi["High overlap"]</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>config:</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Covariance-driven G=20, J=3"]</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSf["CT1 SF, CT2 SF"]</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSb["CT1 SF, CT2 SBM"]</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSf["CT1 SBM, CT2 SF"]</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSb["CT1 SBM, CT2 SBM"]</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfLo["Low overlap"]</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfMo["Moderate overlap"]</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfHi["High overlap"]</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbLo["Low overlap"]</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbMo["Moderate overlap"]</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbHi["High overlap"]</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfLo["Low overlap"]</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfMo["Moderate overlap"]</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfHi["High overlap"]</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
 </details><div class="cell-output-display">
 <div id="fig-covariance-design-tree" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -188,7 +195,7 @@ flowchart TB
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Hierarchical reading of the covariance factorial: 2-by-2 graph assignment on mean-collinear cell types 1 and 2 (type 3 held at scale-free), then low / moderate / high target MixSim BarOmega (4 x 3 = 12 covariance draws). Each leaf is crossed with the three Shannon compositions H* = 1 / 0.5 / 0.1.
+Figure 1: Hierarchical reading of the covariance factorial: 2-by-2 graph assignment on mean-collinear cell types 1 and 2 (type 3 held at scale-free), then low / moderate / high target MixSim BarOmega (4 x 3 = 12 covariance draws). Each leaf is crossed with the three Shannon compositions H* = 1 / 0.5 / 0.1.
 </figcaption></figure>
 </div>
 </div>
@@ -295,7 +302,7 @@ Table 2: Covariance factorial (graphs <span class="math inline">\times</span> t
 <img src="figures/fig_network_topologies.png" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 3: Two generator examples on <span class="math inline">G=20</span> nodes (scale-free, cluster SBM). Mean-collinear cell types 1 and 2 are each assigned one of these families; type 3 is held at scale-free.
+Figure 2: Two generator examples on <span class="math inline">G=20</span> nodes (scale-free, cluster SBM). Mean-collinear cell types 1 and 2 are each assigned one of these families; type 3 is held at scale-free.
 </figcaption></figure>
 </div>
 <p>Two generators were considered but not adopted:</p>
@@ -531,7 +538,7 @@ Table 6: Interval menu (<a href="01-2-population-inference.html">population inf
 </div>
 <p>Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>; the interval table also gives the mean and median width and the share of intervals leaving <span class="math inline">[0,1]</span>.</p>
 <div class="cell">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">)</span></span>
 <span><span class="co">#&gt; meta config theta_true descriptors supplementary regression</span></span>
@@ -545,7 +552,7 @@ Table 6: Interval menu (<a href="01-2-population-inference.html">population inf
 </h2>
 <p>Every figure is redrawn from two files in <code>output/fig03/</code>: <code>fig03_benchmark.rds</code> (run settings, design, true parameters and every metric table) and <code>fig03_plot_data.rds</code>, a list keyed by figure file stem that holds the data handed to each plot function.</p>
 <div class="cell">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_plot_data.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span></span>

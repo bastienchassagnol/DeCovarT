@@ -204,11 +204,21 @@ emits a `cli` note and uses this estimator. Hellinger of the purified
 Gaussians remains a cheap closed-form *descriptor*, not a MixSim
 `BarOmega` substitute.
 
-![](04-2-distances-overlap-metrics_files/mediabag/fig-overlap-routes.svg)
-
-Figure 1: Routes to MixSim-style average overlap. Exact Davies
-quadrature is used only for G \< 4; otherwise stratified Sobol Monte
-Carlo.
+``` tikz
+%%| label: fig-overlap-routes
+%%| fig-cap: Routes to MixSim-style average overlap. Exact Davies quadrature is used only for G < 4; otherwise stratified Sobol Monte Carlo.
+%%| filename: fig-overlap-routes
+%%| alt: Decision. Component Gaussians lead to the test G less than 4. Yes: exact Davies quadrature with MixSim overlap. No: stratified Sobol Monte Carlo with overlap_gaussian_mc.
+\begin{tikzpicture}
+\node[keybox] (A) at (0,0) {Component Gaussians $\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$};
+\node[choice] (B) at (0,-1.7) {$G<4$?};
+\node[box] (C) at (-3,-3.5) {\texttt{MixSim::overlap()}\\ Davies quadrature};
+\node[box] (D) at (3,-3.5) {\texttt{overlap\_gaussian\_mc()}\\ stratified Sobol Monte Carlo};
+\draw[edge] (A) -- (B);
+\draw[edge] (B) -| node[elabel, pos=0.25] {yes} (C);
+\draw[edge] (B) -| node[elabel, pos=0.25] {no} (D);
+\end{tikzpicture}
+```
 
 ## Fig03: topology fixed, overlap as the knob
 

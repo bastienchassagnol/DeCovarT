@@ -48,13 +48,26 @@ matters for the latent formulation: with \boldsymbol{D}=\boldsymbol{0}
 the bulk is an exact linear function of the profiles, and their
 conditional law is degenerate.
 
-![](05-2-bayesian-wiener_files/mediabag/fig-bw-dag.svg)
-
-Figure 1: The latent-profile form of DeCovarT. A Dirichlet prior
-generates the proportions of sample i; each cell type contributes one
-latent purified profile drawn from its reference Gaussian; the bulk is
-their proportion-weighted sum plus a diagonal measurement noise.
-Integrating the profiles out returns the purified-profile likelihood.
+``` tikz
+%%| label: fig-bw-dag
+%%| fig-cap: The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample $i$; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the purified-profile likelihood.
+%%| filename: fig-bw-dag
+%%| alt: Plate diagram. A fixed Dirichlet parameter alpha generates the latent proportions p_i inside a sample plate. The fixed reference means mu and precisions Lambda_j, outside the plates, generate the latent profile x_j,i inside a nested cell-type plate. The proportions, the profiles and a fixed diagonal noise D generate the observed bulk y_i.
+\begin{tikzpicture}
+\node[fixed] (al) at (-2.6,0) {$\boldsymbol{\alpha}$};
+\node[latent] (p) at (-0.6,0) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (mu) at (2.0,2.8) {$\boldsymbol{\mu}$};
+\node[fixed] (La) at (4.0,2.8) {$\{\boldsymbol{\Lambda}_{j}\}$};
+\node[latent] (x) at (3.0,0) {$\boldsymbol{x}_{\cdot j,i}$};
+\node[obs] (y) at (1.2,-2.2) {$\boldsymbol{y}_{\cdot i}$};
+\node[fixed] (D) at (-1.2,-2.2) {$\boldsymbol{D}$};
+\node[note, right=2mm of y] (ny) {$\mathcal{N}_G\bigl(\sum_jp_{ji}\boldsymbol{x}_{\cdot j,i},\boldsymbol{D}\bigr)$};
+\draw[dependency] (al) -- (p); \draw[dependency] (mu) -- (x); \draw[dependency] (La) -- (x);
+\draw[dependency] (p) -- (y); \draw[dependency] (x) -- (y); \draw[dependency] (D) -- (y);
+\plate{types}{(x)}{$j=1,\ldots,J$}
+\plate{samples}{(p)(types)(types-caption)(y)(ny)}{$i=1,\ldots,N$}
+\end{tikzpicture}
+```
 
 ## Profiles given the composition: MAP, BLUP and the Wiener filter
 

@@ -366,14 +366,30 @@ of deconvolution error.
 ### 4.2 A pipeline for multi-donor references
 
 With several donors per type, strategies D and E combine into the
-pipeline of [Figure 2](#fig-recommended-pipeline). With one specimen,
-the `DESeq2` step does not apply and strategy B replaces the shortlist
+pipeline of **?@fig-recommended-pipeline**. With one specimen, the
+`DESeq2` step does not apply and strategy B replaces the shortlist
 ([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#wrn-fs-estimand)).
 
-![](S6-feature-screening-scenario_files/mediabag/fig-recommended-pipeline.svg)
-
-Figure 2: Recommended reference-based feature-selection pipeline from
-donor pseudobulks to validated, mechanistically annotated panels.
+``` tikz
+%%| label: fig-recommended-pipeline
+%%| fig-cap: Recommended reference-based feature-selection pipeline from donor pseudobulks to validated, mechanistically annotated panels.
+%%| filename: fig-recommended-pipeline
+%%| alt: Ten-step pipeline drawn as two rows: donor split and pseudobulk; SCTransform highly variable genes; reliability and dropout filter; four-score shortlist with DESeq2, glmnet, Jeffreys and MixSim; stability selection; NSGA-II or greedy Pareto minimising the condition number kappa 2 and overlap; nested cross-validated panel selection with held-out donors; optional D-, E- or A-optimal design; CARNIVAL or CORNETO annotation; external cohort check.
+\begin{tikzpicture}[every node/.append style={text width=2.55cm}]
+\node[keybox] (A) at (0,0) {Donor split and pseudobulk};
+\node[box] (B) at (3.2,0) {\texttt{SCTransform} HVGs\\ (no cell-type regression)};
+\node[box] (C) at (6.4,0) {Reliability and dropout filter};
+\node[box] (D) at (9.6,0) {Four-score shortlist: \texttt{DESeq2}, \texttt{glmnet}, Jeffreys, MixSim};
+\node[box] (E) at (12.8,0) {Stability selection};
+\node[box] (F) at (12.8,-2.4) {NSGA-II or greedy Pareto:\\ $\min\kappa_2$ and overlap};
+\node[box] (G) at (9.6,-2.4) {Nested CV panel selection, held-out donor assessment};
+\node[dimbox] (H) at (6.4,-2.4) {Optional $D$-, $E$-, $A$-optimal design (perspective)};
+\node[box] (I) at (3.2,-2.4) {\texttt{CARNIVAL} / \texttt{CORNETO} annotation};
+\node[keybox] (J) at (0,-2.4) {External cohort check (see caveats)};
+\draw[edge] (A) -- (B); \draw[edge] (B) -- (C); \draw[edge] (C) -- (D); \draw[edge] (D) -- (E);
+\draw[edge] (E) -- (F); \draw[edge] (F) -- (G); \draw[edge] (G) -- (H); \draw[edge] (H) -- (I); \draw[edge] (I) -- (J);
+\end{tikzpicture}
+```
 
 > **Software**
 >

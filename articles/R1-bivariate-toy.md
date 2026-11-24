@@ -21,11 +21,22 @@ Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots)
 are in [how to build synthetic
 scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/04-1-synthetic-scenarios.html#sec-ademp).
 
-![](R1-bivariate-toy_files/mediabag/fig-bivariate-design.svg)
-
-Figure 1: Bivariate toy factorial design: three compositions, two
-variance structures, two CLD mean separations, a 9-by-9 gene-gene
-correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).
+``` tikz
+%%| label: fig-bivariate-design
+%%| fig-cap: Bivariate toy factorial design: three compositions, two variance structures, two CLD mean separations, a 9-by-9 gene-gene correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).
+%%| filename: fig-bivariate-design
+%%| alt: Four design factors, three compositions, two variance structures, two CLD mean separations, and a 9 by 9 grid of gene-gene correlations rho from -0.8 to 0.8, combine into 972 scenarios, each analysed by 7 deconvolution solvers.
+\begin{tikzpicture}
+\node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ Ba / Mo / Hi};
+\node[box, text width=3.1cm] (V) at (3.6,0) {2 variance structures\\ Ho homoscedastic,\\ He heteroscedastic};
+\node[box, text width=3.1cm] (C) at (7.2,0) {2 CLD mean separations\\ Sm small, Lg large};
+\node[box, text width=3.1cm] (R) at (10.8,0) {$9\times 9$ gene--gene correlations\\ $\varrho\in[-0.8,0.8]$, step $0.2$};
+\node[keybox] (S) at (5.4,-2.2) {972 scenarios\\ $3\times2\times2\times9\times9$};
+\node[keybox] (A) at (5.4,-3.9) {7 deconvolution solvers};
+\foreach \n in {P,V,C,R} \draw[edge] (\n.south) -- (S.north);
+\draw[edge] (S) -- (A);
+\end{tikzpicture}
+```
 
 Show the code
 
@@ -85,7 +96,7 @@ flowchart TB
   LgHe --> LgHeHi["Highly unbalanced"]
 ```
 
-Figure 2: Hierarchical reading of the same factorial: small versus large
+Figure 1: Hierarchical reading of the same factorial: small versus large
 CLD, then homoscedastic versus heteroscedastic variances, then balanced
 / moderately unbalanced / highly unbalanced compositions (2 x 2 x 3 = 12
 meta-scenarios). Each leaf is crossed with the 9-by-9 gene-gene
@@ -115,7 +126,7 @@ pairwise correlation changes, at fixed means, marginal variances, and
 composition. The ggplot panel below recomputes the same contrast and
 annotates MixSim overlap.
 
-Figure 3: Factorial design (left) and correlation-only 2D densities
+Figure 2: Factorial design (left) and correlation-only 2D densities
 (right) for the bivariate toy. {#fig-toy-design}
 
 ### Factorial design (972 scenarios)

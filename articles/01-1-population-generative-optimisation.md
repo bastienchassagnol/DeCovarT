@@ -1649,10 +1649,23 @@ a network topology to the recommended backend. A sparse *precision*
 \boldsymbol{\Sigma}\_j; only structure that survives in
 \boldsymbol{\Sigma}(\boldsymbol{p}) itself accelerates the likelihood.
 
-![](01-1-population-generative-optimisation_files/mediabag/fig-backend-decision.svg)
-
-Figure 2: Choosing a covariance backend; dense Cholesky is the default
-and structured backends are exact refinements.
+``` tikz
+%%| label: fig-backend-decision
+%%| fig-cap: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.
+%%| filename: fig-backend-decision
+%%| alt: Decision tree. The covariance Sigma(p), the sum over j of p_j squared Sigma_j, leads to a question about its declared structure. Five branches: no structure gives dense Cholesky at cost G cubed; disconnected modules give block Cholesky; ordered local dependence gives banded Cholesky; a fixed sparse pattern gives sparse Cholesky with a symbolic ordering computed once; shared programmes or hub genes give a Woodbury or Schur update at cost G r squared.
+\begin{tikzpicture}[node distance=7mm]
+\node[keybox] (A) {$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j} p_j^{2}\,\boldsymbol{\Sigma}_j$};
+\node[choice, below=of A] (B) {Declared covariance\\ structure?};
+\node[box, anchor=north, text width=2.8cm] (D) at ($(B.south)+(-7.0,-1.1)$) {\textit{none (default)}\\[3pt] Dense Cholesky\\ $O(G^{3})$};
+\node[box, anchor=north, text width=2.8cm] (E) at ($(B.south)+(-3.5,-1.1)$) {\textit{disconnected modules (stochastic block model)}\\[3pt] Block Cholesky\\ $O\bigl(\sum_b G_b^{3}\bigr)$};
+\node[box, anchor=north, text width=2.8cm] (F) at ($(B.south)+(0,-1.1)$) {\textit{ordered local dependence (band, AR)}\\[3pt] Banded Cholesky\\ $O(G b^{2})$};
+\node[box, anchor=north, text width=2.8cm] (G) at ($(B.south)+(3.5,-1.1)$) {\textit{fixed sparse pattern (Erd\H{o}s--R\'enyi, scale-free, small-world)}\\[3pt] Sparse Cholesky,\\ symbolic ordering once};
+\node[box, anchor=north, text width=2.8cm] (H) at ($(B.south)+(7.0,-1.1)$) {\textit{shared programmes, bridge hubs (pathways, housekeeping)}\\[3pt] Woodbury / Schur\\ $O(G r^{2})$};
+\draw[edge] (A) -- (B);
+\foreach \n in {D,E,F,G,H} \draw[edge] (B.south) -- (\n.north);
+\end{tikzpicture}
+```
 
 Each refinement is exact, not approximate:
 

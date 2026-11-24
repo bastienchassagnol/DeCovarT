@@ -367,8 +367,7 @@ S), the margin is the Poisson–gamma mixture of bulk RNA-seq models:
 \theta\sim\mathrm{Gamma}(T,\phi) (shape T, scale \phi) and
 x\mid\theta\sim\mathrm{Poisson}(s\theta), so that
 x\sim\mathrm{NB}\\T,1/(1+s\phi)\\ (equations S1–S2, p. 33). Algorithm 1
-(p. 34) draws each purified profile in three steps
-([Figure 1](#fig-s5-csnet)):
+(p. 34) draws each purified profile in three steps (**?@fig-s5-csnet**):
 
 1.  **Shared shocks.** For each pair g\<g', T\_{gg'}=\lfloor
     T\rho\_{j,gg'}\rfloor draws \eta\_{gg'h}\sim\mathrm{Exp}(1) are
@@ -385,15 +384,50 @@ x\sim\mathrm{NB}\\T,1/(1+s\phi)\\ (equations S1–S2, p. 33). Algorithm 1
 3.  **Poisson sampling.**
     x\_{gj,i}\mid\theta\_{gj,i}\sim\mathrm{Poisson}(s\\\theta\_{gj,i}).
 
-![](S5-misspecification_files/mediabag/fig-s5-csnet.svg)
-
-Figure 1: Algorithm 1 of `CSNet` (supplement A1) as a generative model,
-in DeCovarT’s notation. Step 1 shares T\_{gg'} unit-exponential shocks
-between genes g and g'; step 2 sums T shocks per gene into a gamma rate
-\theta\_{gj,i} with scale \phi_j set by the target variance; step 3
-samples counts at depth s. The bulk is the proportion-weighted sum of
-the purified profiles. Blue: latent; grey: observed; dotted:
-deterministic; squares: fixed.
+``` tikz
+%%| label: fig-s5-csnet
+%%| fig-cap: Algorithm 1 of `CSNet` (supplement A1) as a generative model, in DeCovarT's notation. Step 1 shares $T_{gg'}$ unit-exponential shocks between genes $g$ and $g'$; step 2 sums $T$ shocks per gene into a gamma rate $\theta_{gj,i}$ with scale $\phi_j$ set by the target variance; step 3 samples counts at depth $s$. The bulk is the proportion-weighted sum of the purified profiles. Unshaded circle: latent; grey circle: observed; diamond: deterministic; square: fixed.
+%%| filename: fig-s5-csnet
+%%| alt: Plate diagram. Fixed T and the target correlation R_j give the deterministic shared counts T_gg' in a plate over gene pairs, which generate shared unit-exponential shocks. In a gene plate, private shocks and the shared shocks, scaled by the deterministic phi_j computed from sigma_j squared, T and the depth s, give the deterministic gamma rate theta, which with s generates the latent count x. Inside a sample plate, a Dirichlet proportion vector and the counts of every type give the observed bulk y.
+\begin{tikzpicture}
+% fixed inputs (outside every plate)
+\node[fixed] (T) at (0.2,0) {$T$};
+\node[fixed] (R) at (2.0,0) {$\boldsymbol{R}_j$};
+\node[fixed] (sig) at (5.6,0) {$\sigma_j^{2}$};
+\node[fixed] (s) at (8.2,0) {$s$};
+% step 1: shared shocks, one set per pair of genes
+\node[det] (Tgg) at (1.1,-2.2) {$T_{gg'}$};
+\node[latent] (eta2) at (1.1,-4.4) {$\eta_{gg'h}$};
+\node[note, below=1mm of eta2] (neta2) {$\mathrm{Exp}(1)$};
+% step 2: private shocks and the gamma rate
+\node[latent] (eta1) at (4.2,-4.4) {$\eta_{gh}$};
+\node[note, below=1mm of eta1] (neta1) {$\mathrm{Exp}(1)$};
+\node[det] (phi) at (6.6,-2.2) {$\phi_j$};
+\node[det] (th) at (6.6,-4.4) {$\theta_{gj,i}$};
+% step 3: Poisson sampling at depth s, then mixing
+\node[latent] (x) at (6.6,-6.4) {$x_{gj,i}$};
+\node[fixed] (al) at (1.1,-9.6) {$\boldsymbol{\alpha}$};
+\node[latent] (p) at (3.6,-9.6) {$\boldsymbol{p}_{\cdot i}$};
+\node[obs] (y) at (6.6,-9.6) {$\boldsymbol{y}_{\cdot i}$};
+\draw[dependency] (T) -- (Tgg); \draw[dependency] (R) -- (Tgg); \draw[dependency] (Tgg) -- (eta2);
+\draw[dependency] (Tgg) -- (eta1); \draw[dependency] (T) to[bend left=12] (eta1);
+\draw[dependency] (sig) -- (phi); \draw[dependency] (s) -- (phi); \draw[dependency] (T) to[bend left=14] (phi);
+\draw[dependency] (phi) -- (th); \draw[dependency] (eta1) -- (th); \draw[dependency] (eta2) to[bend right=34] (th);
+\draw[dependency] (th) -- (x); \draw[dependency] (s) to[out=-80, in=40] (x);
+\draw[dependency] (x) -- (y); \draw[dependency] (al) -- (p); \draw[dependency] (p) -- (y);
+\plate{pairs}{(Tgg)(eta2)(neta2)}{pairs $g<g'$}
+\plate{genes}{(eta1)(neta1)(th)(x)}{genes $g$}
+\plate{types}{(pairs)(pairs-caption)(genes)(genes-caption)(phi)}{types $j$}
+\plate{samples}{(types)(types-caption)(p)(y)}{samples $i$}
+% equations, one per row, outside the plates
+\begin{scope}[every node/.style={note, anchor=west, text=ink!80}]
+\node at (9.2,-2.2) {Step 1: $T_{gg'}=\lfloor T\rho_{j,gg'}\rfloor$ shared draws;\ \ $s\phi_j=\sqrt{\sigma_j^{2}/T+1/4}-1/2$};
+\node[align=left] at (9.2,-4.4) {Step 2: $\theta_{gj,i}=\phi_j\times$(sum of the shared $\eta_{gg'h}$ and of\\ $T-\sum_{g'}T_{gg'}$ private $\eta_{gh}$) $\sim\mathrm{Gamma}(T,\phi_j)$};
+\node at (9.2,-6.4) {Step 3: $x_{gj,i}\mid\theta_{gj,i}\sim\mathrm{Poisson}(s\,\theta_{gj,i})$, so $x_{gj,i}\sim\mathrm{NB}$};
+\node at (9.2,-9.6) {Bulk: $\boldsymbol{y}_{\cdot i}=\sum_jp_{ji}\boldsymbol{x}_{\cdot j,i}$, $\boldsymbol{p}_{\cdot i}\sim\mathrm{Dirichlet}(\boldsymbol{\alpha})$};
+\end{scope}
+\end{tikzpicture}
+```
 
 The count moments follow from the law of total covariance (our
 derivation; the paper states only the variance and the correlation):
@@ -734,7 +768,7 @@ residuals rather than a fitted one on the purified profiles
 
 | Factor | Levels |
 |----|----|
-| Generator | Algorithm 1 of `CSNet` ([Figure 1](#fig-s5-csnet)), with T=200 |
+| Generator | Algorithm 1 of `CSNet` (**?@fig-s5-csnet**), with T=200 |
 | Target correlation \boldsymbol{R}\_j | MA(1); block exchangeable; any non-negative \boldsymbol{R}\_j with row sums \le1 |
 | Depth s | values giving b_j\in\\0.5,0.77,0.95\\ in [Equation 2](#eq-s5-csnet-moments) |
 

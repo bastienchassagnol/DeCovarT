@@ -171,16 +171,32 @@ properties, and \gamma,\gamma' absolute constants
 ([Note 1](#nte-fs-subexp), [Note 3](#nte-fs-bernstein)). B is the number
 of permutations ([Section 3.2.1](#sec-fs-calibration)).
 
-![](03-1-feature-selection_files/mediabag/fig-fs-tiers.svg)
-
-Figure 1: “Four tiers of gene selection for a DeCovarT reference from
-one specimen. Tiers (i) to (iii) remove or flag genes; tier (iv) keeps
-the remaining genes and lets the fitted covariance down-weight them.
-Tier (iii) needs a bulk sample matched to the reference. Dashed boxes
-are perspectives: cross-sample consistency needs several specimens,
-cross-technology references need a second reference, dependent cells
-need a tissue neighbourhood graph, and covariance-driven selection needs
-the estimated within-type covariances.”
+``` tikz
+%%| label: fig-fs-tiers
+%%| fig-cap: "Four tiers of gene selection for a DeCovarT reference from one specimen. Tiers (i) to (iii) remove or flag genes; tier (iv) keeps the remaining genes and lets the fitted covariance down-weight them. Tier (iii) needs a bulk sample matched to the reference. Dashed boxes are perspectives: cross-sample consistency needs several specimens, cross-technology references need a second reference, dependent cells need a tissue neighbourhood graph, and covariance-driven selection needs the estimated within-type covariances."
+%%| filename: fig-fs-tiers
+%%| alt: Flowchart. UMI counts and labels feed tier one, quality control, prior-knowledge markers and a presence gate, then tier two, cross-cell consistency by four tests of the type effect with a false-discovery gate and an effect-size rank, then tier three, cross-platform consistency by Cook's distance and a bulk filter built on five tail statements with a plug-in composition, then tier four, a generalised least-squares fit in which the within-type covariance down-weights genes. Four dashed perspective boxes sit below: cross-sample consistency below tier one, linked from tier two; cross-technology references and dependent cells in a tissue below tiers two and three, linked from tier three; covariance-driven post hoc selection below tier four, linked from tier three and feeding tier four.
+\begin{tikzpicture}[every node/.append style={text width=2.7cm}]
+\node[keybox] (A) at (0,2.3) {UMI counts $x_{gc}$, labels $j(c)$, matched bulk $y_{gi}$};
+\node[box] (B) at (0,0) {(i) cell and gene QC, prior markers, presence gate in every type};
+\node[box] (D) at (3.6,0) {(ii) cross-cell consistency: four tests, FDR gate, effect-size rank};
+\node[box] (P) at (7.2,0) {(iii) cross-platform consistency: Cook's distance, bulk filter with $\hat{\boldsymbol{p}}$};
+\node[keybox] (H) at (10.8,0) {(iv) GLS fit: $\widehat{\boldsymbol{\Sigma}}_{W,j}$ down-weights genes};
+\node[dimbox, densely dashed] (F1) at (0,-2.9) {cross-sample consistency (donors)};
+\node[dimbox, densely dashed] (F2) at (3.6,-2.9) {cross-technology references};
+\node[dimbox, densely dashed] (F3) at (7.2,-2.9) {dependent cells in a tissue};
+\node[dimbox, densely dashed] (E) at (10.8,-2.9) {covariance-driven, post hoc: Fisher information, Pareto};
+\draw[edge] (A) -- (B);
+\draw[edge] (B) -- (D);
+\draw[edge] (D) -- (P);
+\draw[edge] (P) -- (H);
+\draw[dashededge] (D) -- (F1);
+\draw[dashededge] (P) -- (F2);
+\draw[dashededge] (P) -- (F3);
+\draw[dashededge] (P) -- (E);
+\draw[dashededge] (E) -- (H);
+\end{tikzpicture}
+```
 
 > **Warning 1: What the genes are for**
 >
@@ -208,7 +224,7 @@ the estimated within-type covariances.”
 >   gonzalezDelgadoPostclusteringInference2025 exists in the book bib
 >   only.
 >
-> Selection proceeds in four tiers ([Figure 1](#fig-fs-tiers)):
+> Selection proceeds in four tiers (**?@fig-fs-tiers**):
 >
 > 1.  quality control, prior-knowledge markers and a presence gate
 >     ([Section 2](#sec-fs-qc));
@@ -298,7 +314,7 @@ shares of gene g, and u\_{g(1)}\le\cdots\le u\_{g(J)} are its order
 statistics, so that u\_{g(R\_{gj})}=u\_{gj} (rank-based notation of
 Jaeckel and of Hettmansperger and McKean). H_g/\log J and
 J\\\mathrm{Gini}\_g/(J-1) lie in \[0,1\]; low entropy and high Gini mean
-that few types carry the mass. [Figure 2](#fig-gini-derivation) derives
+that few types carry the mass. [Figure 1](#fig-gini-derivation) derives
 the Gini coefficient in five steps, from the mean absolute difference of
 the type means to the share form of [Equation 1](#eq-gini). The pairwise
 and sorted forms agree because, the share of rank R\_{gj} is larger than
@@ -324,7 +340,7 @@ gene expressed in one type only, against a dashed line at 0.875. Row E
 shows bar charts of type shares with a dashed line at one eighth and
 repeats the values.](figures/fig_03_1_gini.svg)
 
-Figure 2: Gini coefficient of one gene g across J=8 cell types, from
+Figure 1: Gini coefficient of one gene g across J=8 cell types, from
 pairwise differences of the type means to the share form of
 [Equation 1](#eq-gini). Left, boxes A to E: one formula per step; right,
 the same step for two genes with integer type means, a low-Gini gene
@@ -343,7 +359,7 @@ only (grey). (E) Type shares u\_{gj} with the line 1/J;
 [Equation 1](#eq-gini) gives the same values. Code:
 `scripts/figures/fig_03_1_gini.R`.
 
-For the two genes of [Figure 2](#fig-gini-derivation) the Gini
+For the two genes of [Figure 1](#fig-gini-derivation) the Gini
 coefficients are 21/200=0.105 and 77/100=0.770, and the corrected values
 J\\\mathrm{Gini}\_g/(J-1) are 3/25 and 22/25. A gene expressed in one
 type only has u\_{g(J)}=1, so [Equation 1](#eq-gini) gives (J-1)/J, the
@@ -664,7 +680,7 @@ small within-type part; a stress-response gene can have a large total
 residual variance and still a small between-type part. The sums weight
 every cell equally, so the abundant types dominate them; tests that
 allow a different variance per type are in
-[Section 3.2.1](#sec-fs-calibration). [Figure 3](#fig-sc-transform)
+[Section 3.2.1](#sec-fs-calibration). [Figure 2](#fig-sc-transform)
 shows the steps of the null model on simulated counts.
 
 ![Four scatter panels joined by arrows and labelled with formulas. Panel
@@ -677,7 +693,7 @@ smooth curve. Panel d: Pearson residuals of the same gene against the
 size factor, centred on zero with no depth trend, the two cell types at
 different levels.](figures/fig_03_1_sctransform.svg)
 
-Figure 3: Count null model M_0 on simulated counts (2,000 genes, 2,000
+Figure 2: Count null model M_0 on simulated counts (2,000 genes, 2,000
 cells of two types, seed 20261101), drawn with the `SCTransform` (v2)
 workflow. (a) Gene variance against gene mean: NB variance with the
 smoothed dispersion (solid) and the Poisson line (dashed). (b) Counts of
@@ -908,7 +924,7 @@ null is true. On real data the null is built by permuting the labels.
 #### 3.2.3 The four tests on simulated counts
 
 The tests rank genes by the same type effect, so their gene orders
-should agree; [Figure 4](#fig-fs-type-tests) measures how far they do.
+should agree; [Figure 3](#fig-fs-type-tests) measures how far they do.
 The simulation has J=4 types of 2,000, 300, 60 and 25 cells and 1,000
 genes: 600 nulls with one dispersion per gene, 300 nulls with the same
 mean in every type but \psi\_{gj}=20 in the two large types and 1 in the
@@ -949,7 +965,7 @@ discovery rate of 0.16 to 0.21 and a power of 0.76 to 0.85, and the
 permuted Welch test gives 43 discoveries, a false discovery rate of 0.05
 and a power of 0.41.](figures/fig_03_1_type_tests.svg)
 
-Figure 4: Four tests of the cell-type effect on simulated counts (J=4
+Figure 3: Four tests of the cell-type effect on simulated counts (J=4
 types of 2,000, 300, 60 and 25 cells; 1,000 genes; log-normal size
 factors with standard deviation 0.5; seed 20261101). Counts are negative
 binomial with the size factor as offset. In 600 null genes one
@@ -1070,7 +1086,7 @@ with w\_{gc} the IRLS weight. The hat values of each type sum to 1, so a
 cell of a type with C_j cells has h\_{gc}\approx1/C_j, and within a type
 h\_{gc} grows with the fitted mean. Every cell of a rare type, and every
 cell with a large fitted mean, has high leverage.
-[Figure 5](#fig-fs-influence-cells) shows the consequence. The 25 cells
+[Figure 4](#fig-fs-influence-cells) shows the consequence. The 25 cells
 of the rare high-expression type have leverage near 0.04; the 23
 consistent ones have small residuals and a Cook’s distance of at most
 0.025. Two doublet-like cells of that type combine that leverage with a
@@ -1097,7 +1113,7 @@ large-type outliers lie near the same residual line of 6, and the
 doublets have a Cook's distance 40 to 80 times
 larger.](figures/fig_03_1_influence_cells.svg)
 
-Figure 5: Leverage and influence of cells in the one-way
+Figure 4: Leverage and influence of cells in the one-way
 negative-binomial GLM M_1 of [Equation 6](#eq-fs-nb-main), simulated for
 one gene (J=4 types of 2,000, 300, 60 and 25 cells; log-normal size
 factors, standard deviation 0.5 on the log scale; \psi_g=5; type means
@@ -1134,7 +1150,7 @@ with r_g the standardised residual of gene g. h_g depends on the scaled
 row \hat{\tilde{\boldsymbol\mu}}\_{g\cdot}/\tau_g. When \tau_g grows in
 proportion to the level of the gene, the level cancels and the leverage
 follows the direction of the gene’s profile across types, not its level.
-In [Figure 6](#fig-fs-influence-genes) the markers of the rarest type
+In [Figure 5](#fig-fs-influence-genes) the markers of the rarest type
 and a high-mean gene with a rare-type profile have the highest leverage,
 0.024 to 0.044. A gene with a mean 50 times the median and an ordinary
 profile has a leverage of 0.017, against 0.70 in an unweighted fit. All
@@ -1162,7 +1178,7 @@ residual; the discordant genes lie above the 4/G line except one, the
 high-leverage consistent genes lie below
 it.](figures/fig_03_1_influence_genes.svg)
 
-Figure 6: Leverage and influence of genes in the weighted least-squares
+Figure 5: Leverage and influence of genes in the weighted least-squares
 regression of a bulk profile on the reference signature (G=500 genes,
 J=4 types, log-normal signature means with standard deviation 1.2 on the
 log scale, composition \boldsymbol p=(0.5,0.3,0.15,0.05); seed
@@ -1662,7 +1678,7 @@ inequality of Zhang & Li, used by DECALS, has a constant equal to
 
 #### 4.2.2 Comparing the statements
 
-[Figure 7](#fig-fs-bounds-gene) and [Figure 8](#fig-fs-bounds-module)
+[Figure 6](#fig-fs-bounds-gene) and [Figure 7](#fig-fs-bounds-module)
 compare the statements with Monte Carlo tails for a bulk of n=10^4 cells
 with \boldsymbol p=(0.6,0.3,0.1), a reference with C_j=2000,300,30 cells
 and NB counts with \psi_g=2, all parameters known.
@@ -1685,7 +1701,7 @@ the high-expression gene. A dotted horizontal line at 0.01 carries one
 dot per curve at its threshold and a black diamond at the Monte Carlo
 threshold.](figures/fig_03_1_tail_bounds_gene.svg)
 
-Figure 7: Tail probabilities of the discrepancy D\_{gi} of
+Figure 6: Tail probabilities of the discrepancy D\_{gi} of
 [Equation 12](#eq-fs-discrepancy) for one gene, under (A1)–(A4):
 n_i=10^4 bulk cells of fixed composition \boldsymbol p=(0.6,0.3,0.1),
 reference with C_j=2000,300,30 cells, NB counts with size \psi_g=2.
@@ -1714,10 +1730,10 @@ dotted horizontal line at 0.01 carries one dot per curve at its
 threshold and a black diamond at the Monte Carlo threshold, at t about
 14.](figures/fig_03_1_tail_bounds_module.svg)
 
-Figure 8: Tail probabilities of the module sum S_M of
+Figure 7: Tail probabilities of the module sum S_M of
 [Equation 12](#eq-fs-discrepancy) for \lvert M\rvert=20 genes, with the
-setting of [Figure 7](#fig-fs-bounds-gene). Type means are log-normal
-around the two genes of [Figure 7](#fig-fs-bounds-gene) (ten genes each,
+setting of [Figure 6](#fig-fs-bounds-gene). Type means are log-normal
+around the two genes of [Figure 6](#fig-fs-bounds-gene) (ten genes each,
 log-scale standard deviation 0.5). Counts of two genes in one cell have
 correlation \varrho=0.3 when the genes share an edge of a random gene
 graph (30 edges, maximal degree 6, mean degree 3), and zero otherwise.
@@ -2482,7 +2498,7 @@ shared modules, hence few effective directions in type j.
   (our remark). This does not make a low entropy bad for DeCovarT. The
   criteria of [Section 7.4.4](#sec-optimal-design) score the information
   for \boldsymbol{p}, not \boldsymbol{R}\_j, and in the example of
-  [Figure 9](#fig-dea-design) a correlation of 0.8 raises \det I. What
+  [Figure 8](#fig-dea-design) a correlation of 0.8 raises \det I. What
   separates types is the difference between \boldsymbol{R}\_j and
   \boldsymbol{R}\_\ell, which the overlap \bar\varpi of 2 measures; a
   low entropy in each type is not enough.
@@ -2558,7 +2574,7 @@ maximises the squared Gram volume of the contrasted mean columns, and
 [Section 7.4.2.1](#sec-weighted-kappa).
 
 **Example.** Take J=3 types and two candidate panels of three genes with
-unit variances ([Figure 9](#fig-dea-design)). In panel A the three genes
+unit variances ([Figure 8](#fig-dea-design)). In panel A the three genes
 have type means (4,2,2), (4,2,0) and (2,1,4); in panel B, (2,4,2),
 (0,2,4) and (0,2,3). With independent genes, panel A wins on the three
 criteria (n_i=1, orthonormal \boldsymbol{K}: \det I=116/3 against 104/3,
@@ -2579,7 +2595,7 @@ genes the three criteria D, E and A all favour panel A; with correlated
 genes D favours A while E and A favour
 B.](figures/fig_03_1_dea_design.svg)
 
-Figure 9: D-, E- and A-optimal choice between two gene panels (J=3
+Figure 8: D-, E- and A-optimal choice between two gene panels (J=3
 types, three genes each, unit variances, n_i=25). (a) 95 % confidence
 ellipses of \hat{\boldsymbol{p}} on the simplex plane at
 \boldsymbol{p}=(1/3,1/3,1/3) with independent genes: panel A (blue)
@@ -2639,13 +2655,13 @@ in \boldsymbol{\Omega}\_j ([Bolin et al.
 2026](#ref-bolinExplicitLinkGraphical2026)), *if* the fitted graph is
 taken as the minimal I-map. The construction uses undirected separation;
 directed d-separation, with its colliders, belongs to DAGs and is a
-different operation ([Figure 10](#fig-u-vs-dsep)). Boundary expansion
-can reintroduce collinear means, so the expanded set returns to the
-Pareto stage.
+different operation ([Figure 9](#fig-u-vs-dsep)). Boundary expansion can
+reintroduce collinear means, so the expanded set returns to the Pareto
+stage.
 
 ![](figures/markov_boundary_vs_dseparation.png)
 
-Figure 10: Undirected Markov boundary versus directed Markov blanket:
+Figure 9: Undirected Markov boundary versus directed Markov blanket:
 left, neighbours of target g in a GGM; right, parents, children and
 spouses in a DAG under d-separation.
 
@@ -2778,7 +2794,7 @@ rejected hypothesis passes its weight along the edges, and the procedure
 is a shortcut of a closed test TODO-cite: Bretz, Maurer, Brannath &
 Posch 2009, A graphical approach to sequentially rejective multiple test
 procedures, Stat. Med. 28(4):586-604, doi:10.1002/sim.3495. Here
-([Figure 11](#fig-fs-posthoc-graph)) each A\_{gj} starts with weight 1/J
+([Figure 10](#fig-fs-posthoc-graph)) each A\_{gj} starts with weight 1/J
 and passes all of it to B\_{gj} (a fixed sequence, logical because B
 implies A), and each B\_{gj} passes its weight equally to the other
 enrichment hypotheses. With no edge into the B layer the procedure is
@@ -2787,7 +2803,7 @@ TODO-cite: graphicalMCP R package; use citation(“graphicalMCP”).
 
 ![](03-1-feature-selection_files/mediabag/fig-fs-posthoc-graph.svg)
 
-Figure 11: “Within-gene graph for J=3 types. Enrichment hypotheses A_j
+Figure 10: “Within-gene graph for J=3 types. Enrichment hypotheses A_j
 (blue, initial weight 1/3) pass their weight to the unique-superiority
 hypothesis B_j of the same type (weight 1, a fixed sequence); each B_j
 passes its weight to the two other enrichment hypotheses (weight 1/2).
@@ -2808,7 +2824,7 @@ p^{B(2)}\_{gj}=\max\_{k\neq j}p^{(2)}\_{gjk} over the two-sided pairwise
 p-values, set to 1 when a pairwise estimate has the other sign. Since
 \Delta\_{gj} is the mean of the J-1 differences, B^{(2)}\_{gj} implies
 A^{(2)}\_{gj} with the same sign, so the graph of
-[Figure 11](#fig-fs-posthoc-graph) and the level \alpha_I carry over
+[Figure 10](#fig-fs-posthoc-graph) and the level \alpha_I carry over
 unchanged; the sign of a rejected two-sided hypothesis is read from the
 estimate. No fold-change threshold enters the tests (\delta=0, so the
 omnibus screen stays valid); a threshold such as

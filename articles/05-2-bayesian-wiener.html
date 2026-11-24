@@ -107,7 +107,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>5.2 A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">22 Nov 2026</p>
+      <p class="date">24 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/05-2-bayesian-wiener.qmd" class="external-link"><code>vignettes/05-2-bayesian-wiener.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -146,13 +146,24 @@
 \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Sigma}_j,
 \tag{2}</span></span></p>
 <p>which is the DeCovarT likelihood plus a diagonal residual. The residual matters for the latent formulation: with <span class="math inline">\boldsymbol{D}=\boldsymbol{0}</span> the bulk is an exact linear function of the profiles, and their conditional law is degenerate.</p>
-<div id="fig-bw-dag" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-bw-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="05-2-bayesian-wiener_files/mediabag/fig-bw-dag.svg">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bw-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample <span class="math inline">i</span>; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the purified-profile likelihood.</p>
-</figcaption></figure>
-</div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-bw-dag</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample $i$; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the purified-profile likelihood.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-bw-dag</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: Plate diagram. A fixed Dirichlet parameter alpha generates the latent proportions p_i inside a sample plate. The fixed reference means mu and precisions Lambda_j, outside the plates, generate the latent profile x_j,i inside a nested cell-type plate. The proportions, the profiles and a fixed diagonal noise D generate the observed bulk y_i.</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[fixed] (al) at (-2.6,0) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{</span><span class="sc">\alpha</span><span class="ss">}$</span>};</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[latent] (p) at (-0.6,0) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{p}_{</span><span class="sc">\cdot</span><span class="ss"> i}$</span>};</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[fixed] (mu) at (2.0,2.8) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{</span><span class="sc">\mu</span><span class="ss">}$</span>};</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[fixed] (La) at (4.0,2.8) {<span class="ss">$</span><span class="sc">\{\boldsymbol</span><span class="ss">{</span><span class="sc">\Lambda</span><span class="ss">}_{j}</span><span class="sc">\}</span><span class="ss">$</span>};</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[latent] (x) at (3.0,0) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{x}_{</span><span class="sc">\cdot</span><span class="ss"> j,i}$</span>};</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[obs] (y) at (1.2,-2.2) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{y}_{</span><span class="sc">\cdot</span><span class="ss"> i}$</span>};</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[fixed] (D) at (-1.2,-2.2) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{D}$</span>};</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[note, right=2mm of y] (ny) {<span class="ss">$</span><span class="sc">\mathcal</span><span class="ss">{N}_G</span><span class="sc">\bigl</span><span class="ss">(</span><span class="sc">\sum</span><span class="ss">_jp_{ji}</span><span class="sc">\boldsymbol</span><span class="ss">{x}_{</span><span class="sc">\cdot</span><span class="ss"> j,i},</span><span class="sc">\boldsymbol</span><span class="ss">{D}</span><span class="sc">\bigr</span><span class="ss">)$</span>};</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[dependency] (al) -- (p); <span class="fu">\draw</span>[dependency] (mu) -- (x); <span class="fu">\draw</span>[dependency] (La) -- (x);</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[dependency] (p) -- (y); <span class="fu">\draw</span>[dependency] (x) -- (y); <span class="fu">\draw</span>[dependency] (D) -- (y);</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">\plate</span>{types}{(x)}{<span class="ss">$j=1,</span><span class="sc">\ldots</span><span class="ss">,J$</span>}</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">\plate</span>{samples}{(p)(types)(types-caption)(y)(ny)}{<span class="ss">$i=1,</span><span class="sc">\ldots</span><span class="ss">,N$</span>}</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
 <div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-map-blup">Profiles given the composition: MAP, BLUP and the Wiener filter<a class="anchor" aria-label="anchor" href="#sec-map-blup"></a>
 </h2>

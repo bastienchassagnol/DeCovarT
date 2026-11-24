@@ -77,10 +77,10 @@
 
 <div id="agent-instructions" class="section level1">
 
-<p>Standing guidance is <code>.cursor/rules/</code> (Cursor) and <code>.claude/rules/</code> (Claude Code). The shared rules are also deployed from the ubuntu-genesis bundle at the user level; the levels below explain which copy applies.</p>
+<p>Standing guidance is <code>.cursor/rules/</code> (Cursor) and <code>.claude/rules/</code> (Claude Code): copies of the ubuntu-genesis bundle rules, refreshed by <code>agent-sync install-project</code> (section below).</p>
 <div class="section level2">
 <h2 id="package-conventions-decovart">Package conventions (DeCovarT)<a class="anchor" aria-label="anchor" href="#package-conventions-decovart"></a></h2>
-<p>Scope: do not add tasks (tests, docs, commits, refactors) unless asked; ask first. British English in prose. The deprecated <code>.cursorrules</code> was removed; its repository-specific, rarely needed material is in <code>dev/package-dev-notes.md</code> (CRAN incoming lessons, CRAN Cookbook, GitHub Actions, pkgdown, load hooks, Roxygen, testing, plotting, bibliography streams, Nature Methods limits, scientific review). Read the relevant section on demand. Generic R, Python, Quarto and writing guidance comes from the bundle rules.</p>
+<p>Scope: no unrelated tasks (docs, commits, refactors) unless asked; new non-trivial logic still gets one small test (<code>ponytail</code>), and exported functions their smoke tests. British English in prose. Repository-specific, rarely needed material is in <code>dev/package-dev-notes.md</code> (CRAN incoming lessons, CRAN Cookbook, GitHub Actions, pkgdown, load hooks, Roxygen, testing, plotting, bibliography streams, Nature Methods limits, scientific review). Read the relevant section on demand. Generic R, Python, Quarto and writing guidance comes from the bundle rules.</p>
 <ul><li>
 <strong>Layout.</strong> <code>R/</code> (package API, numeric prefixes <code>02_01_…</code>, keep the convention), <code>scripts/</code> (one-off analyses), <code>tests/testthat/</code> (<code>R/foo.R</code> maps to <code>test-foo.R</code>), <code>vignettes/</code> (Quarto), <code>inst/</code> (assets, <code>CITATION</code>, bib), <code>article/</code> (LaTeX and TikZ manuscript), <code>data/</code> (<code>raw/</code> immutable, DVC pointers only), <code>output/</code>, <code>docs/</code> (pkgdown build, gitignored).</li>
 <li>
@@ -97,8 +97,12 @@
 <strong>Manuscript (<code>article/</code>)</strong>: Nature Methods Article: abstract at most 150 words and unreferenced, main text about 3,000 words, no footnotes, at most 50 references, at most 6 display items. Details in <code>dev/package-dev-notes.md</code>.</li>
 </ul></div>
 <div class="section level2">
-<h2 id="skills-and-rules-where-they-live-which-one-wins">Skills and rules: where they live, which one wins<a class="anchor" aria-label="anchor" href="#skills-and-rules-where-they-live-which-one-wins"></a></h2>
-<p>Source of truth: <code>Config/.cursor/</code> in <a href="https://github.com/bastienchassagnol/ubuntu-genesis" class="external-link">ubuntu-genesis</a>, cloned to <code>~/repos/ubuntu-genesis</code>. <code>agent-sync.sh</code> copies it to the user level of both tools.</p>
+<h2 id="rules-and-skills-where-they-live">Rules and skills: where they live<a class="anchor" aria-label="anchor" href="#rules-and-skills-where-they-live"></a></h2>
+<p>Source of truth: <code>Config/.cursor/</code> in <a href="https://github.com/bastienchassagnol/ubuntu-genesis" class="external-link">ubuntu-genesis</a>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># read by agent-sync install-project</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">packs</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> r-package-article</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">project_rules</span><span class="kw">:</span><span class="at"> copy</span></span></code></pre></div>
 <table class="table"><colgroup><col width="25%"><col width="25%"><col width="25%"><col width="25%"></colgroup><thead><tr><th>Level</th>
 <th>Rules</th>
 <th>Skills</th>
@@ -107,9 +111,9 @@
 <td>
 <code>.cursor/rules/*.mdc</code>, <code>.claude/rules/*.md</code>
 </td>
+<td>none</td>
 <td>
-<code>.cursor/skills</code>, <code>.claude/skills</code> (none yet)</td>
-<td>this repository, committed</td>
+<code>agent-sync install-project</code> (bundle copies, committed)</td>
 </tr><tr><td>2. User</td>
 <td>
 <code>~/.cursor/rules</code>, <code>~/.claude/rules</code>
@@ -118,47 +122,32 @@
 <code>~/.cursor/skills</code>, <code>~/.claude/skills</code>
 </td>
 <td>
-<code>agent-sync.sh install-user</code>; do not hand-edit</td>
+<code>agent-sync install-user</code>; do not hand-edit</td>
 </tr><tr><td>3. Machine-local</td>
 <td>none</td>
 <td>
-<code>firecrawl*</code>, <code>~/.agents/skills</code> (<code>npx skills</code>)</td>
-<td>not vendored, not in git</td>
+<code>firecrawl*</code>, <code>~/.agents/skills</code>
+</td>
+<td>not vendored</td>
 </tr><tr><td>4. Host built-in</td>
 <td>none</td>
 <td>
 <code>~/.cursor/skills-cursor</code>, plugins, <code>~/.claude/skills/synced/</code>
 </td>
 <td>the tool itself</td>
-</tr></tbody></table><p>The tools disagree on a name clash, so a name is defined at one level only:</p>
-<ul><li>Cursor merges rules with the project over the user level (Team, Project, User).</li>
-<li>Claude Code loads user and project rules together and does not define a winner. For skills of the same name, a personal skill (<code>~/.claude/skills</code>) beats a project skill.</li>
-<li>Claude Code reads only <code>paths:</code> in a rule’s frontmatter; Cursor reads <code>globs:</code> and <code>alwaysApply:</code>. Bundle rules carry both. A rule without either loads in every session.</li>
-<li>Claude Code does not read <code>.cursor/</code> or <code>.agents/</code>.</li>
-</ul><p>Project copies in <code>.claude/rules/</code> and <code>.cursor/rules/</code> have the same names as bundle rules and may differ from them. Read the project copy as the authority for this repository. Do not add a project skill whose name the bundle already uses.</p>
-<div class="section level3">
-<h3 id="keeping-the-levels-in-step">Keeping the levels in step<a class="anchor" aria-label="anchor" href="#keeping-the-levels-in-step"></a></h3>
-<ul><li>Edit in the bundle, commit there, <code>git pull</code>; the <code>post-merge</code> hook runs <code>install-user</code>.</li>
-<li>Edit under <code>~/.cursor</code> or <code>~/.claude</code>: the <code>afterFileEdit</code> (Cursor) and <code>PostToolUse</code> (Claude Code) hook, <code>~/.cursor/hooks/agent-sync-after-edit.sh</code>, runs <code>publish</code> and redeploys. Review <code>git diff</code> in the bundle, then commit.</li>
-<li>Log: <code>~/.cache/agent-sync/hook.log</code>. Check: <code>$AGENT_BUNDLE_ROOT/agent-sync/agent-sync.sh verify</code>, or open a shell with <code>CLAUDE_AGENT_SYNC=1</code> (set in <code>~/.zshrc</code>; output in <code>verify.log</code>).</li>
-<li>
-<code>AGENT_BUNDLE_ROOT</code> is exported in <code>~/.zshrc</code> and in the <code>env</code> block of <code>~/.claude/settings.json</code>. Hook shells do not read <code>~/.zshrc</code>.</li>
+</tr></tbody></table><ul><li>Project and user copies of a rule are the same bundle file. Claude Code loads both levels together (no winner), Cursor prefers the project copy; keeping them identical avoids any conflict. Refresh after a bundle change: <code>"$AGENT_BUNDLE_ROOT/agent-sync/agent-sync.sh" install-project .</code> (copies the pack into both folders, prunes rules removed from the bundle, keeps project-only <code>.cursor/rules</code> files and mirrors them to <code>.claude/rules</code>).</li>
+<li>Project-only rules go in <code>.cursor/rules/</code> under a name the bundle does not use.</li>
+<li>Claude Code reads <code>paths:</code> in a rule’s frontmatter; Cursor reads <code>globs:</code> and <code>alwaysApply:</code>. Bundle rules carry both.</li>
+<li>Symbolic verification lives in <code>answer-cardamomOT/verification/</code> (<code>run_all.py</code>, <code>ledger.json</code>, <code>verification-ledger.tex</code>).</li>
+<li>Do not commit a symlink that leaves the repository (it breaks on clone, in CI and on Windows); this repository tracks none.</li>
 </ul></div>
-<div class="section level3">
-<h3 id="symlinks">Symlinks<a class="anchor" aria-label="anchor" href="#symlinks"></a></h3>
-<ul><li>Do not commit a symlink that leaves the repository (for example <code>.cursor/rules</code> pointing at a bundle outside it): it breaks on clone, in CI and on Windows, and a symlinked <code>skills/</code> puts every bundle skill at project level. Use copies. A relative link inside the repository is acceptable.</li>
-<li>
-<code>~/.bashrc</code> is a separate file that hands interactive shells to zsh. Do not link it to <code>~/.zshrc</code>: that file uses zsh-only syntax (<code>setopt</code>, <code>typeset -g</code>).</li>
-<li>Audit of <code>dtoo_project/</code> on 2026-11-18: this repository tracks no symlink.</li>
-</ul></div>
-</div>
 <div class="section level2">
 <h2 id="code-graph-codegraph-first-graphify-second">Code graph (CodeGraph first, Graphify second)<a class="anchor" aria-label="anchor" href="#code-graph-codegraph-first-graphify-second"></a></h2>
-<p>CodeGraph is the default for code. Graphify is secondary and applies to mixed material. Where this section and the <code>graphify</code> rule (Cursor <code>.cursor/rules/graphify.mdc</code>, Claude Code <code>~/.claude/rules/graphify.md</code>) disagree about a code question, this section applies.</p>
+<p>CodeGraph is the default for code. Graphify is secondary and applies to mixed material. Routing follows the <code>code-intelligence</code> rule; this section adds the repository paths.</p>
 <ul><li>
 <strong>Code questions</strong> (<code>R/</code>, <code>tests/testthat/</code>, <code>scripts/</code>, <code>answer-cardamomOT/verification/</code>: callers, callees, impact, how a call path reaches a function): where <code>.codegraph/</code> exists at the repository root, call <code>codegraph_explore</code> (MCP) or <code>codegraph explore "&lt;question&gt;"</code> before Grep, Glob or Read. Treat the returned source as already read. The index auto-syncs while the MCP server runs. <code>.codegraph/</code> is not committed; build it once per checkout with <code>codegraph init</code>. <code>codegraph.json</code> excludes <code>slides/_extensions/</code>, <code>vignettes/_extensions/</code> and <code>revdep/</code>.</li>
 <li>
-<strong>Cross-document questions</strong> (links across vignettes, <code>article/</code>, papers and design notes): use <code>/graphify query</code> only where <code>graphify-out/graph.json</code> exists. The folder is not committed and is rebuilt at milestones (annotated tag or version bump, via <code>Config/.cursor/code-knowledge/scripts/graphify-milestone.sh</code> in the ubuntu-genesis bundle), not on every commit. Do not run <code>graphify hook install</code> for code sync: CodeGraph covers it. <code>.graphifyignore</code> already excludes generated and vendored paths (rendered output, vendored extensions).</li>
+<strong>Cross-document questions</strong> (links across vignettes, <code>article/</code>, papers and design notes): use <code>graphify query "&lt;q&gt;"</code> only where <code>graphify-out/graph.json</code> exists. The folder is not committed and is rebuilt at milestones (annotated tag or version bump, via <code>Config/.cursor/code-knowledge/scripts/graphify-milestone.sh</code> in the ubuntu-genesis bundle), not on every commit. Do not run <code>graphify hook install</code> for code sync: CodeGraph covers it. <code>.graphifyignore</code> already excludes generated and vendored paths (rendered output, vendored extensions).</li>
 <li>
 <strong>Neither index exists</strong>: for a code question, tell the user to run <code>codegraph init</code> and wait; for a cross-document question, tell them to run the <code>/graphify</code> skill from the repository root. Do not substitute a long manual exploration.</li>
 </ul></div>

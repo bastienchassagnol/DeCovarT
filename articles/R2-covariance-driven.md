@@ -17,13 +17,22 @@ discriminative signal. Construction, ADEMP benchmark, and the static
 network figure live in a **single** script,
 `scripts/fig03_variance_covariance_driven.R` (seed `20260807`).
 
-![](R2-covariance-driven_files/mediabag/fig-covariance-design.svg)
-
-Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 /
-0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free
-versus cluster SBM; type 3 held at scale-free), three target MixSim
-average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios),
-analysed by eight methods.
+``` tikz
+%%| label: fig-covariance-design
+%%| fig-cap: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.
+%%| filename: fig-covariance-design
+%%| alt: Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 8 deconvolution methods.
+\begin{tikzpicture}
+\node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ $H^{\star}=1,\ 0.5,\ 0.1$};
+\node[box, text width=3.1cm] (G) at (3.6,0) {$2\times 2$ graph assignments\\ CT1, CT2: scale-free or cluster SBM};
+\node[box, text width=3.1cm] (C) at (7.2,0) {CT3 graph held at scale-free};
+\node[box, text width=3.1cm] (K) at (10.8,0) {3 target \texttt{BarOmega} levels $\bar\varpi$\\ low, moderate, high};
+\node[keybox] (S) at (5.4,-2.2) {36 scenarios\\ $4\times3\times3$};
+\node[keybox] (A) at (5.4,-3.9) {8 methods, 5 interval constructions};
+\foreach \n in {P,G,C,K} \draw[edge] (\n.south) -- (S.north);
+\draw[edge] (S) -- (A);
+\end{tikzpicture}
+```
 
 Show the code
 
@@ -79,7 +88,7 @@ flowchart TB
   SbSb --> SbSbHi["High overlap"]
 ```
 
-Figure 2: Hierarchical reading of the covariance factorial: 2-by-2 graph
+Figure 1: Hierarchical reading of the covariance factorial: 2-by-2 graph
 assignment on mean-collinear cell types 1 and 2 (type 3 held at
 scale-free), then low / moderate / high target MixSim BarOmega (4 x 3 =
 12 covariance draws). Each leaf is crossed with the three Shannon
@@ -185,7 +194,7 @@ f\_{\mathrm{cov}} rises with s.
 
 ![](figures/fig_network_topologies.png)
 
-Figure 3: Two generator examples on G=20 nodes (scale-free, cluster
+Figure 2: Two generator examples on G=20 nodes (scale-free, cluster
 SBM). Mean-collinear cell types 1 and 2 are each assigned one of these
 families; type 3 is held at scale-free.
 
