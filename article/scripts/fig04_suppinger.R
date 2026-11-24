@@ -7,7 +7,7 @@
 #
 #   c  genes removed per tier (i) rule      fs_tier1_gene_filters.rds
 #   d  gate and rank (permuted Welch G)     fs_tier2_gate_rank.rds
-#   e  UpSet of the confirmed genes (A)     fs_deg_upset.rds
+#   e  UpSet of the confirmed genes (A)     fs_deg_superiority_upset.rds
 #   f  curated enrichment themes            fs_enrichment_lollipop.rds
 #   g  pooled UMAP, one facet per time      fs_tier1_umap_pooled.rds
 #   h  Kendall tau of the mean profiles     profile_correlation.csv (Welch)
@@ -240,72 +240,45 @@ panel_d <- ggplot(d_data, aes(x, r2, colour = status)) +
 # --- e: UpSet of the confirmed genes (hypothesis A) -------------------------
 
 upset <- rds_repro(
-  "output", "feature_selection", "deg", "figures", "fs_deg_upset.rds"
+  "output", "feature_selection", "deg", "figures", "fs_deg_superiority_upset.rds"
 )
 sets <- setdiff(names(upset), "gene")
 stopifnot(length(sets) == 11L, all(vapply(upset[sets], is.logical, TRUE)))
-pattern <- apply(upset[sets], 1L, function(r) paste(as.integer(r), collapse = ""))
-sizes <- sort(table(pattern), decreasing = TRUE)
-sizes <- utils::head(sizes[sizes >= 5L], 25L) # as scripts/02_04_vis_deg.R:86
-inter <- data.frame(id = seq_along(sizes), pattern = names(sizes), genes = as.integer(sizes))
-set_label <- sub("^(\\d+)h: ", "\\1 h  ", sets)
-set_levels <- rev(set_label)
-matrix_data <- do.call(rbind, lapply(seq_len(nrow(inter)), function(k) {
-  on <- strsplit(inter$pattern[k], "")[[1L]] == "1"
-  data.frame(id = k, set = factor(set_label, levels = set_levels), on = on)
-}))
-set_sizes <- data.frame(
-  set = factor(set_label, levels = set_levels),
-  genes = colSums(upset[sets])
-)
-segments <- do.call(rbind, lapply(split(matrix_data[matrix_data$on, ], matrix_data$id[matrix_data$on]), function(m) {
-  y <- as.integer(m$set)
-  data.frame(id = m$id[1L], ymin = min(y), ymax = max(y))
-}))
-
-e_top <- ggplot(inter, aes(id, genes)) +
-  geom_col(fill = colour_series, width = 0.7) +
-  scale_x_continuous(limits = c(0.5, nrow(inter) + 0.5), expand = c(0, 0)) +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, 0.05))) +
-  labs(x = NULL, y = "Intersection\nsize") +
-  theme_slide() +
-  theme(
-    axis.text.x = element_blank(),
-    panel.grid.major.x = element_blank(),
-    plot.margin = margin(4, 2, 0, 2)
-  )
-e_matrix <- ggplot(matrix_data, aes(id, set)) +
-  geom_blank() + # trains the discrete y scale before the numeric segments
-  geom_segment(
-    data = segments, aes(x = id, xend = id, y = ymin, yend = ymax),
-    inherit.aes = FALSE, colour = colour_ink, linewidth = 0.35
-  ) +
-  geom_point(aes(colour = on), size = 1.1) +
-  scale_colour_manual(values = c(`TRUE` = colour_ink, `FALSE` = "#dcd8cf")) +
-  scale_x_continuous(limits = c(0.5, nrow(inter) + 0.5), expand = c(0, 0)) +
-  labs(x = NULL, y = NULL) +
-  theme_slide() +
-  theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_text(size = small, colour = colour_ink),
-    panel.grid.major.x = element_blank(),
-    plot.margin = margin(0, 2, 1, 0)
-  )
-e_sets <- ggplot(set_sizes, aes(genes, set)) +
-  geom_col(fill = colour_context, width = 0.6) +
-  scale_x_reverse(breaks = c(2000, 0), labels = c("2k", "0"), expand = expansion(mult = c(0.05, 0))) +
-  labs(x = "Set size", y = NULL) +
-  theme_slide() +
-  theme(
-    panel.grid.major.y = element_blank(),
-    axis.text.y = element_blank(),
-    plot.margin = margin(0, 0, 1, 2)
-  )
-# patchwork aligns the three parts (set labels sit between B and C); the
-# outer grid stays cowplot.
-panel_e <- patchwork::wrap_plots(
-  A = e_top, B = e_sets, C = e_matrix,
-  design = "#A\nBC", widths = c(0.16, 0.84), heights = c(0.45, 0.55)
+names(upset)[match(sets, names(upset))] <- sub("^(\\d+)h: ", "\\1 h  ", sets)
+sets <- sub("^(\\d+)h: ", "\\1 h  ", sets)
+# As scripts/02_04_vis_deg.R:86 (min_size 5, 25 largest intersections).
+panel_e <- ComplexUpset::upset(
+  upset,
+  intersect = sets,
+  min_size = 5,
+  n_intersections = 25,
+  width_ratio = 0.25,
+  name = NULL,
+  base_annotations = list(
+    "Intersection size" = ComplexUpset::intersection_size(
+      fill = colour_series, text = list(size = 0), text_colors = c(on_background = NA, on_bar = NA)
+    )
+  ),
+  set_sizes = ComplexUpset::upset_set_size(
+    geom = geom_bar(fill = colour_context)
+  ) + scale_y_continuous(breaks = c(0, 2000), labels = c("0", "2k")),
+  stripes = "white",
+  matrix = ComplexUpset::intersection_matrix(geom = geom_point(size = 1.1)),
+  themes = ComplexUpset::upset_modify_themes(list(
+    default = theme_slide(),
+    "Intersection size" = theme_slide() + theme(
+      axis.text.x = element_blank(), axis.title.x = element_blank(),
+      panel.grid.major.x = element_blank()
+    ),
+    intersections_matrix = theme_slide() + theme(
+      axis.text.x = element_blank(), axis.title = element_blank(),
+      axis.text.y = element_text(size = small), panel.grid = element_blank()
+    ),
+    overall_sizes = theme_slide() + theme(
+      axis.text.y = element_blank(), axis.title.y = element_blank(),
+      panel.grid.major.y = element_blank()
+    )
+  ))
 )
 
 # --- f: curated enrichment themes -------------------------------------------
