@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='317.48pt' height='79.37pt' viewBox='0 0 317.48 79.37'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: none;'/>
+<defs>
+  <clipPath id='cpMC4wMHwzMTcuNDh8MC4wMHw3OS4zNw=='>
+    <rect x='0.00' y='0.00' width='317.48' height='79.37' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHwzMTcuNDh8MC4wMHw3OS4zNw==)'>
+<rect x='0.000000000000032' y='0.00' width='317.48' height='79.37' style='stroke-width: 0.68; stroke: none;' />
+</g>
+<defs>
+  <clipPath id='cpODMuMDR8MzE2LjQ4fDEuMDB8NzguMzc='>
+    <rect x='83.04' y='1.00' width='233.44' height='77.38' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpODMuMDR8MzE2LjQ4fDEuMDB8NzguMzc=)'>
+<rect x='83.04' y='1.00' width='233.44' height='77.38' style='stroke-width: 0.68; stroke: none;' />
+<rect x='83.04' y='6.59' width='180.13' height='10.25' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #8A8F8B;' />
+<rect x='141.00' y='23.09' width='64.20' height='4.47' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #9DB8D9;' />
+<rect x='137.28' y='28.13' width='71.65' height='4.47' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #5A86B8;' />
+<rect x='140.58' y='33.16' width='65.05' height='4.47' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #1D4E89;' />
+<rect x='168.57' y='41.74' width='9.06' height='4.47' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #9DB8D9;' />
+<rect x='161.05' y='46.77' width='24.11' height='4.47' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #5A86B8;' />
+<rect x='153.47' y='51.80' width='39.27' height='4.47' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #1D4E89;' />
+<rect x='150.61' y='62.53' width='44.98' height='10.25' style='stroke-width: 0.68; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #C45C26;' />
+<text x='198.26' y='70.15' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='17.88px' lengthAdjust='spacingAndGlyphs'>6,749</text>
+<text x='195.41' y='51.51' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='66.09px' lengthAdjust='spacingAndGlyphs'>1,360 / 3,617 / 5,893</text>
+<text x='211.60' y='32.86' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='70.09px' lengthAdjust='spacingAndGlyphs'>9,633 / 10,751 / 9,761</text>
+<text x='265.83' y='14.22' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='21.88px' lengthAdjust='spacingAndGlyphs'>27,027</text>
+</g>
+<g clip-path='url(#cpMC4wMHwzMTcuNDh8MC4wMHw3OS4zNw==)'>
+<text x='79.90' y='70.15' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='77.38px' lengthAdjust='spacingAndGlyphs'>panel, union over times</text>
+<text x='79.90' y='47.73' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='78.03px' lengthAdjust='spacingAndGlyphs'>(2)+(3) Welch G, BH 0.05</text>
+<text x='79.90' y='55.29' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='42.61px' lengthAdjust='spacingAndGlyphs'>48 / 72 / 96 h</text>
+<text x='79.90' y='29.08' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='78.91px' lengthAdjust='spacingAndGlyphs'>(1) present in every type</text>
+<text x='79.90' y='36.64' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='42.61px' lengthAdjust='spacingAndGlyphs'>48 / 72 / 96 h</text>
+<text x='79.90' y='14.22' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='61.78px' lengthAdjust='spacingAndGlyphs'>deposited symbols</text>
+</g>
+</g>
+</svg>

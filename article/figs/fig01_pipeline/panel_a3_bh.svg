@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='96.38pt' height='65.20pt' viewBox='0 0 96.38 65.20'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: none;'/>
+<defs>
+  <clipPath id='cpMC4wMHw5Ni4zOHwwLjAwfDY1LjIw'>
+    <rect x='0.00' y='0.00' width='96.38' height='65.20' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw5Ni4zOHwwLjAwfDY1LjIw)'>
+<rect x='0.00' y='0.00' width='96.38' height='65.20' style='stroke-width: 0.68; stroke: none;' />
+</g>
+<defs>
+  <clipPath id='cpMS4wMHw5NS4zOHwxLjAwfDU1Ljc3'>
+    <rect x='1.00' y='1.00' width='94.39' height='54.77' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMS4wMHw5NS4zOHwxLjAwfDU1Ljc3)'>
+<rect x='1.00' y='1.00' width='94.39' height='54.77' style='stroke-width: 0.68; stroke: none;' />
+<polyline points='1.00,53.28 95.38,53.28 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='1.00,36.68 95.38,36.68 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='1.00,20.08 95.38,20.08 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='1.00,3.49 95.38,3.49 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='22.45,55.77 22.45,1.00 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='45.33,55.77 45.33,1.00 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='68.21,55.77 68.21,1.00 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='91.09,55.77 91.09,1.00 ' style='stroke-width: 0.53; stroke: #E6E1D8; stroke-linecap: butt;' />
+<line x1='-93.39' y1='75.75' x2='189.77' y2='7.29' style='stroke-width: 0.85; stroke: #1C2B24; stroke-dasharray: 4.55,4.55; stroke-linecap: butt;' />
+<circle cx='5.29' cy='53.28' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='11.01' cy='53.28' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='16.73' cy='53.24' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='22.45' cy='53.10' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='28.17' cy='49.91' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='33.89' cy='49.73' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='39.61' cy='49.36' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='45.33' cy='47.95' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='51.05' cy='46.52' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='56.77' cy='46.22' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='62.49' cy='41.31' r='1.40' style='stroke-width: 0.45; stroke: #C45C26; fill: #C45C26;' />
+<circle cx='68.21' cy='25.37' r='1.40' style='stroke-width: 0.45; stroke: #B9B4AA; fill: #B9B4AA;' />
+<circle cx='73.93' cy='15.86' r='1.40' style='stroke-width: 0.45; stroke: #B9B4AA; fill: #B9B4AA;' />
+<circle cx='79.65' cy='4.64' r='1.40' style='stroke-width: 0.45; stroke: #B9B4AA; fill: #B9B4AA;' />
+<circle cx='85.37' cy='4.50' r='1.40' style='stroke-width: 0.45; stroke: #B9B4AA; fill: #B9B4AA;' />
+<circle cx='91.09' cy='-39.65' r='1.40' style='stroke-width: 0.45; stroke: #B9B4AA; fill: #B9B4AA;' />
+<text x='91.09' y='28.15' text-anchor='end' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='32.20px' lengthAdjust='spacingAndGlyphs'>0.05 k / m</text>
+</g>
+<g clip-path='url(#cpMC4wMHw5Ni4zOHwwLjAwfDY1LjIw)'>
+<text x='48.19' y='62.52' text-anchor='middle' style='font-size: 7.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='67.31px' lengthAdjust='spacingAndGlyphs'>rank k of the p-value</text>
+</g>
+</g>
+</svg>
