@@ -13,24 +13,22 @@ Creative Commons (CC BY or CC BY-SA). Prefer Wikimedia Commons, or an
 open-access paper that states the licence on the article. Skip paywalled
 journal figures and any image with no stated licence.
 
-For each candidate, give:
+For each candidate, give the page URL, the direct image URL, the licence, the
+author and a one-line attribution. Do not download anything until the user
+picks one.
 
-- the page URL
-- the direct image URL
-- the licence
-- the author
-- a one-line attribution
+## 2. Draw it (code)
 
-Do not download anything until the user picks one.
+Follow the repository's figure scripts and seeds.
 
-## 2. Draw it in R or Python
-
-If no licensed image exists, draw the figure in R or Python when the picture
-is a plot, diagram, or teaching sketch the code can produce. Follow the
-repository's figure scripts and seeds.
+- **Data plots:** R (`ggplot2`) or OJS/D3 in Quarto, per `data-visualisation`
+  (SVG first; a PDF for LaTeX is made from the SVG).
+- **Diagrams, DAGs, plates, schematics, outlines:** TikZ, `pgfplots` or
+  `curve2e` under LuaLaTeX, per `latex-scientific` (and `graphical-models`
+  for probabilistic models). No PSTricks.
 
 ## 3. Generate it
 
-If neither a licensed image nor an R or Python drawing will do, generate the
+If neither a licensed image nor a code-drawn figure will do, generate the
 image with the session's image generator. Say that the picture is generated,
 and do not present it as a published figure.

@@ -530,51 +530,51 @@ to full dependence.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west, align=left}}
 % (a) mixture: random labels
 \begin{scope}
-\node[const] (p) at (0,0) {$\boldsymbol{p}$};
-\node[const] (th) at (2.0,0) {$\boldsymbol{\mu},\boldsymbol{\Sigma}_{\cdot}$};
-\node[stoch] (z) at (0,-2.0) {$z_c$};
-\node[stoch] (x) at (1.0,-3.8) {$\boldsymbol{X}_c$};
+\node[fixed] (p) at (0,0) {$\boldsymbol{p}$};
+\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu},\boldsymbol{\Sigma}_{\cdot}$};
+\node[latent] (z) at (0,-2.0) {$z_c$};
+\node[latent] (x) at (1.0,-3.8) {$\boldsymbol{X}_c$};
 \node[note, left=1mm of z] (nz) {$\mathrm{Cat}(\boldsymbol{p})$};
 \plate{c}{(z)(x)(nz)}{$c=1,\ldots,n$}
 \node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
 \node[note, below=1mm of y, align=center] (ny) {$n\sum_j p_j\boldsymbol{\Sigma}_j$\\ $+\,n\sum_j p_j\boldsymbol{\delta}_j\boldsymbol{\delta}_j^{\top}$};
-\draw[edge] (p) -- (z); \draw[edge] (z) -- (x); \draw[edge] (th) -- (x); \draw[edge] (x) -- (y);
+\draw[dependency] (p) -- (z); \draw[dependency] (z) -- (x); \draw[dependency] (th) -- (x); \draw[dependency] (x) -- (y);
 \node[ptitle] at (-1.8,1.0) {(a) mixture of cells};
 \end{scope}
 % (b) convolution of independent cells, counts fixed
 \begin{scope}[xshift=52mm]
-\node[const] (m) at (0,0) {$m_j$};
-\node[const] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}$};
-\node[stoch] (x) at (1.0,-2.6) {$\boldsymbol{X}_{jc}$};
+\node[fixed] (m) at (0,0) {$m_j$};
+\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}$};
+\node[latent] (x) at (1.0,-2.6) {$\boldsymbol{X}_{jc}$};
 \plate{c}{(x)}{$c\le m_j$}
-\plate{j}{(m)(th)(c)(c-lab)}{$j=1,\ldots,J$}
+\plate{j}{(m)(th)(c)(c-caption)}{$j=1,\ldots,J$}
 \node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
 \node[note, below=1mm of y] (ny) {$\sum_j m_j\boldsymbol{\Sigma}_j$};
-\draw[edge] (m) -- (x); \draw[edge] (th) -- (x); \draw[edge] (j.south -| y) -- (y);
+\draw[dependency] (m) -- (x); \draw[dependency] (th) -- (x); \draw[dependency] (j.south -| y) -- (y);
 \node[ptitle] at (-1.0,1.0) {(b) independent cells};
 \end{scope}
 % (c) equicorrelated cells: shared type effect
 \begin{scope}[xshift=104mm]
-\node[const] (m) at (0,0) {$m_j$};
-\node[const] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j},\varrho_j$};
-\node[stoch] (Bj) at (2.0,-1.9) {$\boldsymbol{B}_{j}$};
-\node[stoch] (x) at (1.0,-3.6) {$\boldsymbol{X}_{jc}$};
+\node[fixed] (m) at (0,0) {$m_j$};
+\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j},\varrho_j$};
+\node[latent] (Bj) at (2.0,-1.9) {$\boldsymbol{B}_{j}$};
+\node[latent] (x) at (1.0,-3.6) {$\boldsymbol{X}_{jc}$};
 \plate{c}{(x)}{$c\le m_j$}
-\plate{j}{(m)(th)(Bj)(c)(c-lab)}{$j=1,\ldots,J$}
+\plate{j}{(m)(th)(Bj)(c)(c-caption)}{$j=1,\ldots,J$}
 \node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
 \node[note, below=1mm of y] (ny) {$\sum_j m_j[1+(m_j-1)\varrho_j]\boldsymbol{\Sigma}_j$};
-\draw[edge] (th) -- (Bj); \draw[edge] (Bj) -- (x); \draw[edge] (m) -- (x); \draw[edge] (j.south -| y) -- (y);
+\draw[dependency] (th) -- (Bj); \draw[dependency] (Bj) -- (x); \draw[dependency] (m) -- (x); \draw[dependency] (j.south -| y) -- (y);
 \node[ptitle] at (-1.0,1.0) {(c) equicorrelated cells};
 \end{scope}
 % (d) convolution of population profiles
 \begin{scope}[xshift=160mm]
-\node[const] (p) at (0,0) {$p_j$};
-\node[const] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}$};
-\node[stoch] (Z) at (2.0,-2.6) {$\boldsymbol{Z}_{j}$};
+\node[fixed] (p) at (0,0) {$p_j$};
+\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}$};
+\node[latent] (Z) at (2.0,-2.6) {$\boldsymbol{Z}_{j}$};
 \plate{j}{(p)(th)(Z)}{$j=1,\ldots,J$}
 \node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
 \node[note, below=1mm of y] (ny) {$\sum_j p_j^{2}\boldsymbol{\Sigma}_j$};
-\draw[edge] (th) -- (Z); \draw[edge] (Z) -- (y); \draw[edge] (p) -- (y);
+\draw[dependency] (th) -- (Z); \draw[dependency] (Z) -- (y); \draw[dependency] (p) -- (y);
 \node[ptitle] at (-1.0,1.0) {(d) population profiles};
 \end{scope}
 \end{tikzpicture}
@@ -1463,12 +1463,12 @@ practice, usually without saying so.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) joint
 \begin{scope}
-\node[const] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{W,\cdot}$};
-\node[const] (p) at (-1.2,-2.4) {$\boldsymbol{p}_{\cdot i}$};
-\node[const] (eta) at (1.2,-2.4) {$\boldsymbol{\eta}_i$};
+\node[fixed] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{W,\cdot}$};
+\node[fixed] (p) at (-1.2,-2.4) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (eta) at (1.2,-2.4) {$\boldsymbol{\eta}_i$};
 \node[obs] (y) at (0,-4.2) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {$\ell_i(\boldsymbol{p}_{\cdot i},\boldsymbol{\eta}_i)$ maximised jointly;\\ information $I_{pp}-I_{p\eta}I_{\eta\eta}^{-1}I_{\eta p}$};
-\draw[edge] (mu) -- (y); \draw[edge] (p) -- (y); \draw[edge] (eta) -- (y);
+\draw[dependency] (mu) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (eta) -- (y);
 \plate{ia}{(p)(eta)(y)(ny)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.6,1.9) {(a) joint: Strategies 1--3};
 \end{scope}
@@ -1479,11 +1479,11 @@ practice, usually without saying so.
 \plate{k}{(aux)(naux)}{auxiliary data $k$}
 \node[det] (eh) at (2.0,0) {$\hat{\boldsymbol{\eta}}$};
 \node[note, above=1mm of eh] {stage 1};
-\node[const] (mu) at (3.8,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{W,\cdot}$};
-\node[const] (p) at (0.8,-2.4) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (mu) at (3.8,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{W,\cdot}$};
+\node[fixed] (p) at (0.8,-2.4) {$\boldsymbol{p}_{\cdot i}$};
 \node[obs] (y) at (2.0,-4.2) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {stage 2: $\ell_i(\boldsymbol{p}_{\cdot i};\hat{\boldsymbol{\eta}})$, $\hat{\boldsymbol{\eta}}$ held fixed;\\ information $I_{pp}$, plus a two-step correction};
-\draw[edge] (aux) -- (eh); \draw[dashededge] (eh) -- (y); \draw[edge] (mu) -- (y); \draw[edge] (p) -- (y);
+\draw[dependency] (aux) -- (eh); \draw[dashededge] (eh) -- (y); \draw[dependency] (mu) -- (y); \draw[dependency] (p) -- (y);
 \plate{ib}{(p)(y)(ny)}{$i=1,\ldots,N$}
 \node[ptitle] at (-3.0,1.9) {(b) plug-in: Strategy 4};
 \end{scope}

@@ -64,29 +64,19 @@ format:
         % LuaLaTeX loads unicode-math: bold italic symbols, Latin and Greek
         \AtBeginDocument{\renewcommand{\boldsymbol}[1]{\symbfit{#1}}}
         \usepackage{tikz}
-        \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
+        \usetikzlibrary{bayesnet,arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
         \definecolor{ink}{HTML}{1F2937}
         \definecolor{latfill}{HTML}{DAE9FB}
         \definecolor{latdraw}{HTML}{4477B5}
         \definecolor{obsfill}{HTML}{C9CDD3}
         \definecolor{obsdraw}{HTML}{747B86}
-        \definecolor{platedraw}{HTML}{98A2B3}
         \tikzset{
           every node/.style={text=ink},
-          const/.style={rectangle, draw=ink, fill=white, minimum size=9mm, line width=0.8pt},
-          stoch/.style={circle, draw=latdraw, fill=latfill, minimum size=11mm, line width=0.9pt},
-          obs/.style={circle, draw=obsdraw, fill=obsfill, minimum size=11mm, line width=0.9pt},
-          det/.style={circle, draw=ink, densely dotted, fill=white, minimum size=11mm, line width=0.9pt},
-          plate/.style={draw=platedraw, dashed, rounded corners=5pt, inner sep=4mm, line width=0.8pt},
-          platelabel/.style={anchor=north east, font=\small\itshape, text=obsdraw, inner sep=1mm},
-          note/.style={font=\small, text=ink!80},
+          fixed/.style={const, draw, minimum size=7mm, inner sep=2pt},
+          note/.style={font=\footnotesize, align=left},
+          dependency/.style={-{Stealth[length=2mm]}, semithick},
           edge/.style={-{Stealth[length=2.6mm]}, line width=0.8pt, draw=ink}
         }
-        \newcommand{\plate}[3]{%
-          \begin{scope}[on background layer]
-            \node[plate, fit=#2] (#1) {};
-          \end{scope}
-          \node[platelabel] (#1-lab) at (#1.south east) {#3};}
 ---
 
 **Code couleur.**
@@ -239,27 +229,27 @@ face ([livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-de
 \node[det] (mu) at (2.6,1.1) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
 \node[det] (sw) at (2.6,-1.1) {$\hat{\boldsymbol{\Sigma}}_{W,j}$};
 \node[note] (nsw) at (2.6,-2.3) {$\boldsymbol{\Delta}_j^{1/2}\{(1-\lambda)\boldsymbol{R}_j+\lambda\mathbf{I}\}\boldsymbol{\Delta}_j^{1/2}$};
-\draw[edge] (cells) -- (mu);
-\draw[edge] (cells) -- (sw);
-\plate{types}{(cells)(cells-lab)(mu)(sw)(nsw)}{$j=1,\ldots,J$}
-\node[const] (lam) at (2.6,-4.0) {$\lambda$};
-\draw[edge] (lam) -- (sw);
+\draw[dependency] (cells) -- (mu);
+\draw[dependency] (cells) -- (sw);
+\plate{types}{(cells)(cells-caption)(mu)(sw)(nsw)}{$j=1,\ldots,J$}
+\node[fixed] (lam) at (2.6,-4.0) {$\lambda$};
+\draw[dependency] (lam) -- (sw);
 % bulk side
-\node[const] (p) at (6.6,2.9) {$\boldsymbol{p}_{\cdot i}$};
-\node[const] (a) at (8.0,2.9) {$a_i$};
-\node[const] (n) at (9.4,2.9) {$n_i$};
+\node[fixed] (p) at (6.6,2.9) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (a) at (8.0,2.9) {$a_i$};
+\node[fixed] (n) at (9.4,2.9) {$n_i$};
 \node[det] (m) at (7.4,1.1) {$\boldsymbol{m}_i$};
 \node[det] (S) at (7.4,-1.1) {$\boldsymbol{\Sigma}_i$};
 \node[obs] (y) at (9.6,0) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, anchor=west] (nm) at (10.3,1.4) {$\boldsymbol{m}_i=a_in_i\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}$};
 \node[note, anchor=west] (nS) at (10.3,-1.4) {$\boldsymbol{\Sigma}_i=a_i^2n_i\,\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})$};
 \node[note, anchor=west] (ny) at (10.3,0) {$\boldsymbol{y}_{\cdot i}\sim\mathcal{N}_G(\boldsymbol{m}_i,\boldsymbol{\Sigma}_i)$};
-\draw[edge] (p) -- (m); \draw[edge] (p) -- (S);
-\draw[edge] (a) -- (m); \draw[edge] (a) -- (S);
-\draw[edge] (n) -- (m); \draw[edge] (n) -- (S);
-\draw[edge] (mu) -- (m);
-\draw[edge] (sw) -- (S);
-\draw[edge] (m) -- (y); \draw[edge] (S) -- (y);
+\draw[dependency] (p) -- (m); \draw[dependency] (p) -- (S);
+\draw[dependency] (a) -- (m); \draw[dependency] (a) -- (S);
+\draw[dependency] (n) -- (m); \draw[dependency] (n) -- (S);
+\draw[dependency] (mu) -- (m);
+\draw[dependency] (sw) -- (S);
+\draw[dependency] (m) -- (y); \draw[dependency] (S) -- (y);
 \plate{bulk}{(p)(a)(n)(m)(S)(y)(nm)(nS)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 \caption{Modèle \texttt{DeCovarT} retenu pour Suppinger. Moments de
@@ -267,7 +257,7 @@ référence sur comptes bruts, covariance par type régularisée par
 \emph{shrinkage} de niveau $\lambda$ commun aux types d'une date, facteur
 d'échelle $a_i$ et nombre de cellules $n_i$ libres, $\boldsymbol{p}_{\cdot i}$
 optimisé par L-BFGS-B sur le simplexe. Carrés : quantités fixes ou
-paramètres ; cercles pointillés : quantités calculées ; cercles gris :
+paramètres ; losanges : quantités calculées ; cercles gris :
 données observées.}
 \label{fig-model-latex}
 \end{figure}

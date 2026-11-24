@@ -34,5 +34,4 @@ Do not mix Conda/Poetry/pip/uv without a documented reason.
 - **Textual** — full-screen TUI only when needed.
 - **`httpx`** — HTTP with explicit timeouts (not new `requests` code).
 
-British English in comments when you write prose. Match existing typing and test
-conventions in the repository.
+Match the repository's typing and test conventions.

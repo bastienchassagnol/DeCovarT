@@ -4,24 +4,20 @@ alwaysApply: true
 ---
 # Token budget: routing, caches, smaller models
 
-Short, always-on. Details for documents are in `document-extraction`.
+Short, always-on. Code lookups: `code-intelligence`; documents:
+`document-extraction`.
 
 ## Route each task to the cheapest model that can do it
 
 | Task | Model |
 | --- | --- |
-| Search, excerpting, file lookup, renaming, formatting, boilerplate | Haiku: `doc-retriever` or Explore subagent, or `/model haiku` |
+| Search, excerpting, file lookup, renaming, formatting, boilerplate | Haiku: Explore subagent (or a local `doc-retriever` agent when installed), or `/model haiku` |
 | Routine code and prose edits with a clear spec | Sonnet |
 | Design, statistical review, debugging across files, final synthesis | Opus |
 
 - Delegate reading to a Haiku subagent and keep its brief, not the files.
 - `/effort low` for mechanical edits; raise effort only for reasoning.
 - Cursor has no per-subagent model: switch to a small model for search turns.
-
-## Code exploration
-
-When `.codegraph/` exists, query CodeGraph before loading large file trees or
-running broad grep for structure questions.
 
 ## Reuse before recomputing
 

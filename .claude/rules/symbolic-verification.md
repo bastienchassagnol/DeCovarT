@@ -1,6 +1,6 @@
 ---
 description: Verify new or rearranged equations with SymPy and Lean before calling them verified
-globs: "**/*.{tex,qmd},**/verification/**/*.{py,lean,json}"
+globs: "**/*.{tex,qmd},**/verification/**"
 alwaysApply: false
 paths:
   - "**/*.{tex,qmd}"
@@ -22,13 +22,11 @@ text as "verified" on the model's say-so.
 | mpmath (ships with SymPy) | high-precision numerics: matrix exponentials, quadrature, pmf sums | 40 to 50 digits |
 | Lean 4 + Mathlib | field/ring identities and elementary inequalities that carry an argument | `lean-toolchain` of the build project |
 
-Each repository keeps its own `verification/` tree. The Lean build stays
-**outside OneDrive** (`.lake` is about 7 GB). The tree
-`~/lean-projects/dynamic_pdes_verification`, with canonical source
-`verification/lean/TEOU/Lemmas.lean`, belongs to that dynamic-PDE project.
-Do not reuse it for another repository. `verification/run_all.py` in the
-repository that owns the proof copies the Lean sources into its build project
-before `lake build`.
+Each repository keeps its own `verification/` tree (its location is stated in
+the repository's `AGENTS.md`). The Lean build project stays **outside
+OneDrive** (`.lake` is about 7 GB), one per repository, never shared;
+`verification/run_all.py` copies the Lean sources into it before
+`lake build`.
 
 ## Workflow
 
@@ -70,11 +68,4 @@ before `lake build`.
   returned, and rewrite the claim. One precedent: a trajectory rank came out
   4, where the draft said 5.
 
-## Optional tooling for later sessions
-
-- `lean-lsp-mcp` (MIT): `claude mcp add lean-lsp -s project uvx lean-lsp-mcp`
-  with `LEAN_PROJECT_PATH` set to the build project; gives goal states and
-  Mathlib search to the agent.
-- `cameronfreer/lean4-skills` (MIT): `/plugin marketplace add cameronfreer/lean4-skills`
-  then `/plugin install lean4`; prove/review/golf workflows.
-- Avoid `sympy-mcp`: unmaintained and evaluates input with `eval`.
+Avoid `sympy-mcp`: unmaintained and evaluates input with `eval`.

@@ -1,6 +1,9 @@
 ---
 description: Statistical modelling, resampling, bootstrap, permutation, and model review
-alwaysApply: true
+globs: "**/*.{R,r,Rmd,qmd,tex}"
+alwaysApply: false
+paths:
+  - "**/*.{R,r,Rmd,qmd,tex}"
 ---
 # Statistical modelling and LLM review
 

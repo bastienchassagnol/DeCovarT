@@ -667,20 +667,20 @@ Normalising by size factors \enquote{can eliminate biological stochasticity pres
 
 \begin{figure}[tbp]
 \centering
-\begin{tikzpicture}[node distance=9mm and 24mm]
-  \node[stoch] (z) {$z_c$};
-  \node[stoch, right=of z] (lam) {$\bm\lambda_{\cdot c}$};
-  \node[const, above=8mm of lam] (par) {$\vartheta$};
-  \node[obs, right=of lam] (x) {$x_{gc}$};
-  \node[stoch, above=8mm of x] (s) {$s_c$};
+\begin{tikzpicture}
+  \node[latent] (z) {$z_c$};
+  \node[latent, right=24mm of z] (lam) {$\bm\lambda_{\cdot c}$};
+  \node[fixed, above=8mm of lam] (par) {$\vartheta$};
+  \node[obs, right=24mm of lam] (x) {$x_{gc}$};
+  \node[latent, above=8mm of x] (s) {$s_c$};
   \node[note, below=3mm of lam, align=center] (nexp) {expression model\\$p(\bm\lambda\mid z,\vartheta)$};
   \node[note, below=3mm of x, align=center] (nmeas) {measurement model\\$p(x\mid\lambda,s)$};
-  \draw[edge] (z) -- (lam);
-  \draw[edge] (par) -- (lam);
-  \draw[edge] (lam) -- (x);
-  \draw[edge] (s) -- (x);
+  \draw[dependency] (z) -- (lam);
+  \draw[dependency] (par) -- (lam);
+  \draw[dependency] (lam) -- (x);
+  \draw[dependency] (s) -- (x);
   \plate{genes}{(x)(nmeas)}{$g=1,\ldots,G$}
-  \plate{cells}{(z)(lam)(s)(genes)(genes-lab)(nexp)}{cells $c$}
+  \plate{cells}{(z)(lam)(s)(genes)(genes-caption)(nexp)}{cells $c$}
 \end{tikzpicture}
 \caption{The two noise layers for one reference cell. $z_c$ is the label (cell type $j$ in DeCovarT,
 promoter basin in CardamomOT), $\vartheta$ the parameters ($\bmu_j,\SW$ in DeCovarT; NB shapes and rates
@@ -1371,19 +1371,19 @@ conditions. Book pages refer to the printed pages of \textcite{kollerProbabilist
 \begin{figure}[tbp]
 \centering
 \begin{tikzpicture}
-  \node[const] (pi) at (0,0) {$\bm\pi$};
-  \node[stoch] (z) at (2.2,0) {$z_c$};
+  \node[fixed] (pi) at (0,0) {$\bm\pi$};
+  \node[latent] (z) at (2.2,0) {$z_c$};
   \node[obs] (x0) at (2.2,-2.4) {$\bm x^{(t)}_c$};
   \node[obs] (x1) at (5.2,-2.4) {$\bm x^{(t+1)}_c$};
   \node[note, below=2mm of x1, align=center] (nx) {$\mathcal N\bigl(\bm A_{z_c}\bm x^{(t)}_c,\bm Q_{z_c}\bigr)$};
-  \node[stoch] (A) at (8.4,-0.6) {$\bm A_k$};
-  \node[stoch] (Q) at (8.4,-2.4) {$\bm Q_k$};
+  \node[latent] (A) at (8.4,-0.6) {$\bm A_k$};
+  \node[latent] (Q) at (8.4,-2.4) {$\bm Q_k$};
   \node[note, right=2mm of A, align=left] (nA) {diagonal: persistence\\off-diagonal: edges $t\to t+1$};
-  \draw[edge] (pi) -- (z);
-  \draw[edge] (z) -- (x1);
-  \draw[edge] (x0) -- (x1);
-  \draw[edge] (A) -- (x1);
-  \draw[edge] (Q) -- (x1);
+  \draw[dependency] (pi) -- (z);
+  \draw[dependency] (z) -- (x1);
+  \draw[dependency] (x0) -- (x1);
+  \draw[dependency] (A) -- (x1);
+  \draw[dependency] (Q) -- (x1);
   \plate{cells}{(z)(x0)(x1)(nx)}{cells $c$}
   \plate{comp}{(A)(Q)(nA)}{components $k=1,\ldots,K$}
 \end{tikzpicture}
@@ -1392,7 +1392,7 @@ conditions. Book pages refer to the printed pages of \textcite{kollerProbabilist
 $z_c$ with prior weights $\bm\pi$; given $z_c=k$, its profile at $t+1$ is Gaussian around $\bm A_k\bm x^{(t)}_c$.
 The diagonal of $\bm A_k$ holds the persistence edges, its off-diagonal the edges between slices. With snapshot
 data, the pair $(\bm x^{(t)}_c,\bm x^{(t+1)}_c)$ comes from a coupling between time points, not from one cell.
-Blue: latent; grey: observed; square: fixed.}
+Unshaded circle: latent; grey circle: observed; square: fixed.}
 \label{fig:mix-dbn}
 \end{figure}
 

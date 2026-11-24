@@ -1,96 +1,73 @@
 ---
-description: Quarto docs hygiene, Zotero bibliography, software citations, document intake
-alwaysApply: true
+description: Zotero literature workflow, curation scripts, software citations and web sources
+globs: "**/*.{bib,qmd,Rmd,tex},**/_quarto.yml,**/CITATION*"
+alwaysApply: false
+paths:
+  - "**/*.{bib,qmd,Rmd,tex}"
+  - "**/_quarto.yml"
+  - "**/CITATION*"
 ---
-# Documentation and bibliography
+# Bibliography and citations
 
-## Quarto and long-form docs (general)
+Quarto labels, callouts and cross-references: `quarto-presentations`. Never
+invent BibTeX, citekeys, DOIs or quotations (`scientific-writing`).
 
-For `.qmd`, `.Rmd`, scientific Markdown:
+## Literature: Zotero → citation keys → Git
 
-- British English unless the venue requires otherwise.
-- Reproducible chunks; cite claims at point of use.
-- Stable labels (`#fig-…`, `#tbl-…`, `#eq-…`, `{#sec-…}`); native Quarto/Pandoc
-  before custom JS.
-- Callouts for real warnings; `echo: false` when the audience needs output only.
-- Static tables for print/PDF; **`reactable`** only when HTML interactivity helps.
-- Mermaid: native `{mermaid}` chunks with `eval: true`; inspect HTML before JS
-  fallbacks.
+- **Source of truth:** the author's
+  [Zotero library](https://www.zotero.org/bastienchassagnol/library)
+  (library ID `7172053`). Add in Zotero, then export.
+- **Citation keys:** Zotero 8+ native `citationKey` (`fields.fieldName =
+  'citationKey'` in `zotero.sqlite`; formula under Settings → Cite → Citation
+  Key). Better BibTeX is optional. Open the DB with `immutable=1` when Zotero
+  holds a lock.
+- **Collections:** one leaf collection per item (the most specific); never
+  parent and child.
+- **zotcurate (`zotc`)** bridges `.bib`/`.qmd`/CSV keys and collections:
+  `~/.local/bin/zotc` wraps `-z ~/Zotero/zotero.sqlite`; credentials in
+  `~/.zotc/` (chmod 600, never committed).
 
-When a repo defines stricter Quarto rules (tinytable, pkgdown links, etc.),
-those **project rules override** this file.
+Workflow:
 
-## Literature (Zotero → citation keys → Git)
-
-**Source of truth** for papers: the author's
-[Zotero library](https://www.zotero.org/bastienchassagnol/library).
-Never invent BibTeX, citekeys, DOIs, or quotations. Add in Zotero, then export.
-
-**Zotero 8+** (desktop **Zotero 9**): native `citationKey` in `zotero.sqlite`
-(`fields.fieldName = 'citationKey'`). Set key formula under Settings → Cite →
-Citation Key. Open DB with `immutable=1` when the app holds a lock.
-
-**Zotcurate (`zotc`)** — bridge `.bib` / `.qmd` / CSV and collections:
-
-```bash
-# once if needed: chown ~/.local ~/.zotc ~/.venvs
-# project may ship: bash scripts/install_zotcurate_home.sh
-```
-
-| Path | Role |
-|------|------|
-| `~/.local/bin/zotc` | Wrapper `-z ~/Zotero/zotero.sqlite` |
-| `~/.zotc/*` | Credentials (chmod 600; never commit) |
-| `~/Zotero/zotero.sqlite` | Desktop DB + native keys |
-
-Library ID: `7172053`.
-
-**Collection membership:** assign **one leaf collection** only (most specific);
-do not duplicate parent+child.
-
-**Workflow:**
-
-1. Zotero → export → repo hygiene script if present (e.g.
-   `check_bibliography.py --clean`).
+1. Zotero → export `.bib` → curate (below).
 2. Git/docs → Zotero: `zotc keys extract`, then `collection add|create`
-   (dry-run first).
-3. Software tools → `packages.bib` (or repo equivalent), **not** Zotero literature.
+   (dry run first).
+3. Software → `packages.bib` (or the repo equivalent), never the Zotero
+   literature library.
 
-**Metadata enrichment** (missing fields only, never overwrite verified fields
-without review):
+## Curation scripts (`scripts/curate_bibliography/`, uv project)
+
+They live in the package repo (DeCovarT); other repos vendor a copy or call
+the sibling repo with `uv run --project <path>/scripts/curate_bibliography`.
 
 ```bash
-python3 scripts/curate_bibliography/bib_enrich.py PATH.bib --write --backup \
+uv run --project scripts/curate_bibliography \
+  python scripts/curate_bibliography/bib_enrich.py PATH.bib --write --backup \
   --min-score 92 --report scripts/curate_bibliography/bib-enrichment.json
-```
-
-One-off Zotero Web API inserts (one leaf collection per item) are
-`scripts/curate_bibliography/add_zotero_perspectives.py` (stdlib only;
-credentials in `~/.zotc/`). The enrichment report above is gitignored.
-
-User-level tooling (when no repo script):
-
-```bash
-uv venv ~/.venvs/bib-enrich
-uv pip install --python ~/.venvs/bib-enrich/bin/python \
-  bibtexparser httpx rapidfuzz typer rich
 npx bibtex-tidy@1.14.0 PATH.bib --modify --curly --numeric --sort=key
 ```
 
-Allowed literature fields (when repo enforces a whitelist): `title`, `author`,
-`editor`, `year`, `journal`, `booktitle`, `publisher`, `howpublished`, `doi`,
-`volume`, `number`, `pages`, `isbn`, `issn`, `edition`, `school`, `institution`,
-`url`.
+- `bib_enrich.py` fills missing fields only; never overwrite verified fields
+  without review. The report is gitignored.
+- `check_bibliography.py --clean` (field whitelist, DOI dedupe, paired
+  `article/` and `inst/` copies) only in package layouts; never on a book or
+  website bibliography.
+- `add_zotero_perspectives.py`: one-off Web API inserts, one leaf collection
+  each.
+- Required fields per type follow `check_bibliography.py` (`@article`: title,
+  author, year, journal; `@book`: title, year, publisher, author or editor).
+  Allowed fields when a whitelist applies: `title`, `author`, `editor`, `year`,
+  `journal`, `booktitle`, `publisher`, `howpublished`, `doi`, `volume`,
+  `number`, `pages`, `isbn`, `issn`, `edition`, `school`, `institution`, `url`.
+- Without a repo copy: `uv venv ~/.venvs/bib-enrich` with `bibtexparser httpx
+  rapidfuzz typer rich`.
 
 ## Software citations
 
-- Generate from official package citation metadata (`citation()`, CITATION).
-- Do not put every transitive dependency in the literature library.
-- Cite software that materially supports methods or reproducibility.
-
-## Quarto YAML (when project uses split bibliographies)
-
-Typical pattern:
+- Generate from official metadata (`citation()`, `CITATION`,
+  `knitr::write_bib()`); cite software that materially supports methods or
+  reproducibility, not every transitive dependency.
+- Split bibliographies in Quarto:
 
 ```yaml
 bibliography:
@@ -101,12 +78,6 @@ link-citations: true
 
 ## Web resources
 
-Prefer DOI/ISBN/official package pages. Try live URL first; use
+Prefer DOI, ISBN or official package pages. Try the live URL first; use the
 [Wayback Machine](https://web.archive.org/) for dead links. Never fabricate
 archive timestamps.
-
-## Document intake
-
-DOCX/PPTX/PDF/etc.: structural conversion (`anydoc`, Pandoc) then cleanup
-(YAML, headings, tables, equations, captions, paths, alt-text). Do not rewrite
-science during faithful conversion unless asked.

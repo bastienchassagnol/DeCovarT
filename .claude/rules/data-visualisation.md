@@ -1,76 +1,40 @@
 ---
-description: Figure design, house ggplot2 theme and the dataviz caveats checklist
-globs: "**/*.{R,r,Rmd,qmd,py,tex,ipynb}"
+description: Figure design, house ggplot2 theme, output devices and the dataviz caveats checklist
+globs: "**/*.{R,r,Rmd,qmd,tex}"
 alwaysApply: false
 paths:
-  - "**/*.{R,r,Rmd,qmd,py,tex,ipynb}"
+  - "**/*.{R,r,Rmd,qmd,tex}"
 ---
 # Data visualisation
 
-Use this rule for any chart, plot or figure: R, Python, Quarto, LaTeX, slides.
-Each figure answers one question. When the repository already defines a theme
-or palette, use it; the defaults below apply when the repository is silent.
-Code is R/`ggplot2`; the principles hold in any language.
+Any chart, plot or figure in R, Quarto, LaTeX or slides. Plots are R
+(`ggplot2`, `ggdist`, `ggiraph`) or OJS/D3 (React only past that); no Python
+plotting. Each figure answers one question. A repository theme or palette
+wins over the defaults below.
 
-Long material lives in the `data-visualisation` skill
-(`~/.claude/skills/data-visualisation/references/` after
-`agent-sync install-user`; same under `~/.cursor/skills/`): `chart-chooser.md`
-(decision tree), `caveats.md` (avoid/prefer snippets), `line-chart-makeover.md`,
-`libraries.md` (static → interactive ladder), `colour-palettes.md`,
-`fonts.md`, and one file per chart module (`annotated-scatter.md`,
-`latent-projection.md`, `treemap.md`, `ternary.md`,
-`waterfall-clinical.md`). Read the one you need.
+How-to lives in the `data-visualisation` skill (`references/`: inspiration,
+chart chooser, ggplot2 production and the house theme, caveats, colours,
+fonts, libraries, chart modules). Read the file you need.
 
-## House style
+**Workflow:** inspiration → chart choice → ggplot2 with `theme_slide()` →
+checklist → `roast-my-chart` skill before publishing. Claude Code enforces
+the inspiration step with the `dataviz-nudge` hook (`DATAVIZ_NUDGE=off`
+disables it).
 
-Use `theme_slide()` on every ggplot. It is `theme_minimal()` with the grid,
-type, and background fixed:
+## House style and output
 
-```r
-theme_slide <- function(base_family = NULL) {
-  if (is.null(base_family)) base_family <- slide_family()
-  ggplot2::theme_minimal(base_size = 18, base_family = base_family) +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.grid.major = ggplot2::element_line(colour = "#e6e1d8"),
-      plot.title = ggplot2::element_text(
-        face = "bold", colour = "#0e4d3a", size = 18
-      ),
-      plot.subtitle = ggplot2::element_text(colour = "#3d4a42", size = 13),
-      axis.title = ggplot2::element_text(colour = "#1c2b24"),
-      strip.text = ggplot2::element_text(face = "bold", colour = "#0e4d3a"),
-      legend.position = "bottom",
-      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
-      panel.background = ggplot2::element_rect(fill = "white", colour = NA)
-    )
-}
-```
-
-Colour roles, unless the repository already assigns them:
-
-- Series and density curves: `#1d4e89`
-- Second series or a marked point: `#c45c26`
-- Histogram bars: `#d9d3c7` with white bin outlines
-- Guides, reference lines, and annotation text: `#1c2b24`
-
-A multi-panel figure keeps `theme_slide()` and shrinks type so each panel stays
-readable (titles about 15, subtitles about 11, axis titles about 12, axis text
-about 10). Place the panels with `grid::grid.layout()`, not a new theme.
-
-`slide_family()` is defined in `fonts.md`. It returns the single family in the
-project `fonts/` directory, or a generic family that `systemfonts::match_fonts()`
-resolves, and it names the family actually used. Pass another `base_family`
-when `fonts/` holds more than one family.
-
-Fonts are three steps (`fonts.md`): files in `fonts/`, discovery with
-`systemfonts`, rendering with the device. Write a raster with
-`ragg::agg_png()` (or `ggsave(..., device = ragg::agg_png)`), on a white
-background, and state width, height, and resolution in the call. Vector output
-is `svglite::svglite`, with an explicit `ggsave()` size. Do not draw the figure
-with `pdf()` or `cairo_pdf`; convert the SVG if a venue wants PDF. Ordinary
-text is `theme_slide()`. Markdown, mixed faces, or a text box use `marquee`
-(`marquefy_theme()` on the finished theme). Do not use `showtext`, `extrafont`,
-or `ggtext`.
+- `theme_slide()` on every ggplot (code, colour roles and multi-panel sizes in
+  `references/ggplot2-production.md`; `slide_family()` in `fonts.md`).
+- Fonts: files in the project `fonts/`, discovery with `systemfonts`, then the
+  device. Mixed faces or text boxes use `marquee`; no `showtext`, `extrafont`
+  or `ggtext`.
+- Devices, SVG first: vector with `svglite::svglite`, raster with `ragg`
+  (`ggsave(..., device = ragg::agg_png)`) on a white background, size and
+  resolution stated in the call. Never `pdf()` or `cairo_pdf`. A venue or
+  LaTeX PDF is made from the SVG:
+  `inkscape f.svg --export-text-to-path --export-type=pdf -o f.pdf`.
+- Captions define panels, axes, colours and uncertainty; readable type at
+  final size; every display item cited in the text.
 
 ## Choose the chart
 
@@ -104,8 +68,8 @@ or `ggtext`.
 
 ## Checklist before publishing a figure
 
-Card numbers (#nn) refer to Yan Holtz's *61 dataviz caveats*; details and code
-in `caveats.md`.
+Card numbers (#nn) refer to Yan Holtz's dataviz caveats; details and code in
+`caveats.md`.
 
 1. Scales: full axis or a justified log scale (#01); no dual axis (#05), 3D
    (#06), pie (#13) or radial bars (#14); the data or n shown behind every
@@ -129,3 +93,5 @@ in `caveats.md`.
 8. Several panels: same colours (#46), shared axes (#47), margins (#48),
    linked hover when interactive (#49); UpSet beyond three sets (#56).
 9. Heatmaps: clustered order (#60), diverging palette for centred values.
+
+Then run the `roast-my-chart` skill on the finished figure.

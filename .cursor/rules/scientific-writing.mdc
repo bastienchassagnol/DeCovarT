@@ -32,16 +32,15 @@ Label speculation.
 
 ## Figures
 
-Each figure answers a question. Captions define panels, axes, colours, uncertainty.
-Readable type at final size; horizontal labels; bar charts from zero when appropriate;
-accessible colour; consistent multi-panel styling; cite every display item in text.
+Each figure answers one question and is cited in the text; design and
+captions follow `data-visualisation`.
 
 ## Self-review
 
 Prioritise few consequential issues: claims vs evidence, missing baselines, design–
 model match, leakage, honest uncertainty, reproducibility, venue requirements.
 
-Suggest canonical work or precise search strategies — never fabricate references.
+Suggest canonical work or precise search strategies (see Integrity).
 
 ## Statistical reporting
 
@@ -51,9 +50,15 @@ commands. Statistical software: rOpenSci stats guidance when relevant.
 
 ## Integrity
 
-Never fabricate literature, data, p-values, intervals, benchmarks, or software
-behaviour. Distinguish published evidence, this repo's results, assumptions, and
-speculation. Surface weak baselines and leakage rather than hiding them.
+Never fabricate literature, citekeys, DOIs, quotations, data, p-values,
+intervals, benchmarks or software behaviour. Distinguish published evidence,
+this repo's results, assumptions and speculation. Surface weak baselines and
+leakage rather than hiding them.
 
-When editing LaTeX prose, apply the **deslop** skill to narrative text; leave maths,
-`\cite{}`, `\ref{}`, and tables untouched unless asked.
+## Prose revision
+
+For manuscripts (`.tex`, `.qmd`), responses to reviewers and package
+documentation (vignettes, README, pkgdown articles), **invoke the `deslop`
+skill** after substantive drafting or editing, rather than paraphrasing its
+rules. Structure and venue limits stay here; phrase-level cleanup comes from
+deslop. Leave maths, `\cite{}`, `\ref{}` and tables untouched unless asked.

@@ -128,26 +128,26 @@ $c$, so that $j$ remains the cell type.
 %%| filename: fig-dag-measurement
 %%| alt: Plate diagram. Inside a plate over cell types j, fixed mu_j and Sigma lambda_j generate the latent expression lambda_c. Inside a nested plate over cells, the latent biological size factor s bio multiplies lambda_c to give the deterministic molecule content m_c, and the latent technical size factor s tech together with the fixed gene capture vector b outside the plates generate the observed counts x_c through a Poisson law.
 \begin{tikzpicture}[node distance=10mm and 12mm]
-\node[stoch] (lam) {$\boldsymbol{\lambda}_{\cdot c}$};
-\node[stoch, left=of lam] (sbio) {$s^{\mathrm{bio}}_c$};
-\node[det, below=of lam] (m) {$\boldsymbol{m}_{\cdot c}$};
-\node[stoch, left=of m] (stech) {$s^{\mathrm{tech}}_c$};
-\node[obs, below=of m] (x) {$\boldsymbol{x}_{\cdot c}$};
-\node[const, above=10mm of lam] (mu) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
-\node[const, right=8mm of mu] (Sig) {$\boldsymbol{\Sigma}^{\lambda}_{j}$};
+\node[latent] (lam) {$\boldsymbol{\lambda}_{\cdot c}$};
+\node[latent, left=12mm of lam] (sbio) {$s^{\mathrm{bio}}_c$};
+\node[det, below=10mm of lam] (m) {$\boldsymbol{m}_{\cdot c}$};
+\node[latent, left=12mm of m] (stech) {$s^{\mathrm{tech}}_c$};
+\node[obs, below=10mm of m] (x) {$\boldsymbol{x}_{\cdot c}$};
+\node[fixed, above=10mm of lam] (mu) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
+\node[fixed, right=8mm of mu] (Sig) {$\boldsymbol{\Sigma}^{\lambda}_{j}$};
 \node[note, right=2mm of lam] (nl) {$\sim F_j(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}^{\lambda}_j)$};
 \node[note, right=2mm of m] (nm) {$=s^{\mathrm{bio}}_c\boldsymbol{\lambda}_{\cdot c}$};
 \node[note, below=2mm of x] (nx) {$x_{gc}\sim\mathrm{Poisson}(s^{\mathrm{tech}}_c b_g m_{gc})$};
 \node[note, left=1mm of sbio] {cell size};
 \node[note, left=1mm of stech] {depth};
-\draw[edge] (mu) -- (lam); \draw[edge] (Sig) -- (lam);
-\draw[edge] (lam) -- (m); \draw[edge] (sbio) -- (m);
-\draw[edge] (m) -- (x); \draw[edge] (stech) -- (x);
+\draw[dependency] (mu) -- (lam); \draw[dependency] (Sig) -- (lam);
+\draw[dependency] (lam) -- (m); \draw[dependency] (sbio) -- (m);
+\draw[dependency] (m) -- (x); \draw[dependency] (stech) -- (x);
 \plate{cells}{(sbio)(stech)(lam)(m)(x)(nl)(nm)(nx)}{cells $c\in\mathcal{C}_j$}
-\plate{types}{(mu)(Sig)(cells)(cells-lab)}{$j=1,\ldots,J$}
-\node[const] (b) at ([xshift=12mm]types.east |- x) {$\boldsymbol{b}$};
+\plate{types}{(mu)(Sig)(cells)(cells-caption)}{$j=1,\ldots,J$}
+\node[fixed] (b) at ([xshift=12mm]types.east |- x) {$\boldsymbol{b}$};
 \node[note, above=1mm of b] {gene capture};
-\draw[edge] (b) -- (x);
+\draw[dependency] (b) -- (x);
 \end{tikzpicture}
 ```
 
@@ -713,7 +713,7 @@ on each, including `Unico` (@sec-unico), `DeconV` (@sec-deconv), `imply`
 %%| filename: fig-ladder
 %%| alt: A ladder with two vertical rails and seven rungs, numbered from the bottom. Rung 1, OLS or NNLS, sigma squared times the identity: Bisque, CSNet, BEDwARS, DSSC, GSNMF+, swCAM, imply stage III. Rung 2, weighted least squares, diagonal: MuSiC, SCDC, DWLS, deMixSC, MEAD weights, DSection, BayICE. Rung 3, mean-variance GLM: DeconV, DeMixNB, ISOpureR, gnSPADE. Rung 4, quasi-likelihood or asymptotic Gaussian, variance a function of p: linear for RNA-Sieve, ReDeconv and DeCovarT single-cell; a highlighted box gives Unico's quadratic variance p transpose Gamma_g p plus tau_g squared, with a J by J covariance across types and a two-moment GMM. Rung 5, GLS with a dense G by G covariance: DeCovarT and the DECALS GLS variant. Rung 6, sandwich or GEE: DECALS and MEAD. Rung 7, GLMM: RCTD, BayesPrism, bMIND, EPIC-unmix, BLADE, DeMixT, DeCovarT read as an LMM, imply and BLEND. A bracket on the left spans rungs 1 to 6, with ticks at BEDwARS (rung 1), RNA-Sieve (rung 4) and MEAD (rung 6), labelled errors in variables.
 \begin{tikzpicture}[
-  rung/.style={const, minimum width=40mm, minimum height=8mm, font=\small, align=center},
+  rung/.style={fixed, minimum width=40mm, minimum height=8mm, font=\small, align=center},
   rnote/.style={note, anchor=west, align=left, text width=114mm},
   eivtick/.style={draw=ink, line width=0.8pt}]
 \def\dy{1.5}
@@ -843,19 +843,19 @@ between the two families.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west, align=left}}
 % (a) mean model
 \begin{scope}
-\node[const] (T) at (0,0) {$\boldsymbol{\theta}$};
-\node[const] (S) at (2.2,0) {$\boldsymbol{S}$};
+\node[fixed] (T) at (0,0) {$\boldsymbol{\theta}$};
+\node[fixed] (S) at (2.2,0) {$\boldsymbol{S}$};
 \node[det] (mu) at (0,-2.0) {$\tilde{\boldsymbol{\mu}}$};
 \node[note, left=1mm of mu] {$\boldsymbol{\theta}\boldsymbol{S}$};
-\node[const] (p) at (0.4,-4.2) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (p) at (0.4,-4.2) {$\boldsymbol{p}_{\cdot i}$};
 \node[det] (C) at (2.2,-4.2) {$\kappa_i$};
-\node[stoch] (e) at (4.0,-4.2) {$\boldsymbol{\varepsilon}_{\cdot i}$};
+\node[latent] (e) at (4.0,-4.2) {$\boldsymbol{\varepsilon}_{\cdot i}$};
 \node[obs] (Y) at (2.2,-6.2) {$\boldsymbol{Y}_{\cdot i}$};
 \node[note, right=1mm of e] (ne) {$\mathcal{N}(\boldsymbol{0},\operatorname{diag}\boldsymbol{\delta}^{2}_{\cdot i})$};
 \node[note, below=2mm of Y, align=center] (nY) {$\boldsymbol{Y}_{\cdot i}=\kappa_i(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}+\boldsymbol{\varepsilon}_{\cdot i})$\\ $\kappa_i=(\sum_j p_{ji}S_j)^{-1}$};
-\draw[edge] (T) -- (mu); \draw[edge] (S) -- (mu); \draw[edge] (S) -- (C);
-\draw[edge] (p) -- (C); \draw[edge] (p) -- (Y); \draw[edge] (C) -- (Y); \draw[edge] (e) -- (Y);
-\draw[edge] (mu) to[out=200, in=180, looseness=1.3] (Y);
+\draw[dependency] (T) -- (mu); \draw[dependency] (S) -- (mu); \draw[dependency] (S) -- (C);
+\draw[dependency] (p) -- (C); \draw[dependency] (p) -- (Y); \draw[dependency] (C) -- (Y); \draw[dependency] (e) -- (Y);
+\draw[dependency] (mu) to[out=200, in=180, looseness=1.3] (Y);
 \plate{i}{(p)(C)(e)(Y)(ne)(nY)}{$i=1,\ldots,N$}
 \node[ptitle] at ([yshift=4mm]T.north west) {(a) mean model, eq. (2)--(8)};
 \end{scope}
@@ -864,20 +864,20 @@ between the two families.
 \node[obs] (X) at (0,0) {$\boldsymbol{X}_{rc}$};
 \node[det] (Th) at (2.2,0) {$\hat{\boldsymbol{\theta}}_{r}$};
 \plate{cells}{(X)}{$c$}
-\plate{r}{(X)(cells)(cells-lab)(Th)}{$r=1,\ldots,R$}
+\plate{r}{(X)(cells)(cells-caption)(Th)}{$r=1,\ldots,R$}
 \node[det] (Tb) at (0.4,-2.8) {$\bar{\boldsymbol{\theta}}$};
 \node[det] (sg) at (2.6,-2.8) {$\boldsymbol{\sigma}^{2}$};
-\node[const] (S) at (5.8,-2.8) {$\boldsymbol{S}$};
-\node[stoch] (Ti) at (0.8,-5.0) {$\boldsymbol{\theta}_{i}$};
-\node[const] (p) at (2.6,-5.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (S) at (5.8,-2.8) {$\boldsymbol{S}$};
+\node[latent] (Ti) at (0.8,-5.0) {$\boldsymbol{\theta}_{i}$};
+\node[fixed] (p) at (2.6,-5.0) {$\boldsymbol{p}_{\cdot i}$};
 \node[det] (w) at (4.4,-5.0) {$\boldsymbol{w}_{\cdot i}$};
 \node[obs] (Y) at (2.6,-7.0) {$\boldsymbol{Y}_{\cdot i}$};
 \node[note, left=1mm of Ti] (nT) {$F(\bar{\boldsymbol{\theta}},\boldsymbol{\sigma}^{2})$};
 \node[note, below=2mm of Y, align=center] (nY) {weighted NNLS with\\ $w_{gi}^{-1}=\kappa_i^{2}\delta_{gi}^{2}+\kappa_i^{2}\sum_j p_{ji}^{2}S_j^{2}\sigma^{2}_{gj}$};
-\draw[edge] (X) -- (Th); \draw[edge] (Th) -- (Tb); \draw[edge] (Th) -- (sg);
-\draw[edge] (Tb) -- (Ti); \draw[edge] (sg) -- (Ti); \draw[edge] (Ti) -- (Y); \draw[edge] (p) -- (Y);
-\draw[edge] (sg) -- (w); \draw[edge] (S) -- (w); \draw[edge] (p) -- (w); \draw[dashededge] (w) -- (Y);
-\draw[edge] (S) to[out=-90, in=0, looseness=1.1] (Y);
+\draw[dependency] (X) -- (Th); \draw[dependency] (Th) -- (Tb); \draw[dependency] (Th) -- (sg);
+\draw[dependency] (Tb) -- (Ti); \draw[dependency] (sg) -- (Ti); \draw[dependency] (Ti) -- (Y); \draw[dependency] (p) -- (Y);
+\draw[dependency] (sg) -- (w); \draw[dependency] (S) -- (w); \draw[dependency] (p) -- (w); \draw[dashededge] (w) -- (Y);
+\draw[dependency] (S) to[out=-90, in=0, looseness=1.1] (Y);
 \plate{i}{(nT)(Ti)(p)(w)(Y)(nY)}{$i=1,\ldots,N$}
 \node[ptitle] at ([yshift=4mm]r.north west) {(b) cross-subject variability, eq. (5), (10)};
 \end{scope}
@@ -961,26 +961,26 @@ response error only; a weighted moment estimator with no interval.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 \foreach \panel/\xs in {a/0, b/100} {
 \begin{scope}[xshift=\xs mm]
-\node[const] (M\panel) at (0,0) {$\tilde{\boldsymbol{\mu}}$};
-\node[const] (V\panel) at (2.4,0) {$\boldsymbol{\varsigma}^{2}$};
+\node[fixed] (M\panel) at (0,0) {$\tilde{\boldsymbol{\mu}}$};
+\node[fixed] (V\panel) at (2.4,0) {$\boldsymbol{\varsigma}^{2}$};
 \node[det] (eta\panel) at (0,-2.6) {$\mathbb{E}\tilde{\boldsymbol{y}}_{\cdot i}$};
 \node[det] (s\panel) at (2.4,-2.6) {$\boldsymbol{\sigma}^{2}_{\cdot i}$};
-\node[const] (p\panel) at (1.2,-4.0) {$\boldsymbol{p}_{\cdot i}$};
-\node[const] (n\panel) at (-1.0,-5.6) {$n_i$};
+\node[fixed] (p\panel) at (1.2,-4.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (n\panel) at (-1.0,-5.6) {$n_i$};
 \node[obs] (y\panel) at (1.2,-5.6) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, left=1mm of eta\panel] (ne\panel) {$\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}$};
 \node[note, right=1mm of s\panel] (ns\panel) {mixture variance (7)};
-\draw[edge] (M\panel) -- (eta\panel); \draw[edge] (V\panel) -- (s\panel); \draw[edge] (M\panel) -- (s\panel);
-\draw[edge] (p\panel) -- (eta\panel); \draw[edge] (p\panel) -- (s\panel);
-\draw[edge] (eta\panel) -- (y\panel); \draw[edge] (s\panel) -- (y\panel); \draw[edge] (n\panel) -- (y\panel);
+\draw[dependency] (M\panel) -- (eta\panel); \draw[dependency] (V\panel) -- (s\panel); \draw[dependency] (M\panel) -- (s\panel);
+\draw[dependency] (p\panel) -- (eta\panel); \draw[dependency] (p\panel) -- (s\panel);
+\draw[dependency] (eta\panel) -- (y\panel); \draw[dependency] (s\panel) -- (y\panel); \draw[dependency] (n\panel) -- (y\panel);
 \end{scope}}
 \node[note, below=2mm of ya, align=center] (nya) {$y_{gi}\sim\mathcal{N}\bigl(n_i(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})_g,\ n_i\sigma^{2}_{gi}\bigr)$,\\ genes independent};
 \plate{ia}{(etaa)(sa)(pa)(na)(ya)(nya)(nea)(nsa)}{$i=1,\ldots,N$}
 \node[ptitle] at (-1.6,3.3) {(a) known reference moments, eq. (5)--(8)};
 \node[obs] (Mt) at ([xshift=-14mm, yshift=18mm]Mb) {$\hat{\tilde{\boldsymbol{\mu}}}$};
-\node[const] (cj) at ([xshift=-16mm]Mt) {$C_j$};
+\node[fixed] (cj) at ([xshift=-16mm]Mt) {$C_j$};
 \node[note, above=1mm of Mt] (nMt) {$\hat{\tilde\mu}_{gj}\sim\mathcal{N}(\tilde\mu_{gj},\varsigma^{2}_{gj}/C_j)$};
-\draw[edge] (Mb) -- (Mt); \draw[edge] (Vb) -- (Mt); \draw[edge] (cj) -- (Mt);
+\draw[dependency] (Mb) -- (Mt); \draw[dependency] (Vb) -- (Mt); \draw[dependency] (cj) -- (Mt);
 \node[note, below=2mm of yb, align=center] (nyb) {joint likelihood (10)--(11)\\ over $\tilde{\boldsymbol{\mu}}$, $\boldsymbol{p}_{\cdot i}$, $n_i$; Godambe intervals};
 \plate{ib}{(etab)(sb)(pb)(nb)(yb)(nyb)(neb)(nsb)}{$i=1,\ldots,N$}
 \node[ptitle] at (8.4,3.3) {(b) noisy reference, several bulks, eq. (9)--(11)};
@@ -1061,13 +1061,13 @@ likelihood.
 \plate{cells}{(X)}{reference cells $c$}
 \node[det] (mu) at (3.0,0) {$\hat{\tilde{\boldsymbol{\mu}}}$};
 \node[note, above=1mm of mu] {cell averages};
-\node[const] (d) at (6.0,0) {$w_{\max}$};
+\node[fixed] (d) at (6.0,0) {$w_{\max}$};
 \node[note, above=1mm of d] {dampening};
-\node[const] (m) at (1.8,-2.8) {$\boldsymbol{m}_{\cdot i}$};
+\node[fixed] (m) at (1.8,-2.8) {$\boldsymbol{m}_{\cdot i}$};
 \node[det] (w) at (4.4,-2.8) {$\boldsymbol{w}_{\cdot i}$};
 \node[obs] (y) at (3.0,-4.8) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {$w_{gi}=\min\bigl\{w_{\max},\ (\hat{\tilde{\boldsymbol{\mu}}}_{g\cdot}\boldsymbol{m}_{\cdot i})^{-2}\bigr\}$ (rescaled), iterated WLS on $\boldsymbol{m}_{\cdot i}\ge 0$;\\ implied $\operatorname{Var}(y_{gi})\propto(\hat{\tilde{\boldsymbol{\mu}}}_{g\cdot}\boldsymbol{m}_{\cdot i})^{2}$, genes independent};
-\draw[edge] (X) -- (mu); \draw[edge] (mu) -- (y); \draw[edge] (m) -- (y); \draw[edge] (mu) -- (w); \draw[edge] (m) -- (w); \draw[edge] (d) -- (w); \draw[dashededge] (w) -- (y);
+\draw[dependency] (X) -- (mu); \draw[dependency] (mu) -- (y); \draw[dependency] (m) -- (y); \draw[dependency] (mu) -- (w); \draw[dependency] (m) -- (w); \draw[dependency] (d) -- (w); \draw[dashededge] (w) -- (y);
 \plate{i}{(m)(w)(y)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
@@ -1180,17 +1180,17 @@ moment estimator with no interval.
 \node[det] (eta) at (2.2,-2.0) {$\boldsymbol{y}^{\mathrm{ps}}_{\cdot i'}$};
 \node[obs] (yp) at (4.2,-2.0) {$\boldsymbol{y}_{\cdot i'}$};
 \node[note, below=1mm of eta] (neta) {$\boldsymbol{\theta}\boldsymbol{p}_{\cdot i'}$};
-\plate{ip}{(cells)(cells-lab)(pp)(eta)(yp)(neta)}{paired individuals $i'$}
+\plate{ip}{(cells)(cells-caption)(pp)(eta)(yp)(neta)}{paired individuals $i'$}
 \node[det] (Z) at (-0.6,-4.2) {$\boldsymbol{\theta}$};
 \node[note, left=1mm of Z] {CPM means};
 \node[det] (beta) at (6.6,-2.0) {$\boldsymbol{\beta}_0,\boldsymbol{\beta}$};
 \node[note, above=1mm of beta] {gene-wise map};
-\node[const] (p) at (2.6,-6.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (p) at (2.6,-6.0) {$\boldsymbol{p}_{\cdot i}$};
 \node[obs] (y) at (4.8,-6.0) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {$\beta_{0g}+\beta_g y_{gi}=(\boldsymbol{\theta}\boldsymbol{p}_{\cdot i})_g+e_{gi}$;\\ NNLS with sum to one};
-\draw[edge] (Xc) -- (pp); \draw[edge] (Xc) to[out=-120, in=110] (Z); \draw[edge] (Z) -- (eta); \draw[edge] (pp) -- (eta);
-\draw[edge] (eta) to[bend left=35] (beta); \draw[edge] (yp) -- (beta);
-\draw[edge] (beta) -- (y); \draw[edge] (p) -- (y); \draw[edge] (Z) -- (y);
+\draw[dependency] (Xc) -- (pp); \draw[dependency] (Xc) to[out=-120, in=110] (Z); \draw[dependency] (Z) -- (eta); \draw[dependency] (pp) -- (eta);
+\draw[dependency] (eta) to[bend left=35] (beta); \draw[dependency] (yp) -- (beta);
+\draw[dependency] (beta) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (Z) -- (y);
 \plate{i}{(p)(y)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
@@ -1310,37 +1310,37 @@ as a loss between count histograms for the composition
 %%| filename: fig-two-scale-ot
 %%| alt: Generative model in plate notation for one cell type j. Fixed mean mu j and between-specimen covariance Sigma B j generate, inside a specimen plate, the latent type-level profile M j r. Inside a nested cell plate, M j r and the fixed within-type covariance Sigma W j generate the latent cell Z j r c, which the fixed cell-scale map S j turns into the observed reference cell X j r c. On the right, inside a bulk-sample plate, mu j, Sigma B j and the fixed type-scale map T j generate the latent bulk-platform profile M b j i, which with the fixed proportions p i generates the observed bulk y i.
 \begin{tikzpicture}
-\node[const] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
-\node[const] (SB) at (2.4,0) {$\boldsymbol{\Sigma}_{B,j}$};
-\node[stoch] (M) at (1.2,-2.4) {$\boldsymbol{M}_{jr}$};
+\node[fixed] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
+\node[fixed] (SB) at (2.4,0) {$\boldsymbol{\Sigma}_{B,j}$};
+\node[latent] (M) at (1.2,-2.4) {$\boldsymbol{M}_{jr}$};
 \node[note, right=2mm of M] (nM) {$\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$};
-\node[stoch] (Z) at (1.2,-4.6) {$\boldsymbol{Z}_{jrc}$};
+\node[latent] (Z) at (1.2,-4.6) {$\boldsymbol{Z}_{jrc}$};
 \node[note, right=2mm of Z] (nZ) {$\mathcal{N}(\boldsymbol{M}_{jr},\boldsymbol{\Sigma}_{W,j})$};
 \node[obs] (X) at (1.2,-6.8) {$\boldsymbol{X}_{jrc}$};
 \node[note, right=2mm of X] (nX) {$\boldsymbol{X}_{jrc}=S_j(\boldsymbol{Z}_{jrc})$};
-\node[const] (SW) at (-2.4,-4.6) {$\boldsymbol{\Sigma}_{W,j}$};
-\node[const] (S) at (-2.4,-6.8) {$S_j$};
+\node[fixed] (SW) at (-2.4,-4.6) {$\boldsymbol{\Sigma}_{W,j}$};
+\node[fixed] (S) at (-2.4,-6.8) {$S_j$};
 \node[note, below=1mm of S, align=center] {cell scale};
-\draw[edge] (mu) -- (M);
-\draw[edge] (SB) -- (M);
-\draw[edge] (M) -- (Z);
-\draw[edge] (SW) -- (Z);
-\draw[edge] (Z) -- (X);
-\draw[edge] (S) -- (X);
+\draw[dependency] (mu) -- (M);
+\draw[dependency] (SB) -- (M);
+\draw[dependency] (M) -- (Z);
+\draw[dependency] (SW) -- (Z);
+\draw[dependency] (Z) -- (X);
+\draw[dependency] (S) -- (X);
 \plate{cells}{(Z)(nZ)(X)(nX)}{cells $c$}
-\plate{spec}{(M)(nM)(cells)(cells-lab)}{specimens $r$}
-\node[const] (T) at (9.6,0) {$T_j$};
+\plate{spec}{(M)(nM)(cells)(cells-caption)}{specimens $r$}
+\node[fixed] (T) at (9.6,0) {$T_j$};
 \node[note, right=1mm of T] {type scale};
-\node[stoch] (Mb) at (9.6,-2.4) {$\boldsymbol{M}^{\mathrm{b}}_{ji}$};
+\node[latent] (Mb) at (9.6,-2.4) {$\boldsymbol{M}^{\mathrm{b}}_{ji}$};
 \node[note, right=2mm of Mb] (nMb) {$T_{j\#}\,\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$};
 \node[obs] (y) at (9.6,-4.8) {$\boldsymbol{y}_{\cdot i}$};
-\node[const] (p) at (12.2,-4.8) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (p) at (12.2,-4.8) {$\boldsymbol{p}_{\cdot i}$};
 \node[note, below=2mm of y] (ny) {$\boldsymbol{y}_{\cdot i}=a_i\sum_{j}p_{ji}\boldsymbol{M}^{\mathrm{b}}_{ji}+\boldsymbol{\epsilon}_i$};
-\draw[edge] (mu) to[out=25, in=150] (Mb);
-\draw[edge] (SB) -- (Mb);
-\draw[edge] (T) -- (Mb);
-\draw[edge] (Mb) -- (y);
-\draw[edge] (p) -- (y);
+\draw[dependency] (mu) to[out=25, in=150] (Mb);
+\draw[dependency] (SB) -- (Mb);
+\draw[dependency] (T) -- (Mb);
+\draw[dependency] (Mb) -- (y);
+\draw[dependency] (p) -- (y);
 \plate{bulk}{(Mb)(nMb)(y)(p)(ny)}{bulk samples $i$}
 \end{tikzpicture}
 ```
@@ -1357,19 +1357,19 @@ as a loss between count histograms for the composition
 \plate{cells}{(Xc)}{reference cells}
 \node[det] (mu) at (2.8,0) {$\hat{\boldsymbol{\theta}}_{\cdot j}$};
 \node[note, above=1mm of mu] {normalised means};
-\node[const] (d) at (5.0,0) {$\tilde{\boldsymbol{b}}$};
+\node[fixed] (d) at (5.0,0) {$\tilde{\boldsymbol{b}}$};
 \node[note, above=1mm of d] {platform};
 \node[obs] (N) at (-0.4,-2.6) {$L_i$};
-\node[const] (al) at (1.2,-2.6) {$\alpha_i$};
-\node[const] (p) at (2.8,-2.6) {$\boldsymbol{p}_{\cdot i}$};
-\node[stoch] (e) at (4.6,-2.6) {$\boldsymbol{\varepsilon}_{\cdot i}$};
+\node[fixed] (al) at (1.2,-2.6) {$\alpha_i$};
+\node[fixed] (p) at (2.8,-2.6) {$\boldsymbol{p}_{\cdot i}$};
+\node[latent] (e) at (4.6,-2.6) {$\boldsymbol{\varepsilon}_{\cdot i}$};
 \node[det] (lam) at (2.4,-4.4) {$\boldsymbol{\lambda}_{\cdot i}$};
 \node[obs] (y) at (2.4,-6.2) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, right=2mm of lam, align=left] (nl) {$\log\lambda_{gi}=\alpha_i+\log\bigl(\sum_j p_{ji}\hat\theta_{gj}\bigr)$\\ $\quad+\log\tilde b_g+\varepsilon_{gi}$};
 \node[note, right=2mm of y] (ny) {$y_{gi}\sim\mathrm{Poisson}(L_i\lambda_{gi})$};
-\draw[edge] (Xc) -- (mu); \draw[edge] (mu) -- (lam); \draw[edge] (d) -- (lam);
-\draw[edge] (al) -- (lam); \draw[edge] (p) -- (lam); \draw[edge] (e) -- (lam);
-\draw[edge] (lam) -- (y); \draw[edge] (N) |- (y);
+\draw[dependency] (Xc) -- (mu); \draw[dependency] (mu) -- (lam); \draw[dependency] (d) -- (lam);
+\draw[dependency] (al) -- (lam); \draw[dependency] (p) -- (lam); \draw[dependency] (e) -- (lam);
+\draw[dependency] (lam) -- (y); \draw[dependency] (N) |- (y);
 \plate{i}{(N)(al)(p)(e)(lam)(y)(nl)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
@@ -1458,29 +1458,29 @@ fixed.
 %%| alt: Two-part plate diagram. Left, inside a cell-type plate, fixed hyperparameters alpha and beta generate a latent Gamma rate lambda g j; inside a nested cell plate, lambda and a fixed dropout d j generate the observed count x g c through a zero-inflated Poisson. An arrow leaves the reference and gives the deterministic fitted hyperparameters alpha hat and beta hat. Right, inside a bulk-sample plate, the fitted hyperparameters generate a latent Gamma rate theta g j; a fixed concentration N generates latent Dirichlet proportions p i; with a fixed scale K i they generate the observed bulk count y g i, Poisson with mean K i times the sum over types of p j i theta g j, or negative binomial with a shared P g.
 \begin{tikzpicture}
 % reference model, fitted first
-\node[const] (ab) at (0,0) {$\alpha_{gj},\beta_{gj}$};
-\node[const] (d) at (2.4,0) {$d_j$};
-\node[stoch] (lam) at (0,-2.0) {$\lambda_{gj}$};
+\node[fixed] (ab) at (0,0) {$\alpha_{gj},\beta_{gj}$};
+\node[fixed] (d) at (2.4,0) {$d_j$};
+\node[latent] (lam) at (0,-2.0) {$\lambda_{gj}$};
 \node[obs] (x) at (1.2,-4.0) {$x_{gc}$};
 \node[note, left=1mm of lam] (nlam) {$\mathrm{Gamma}(\alpha_{gj},\beta_{gj})$};
 \node[note, below=2mm of x] (nx) {$\mathrm{ZIPoisson}(\lambda_{gj},d_j)$};
-\draw[edge] (ab) -- (lam); \draw[edge] (lam) -- (x); \draw[edge] (d) -- (x);
+\draw[dependency] (ab) -- (lam); \draw[dependency] (lam) -- (x); \draw[dependency] (d) -- (x);
 \plate{cells}{(x)(nx)}{cells $c\in\mathcal{C}_j$}
-\plate{refj}{(lam)(nlam)(cells)(cells-lab)}{$j=1,\ldots,J$}
+\plate{refj}{(lam)(nlam)(cells)(cells-caption)}{$j=1,\ldots,J$}
 % deconvolution model
 \node[det] (hat) at (5.2,0) {$\hat\alpha_{gj},\hat\beta_{gj}$};
 \node[note, above=1mm of hat] {fitted on the reference};
-\node[stoch] (th) at (5.2,-2.0) {$\theta_{gj}$};
+\node[latent] (th) at (5.2,-2.0) {$\theta_{gj}$};
 \node[note, right=1mm of th] (nth) {$\mathrm{Gamma}(\hat\alpha_{gj},\hat\beta_{gj})$};
-\node[const] (N) at (9.4,0) {$\boldsymbol{N}$};
-\node[stoch] (p) at (9.4,-2.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (N) at (9.4,0) {$\boldsymbol{N}$};
+\node[latent] (p) at (9.4,-2.0) {$\boldsymbol{p}_{\cdot i}$};
 \node[note, right=1mm of p] (np) {$\mathrm{Dir}(\boldsymbol{N})$};
-\node[const] (K) at (11.0,-4.0) {$K_i$};
+\node[fixed] (K) at (11.0,-4.0) {$K_i$};
 \node[obs] (y) at (7.4,-4.0) {$y_{gi}$};
 \node[note, below=2mm of y, align=center] (ny) {$\mathrm{Poisson}\bigl(K_i\sum_jp_{ji}\theta_{gj}\bigr)$\\ or $\mathrm{NB}\bigl(K_i\sum_jp_{ji}r_{gj},P_g\bigr)$};
-\draw[edge] (x.east) -- ++(1.4,0) |- (hat.west);
-\draw[edge] (hat) -- (th); \draw[edge] (th) -- (y); \draw[edge] (N) -- (p);
-\draw[edge] (p) -- (y); \draw[edge] (K) -- (y);
+\draw[dependency] (x.east) -- ++(1.4,0) |- (hat.west);
+\draw[dependency] (hat) -- (th); \draw[dependency] (th) -- (y); \draw[dependency] (N) -- (p);
+\draw[dependency] (p) -- (y); \draw[dependency] (K) -- (y);
 \plate{bulk}{(th)(nth)(p)(np)(y)(ny)(K)}{bulk sample $i$}
 \end{tikzpicture}
 ```
@@ -1614,31 +1614,31 @@ is plugged in.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) constrained OLS working model
 \begin{scope}
-\node[const] (W) at (0,0) {$\boldsymbol{\mu}$};
-\node[const] (p) at (-0.6,-2.4) {$\boldsymbol{p}_{\cdot i}$};
-\node[const] (s) at (1.6,-2.4) {$\sigma_i^{2}$};
+\node[fixed] (W) at (0,0) {$\boldsymbol{\mu}$};
+\node[fixed] (p) at (-0.6,-2.4) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (s) at (1.6,-2.4) {$\sigma_i^{2}$};
 \node[obs] (y) at (0.5,-4.4) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {$(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},\ \sigma_i^{2}\mathbf{I}_G)$ working model;\\ constrained OLS (3), sandwich $\boldsymbol{\Xi}_i$};
-\draw[edge] (W) -- (y); \draw[edge] (p) -- (y); \draw[edge] (s) -- (y);
+\draw[dependency] (W) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (s) -- (y);
 \plate{ia}{(p)(s)(y)(ny)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.2,1.9) {(a) constrained OLS};
 \end{scope}
 % (b) GLS with known Sigma_i
 \begin{scope}[xshift=64mm]
-\node[const] (W) at (0,0) {$\boldsymbol{\mu}$};
-\node[const] (Sk) at (2.2,0) {$\boldsymbol{\Sigma}_{j}$};
-\node[const] (p) at (-0.6,-2.4) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (W) at (0,0) {$\boldsymbol{\mu}$};
+\node[fixed] (Sk) at (2.2,0) {$\boldsymbol{\Sigma}_{j}$};
+\node[fixed] (p) at (-0.6,-2.4) {$\boldsymbol{p}_{\cdot i}$};
 \node[det] (Si) at (1.6,-2.4) {$\boldsymbol{\Sigma}_i$};
 \node[obs] (y) at (0.5,-4.4) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, right=1mm of Si] (nSi) {$\sum_j p_{ji}^{2}\boldsymbol{\Sigma}_j$};
 \node[note, below=2mm of y, align=center] (ny) {$(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},\ \boldsymbol{\Sigma}_i)$, no density;\\ constrained GLS (10)--(11)};
-\draw[edge] (W) -- (y); \draw[edge] (p) -- (y); \draw[edge] (Si) -- (y); \draw[edge] (Sk) -- (Si); \draw[edge] (p) -- (Si);
+\draw[dependency] (W) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (Si) -- (y); \draw[dependency] (Sk) -- (Si); \draw[dependency] (p) -- (Si);
 \plate{ib}{(p)(Si)(y)(ny)(nSi)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.2,1.9) {(b) known $\boldsymbol{\Sigma}_i$: GLS};
 \end{scope}
 % (c) estimated Sigma_j from bulk residuals
 \begin{scope}[xshift=132mm]
-\node[const] (W) at (0,0) {$\boldsymbol{\mu}$};
+\node[fixed] (W) at (0,0) {$\boldsymbol{\mu}$};
 \node[det] (Sk) at (4.0,0) {$\hat{\boldsymbol{\Sigma}}_{j}$};
 \node[note, above=1mm of Sk, align=center] (nSk) {residual regression (6)--(7),\\ SCAD, PSD projection};
 \node[obs] (y) at (0,-2.2) {$\boldsymbol{y}_{\cdot i}$};
@@ -1646,11 +1646,11 @@ is plugged in.
 \node[det] (z) at (2.0,-4.2) {$\hat{\boldsymbol{z}}_{\cdot i}$};
 \node[det] (Vi) at (4.0,-2.2) {$\hat{\boldsymbol{\Xi}}_{i}$};
 \node[note, left=1mm of ph] (nph) {OLS (3)};
-\draw[edge] (W) -- (y); \draw[edge] (y) -- (ph);
-\draw[edge] (ph) -- (z); \draw[edge] (y) -- (z);
-\draw[edge] (z) -- (Sk);
-\draw[edge] (ph.south) |- (5.3,-5.3) -- (5.3,-0.55) -| ([xshift=3mm]Sk.south);
-\draw[edge] ([xshift=-1mm]Sk.south) -- ([xshift=-1mm]Vi.north);
+\draw[dependency] (W) -- (y); \draw[dependency] (y) -- (ph);
+\draw[dependency] (ph) -- (z); \draw[dependency] (y) -- (z);
+\draw[dependency] (z) -- (Sk);
+\draw[dependency] (ph.south) |- (5.3,-5.3) -- (5.3,-0.55) -| ([xshift=3mm]Sk.south);
+\draw[dependency] ([xshift=-1mm]Sk.south) -- ([xshift=-1mm]Vi.north);
 \draw[dashededge] (Vi.west) to[out=150, in=-150, looseness=1.1] node[elabel, left=0.5mm] {iterate} (Sk.west);
 \plate{ic}{(y)(ph)(z)(Vi)(nph)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.2,1.9) {(c) unknown $\boldsymbol{\Sigma}_j$: DECALS};
@@ -1724,53 +1724,53 @@ interval.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) platform and individual scales
 \begin{scope}
-\node[const] (F) at (1.5,0) {$F_X$};
-\node[stoch] (Xi) at (0,-2.2) {$\boldsymbol{X}_i$};
-\node[const] (ai) at (-1.6,-2.2) {$a_i$};
-\node[const] (p) at (-1.6,-4.2) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (F) at (1.5,0) {$F_X$};
+\node[latent] (Xi) at (0,-2.2) {$\boldsymbol{X}_i$};
+\node[fixed] (ai) at (-1.6,-2.2) {$a_i$};
+\node[fixed] (p) at (-1.6,-4.2) {$\boldsymbol{p}_{\cdot i}$};
 \node[obs] (y) at (0,-4.2) {$\boldsymbol{y}_{\cdot i}$};
-\node[stoch] (Xr) at (3.0,-2.2) {$\boldsymbol{X}^{\mathrm{ref}}_r$};
-\node[const] (ar) at (4.6,-2.2) {$a^{\mathrm{ref}}_r$};
+\node[latent] (Xr) at (3.0,-2.2) {$\boldsymbol{X}^{\mathrm{ref}}_r$};
+\node[fixed] (ar) at (4.6,-2.2) {$a^{\mathrm{ref}}_r$};
 \node[obs] (Z) at (3.0,-4.2) {$\boldsymbol{Z}_r$};
-\node[const] (al) at (0,-6.2) {$\boldsymbol{b}^{\mathrm{bulk}}$};
-\node[const] (alr) at (3.0,-6.2) {$\boldsymbol{b}^{\mathrm{ref}}$};
-\draw[edge] (F) -- (Xi); \draw[edge] (F) -- (Xr);
-\draw[edge] (Xi) -- (y); \draw[edge] (ai) -- (y); \draw[edge] (p) -- (y); \draw[edge] (al) -- (y);
-\draw[edge] (Xr) -- (Z); \draw[edge] (ar) -- (Z); \draw[edge] (alr) -- (Z);
+\node[fixed] (al) at (0,-6.2) {$\boldsymbol{b}^{\mathrm{bulk}}$};
+\node[fixed] (alr) at (3.0,-6.2) {$\boldsymbol{b}^{\mathrm{ref}}$};
+\draw[dependency] (F) -- (Xi); \draw[dependency] (F) -- (Xr);
+\draw[dependency] (Xi) -- (y); \draw[dependency] (ai) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (al) -- (y);
+\draw[dependency] (Xr) -- (Z); \draw[dependency] (ar) -- (Z); \draw[dependency] (alr) -- (Z);
 \plate{ia}{(Xi)(ai)(p)(y)}{$i\le N$}
 \plate{ra}{(Xr)(ar)(Z)}{$r\le R$}
 \node[ptitle] at (-2.2,1.6) {(a) platform and sample scales, eq. (2)--(3)};
 \end{scope}
 % (b) reparametrised model (5)
 \begin{scope}[xshift=92mm]
-\node[const] (U) at (1.5,0) {$\boldsymbol{\mu}$};
-\node[stoch] (d) at (-1.4,0) {$\tilde{\boldsymbol{b}}$};
+\node[fixed] (U) at (1.5,0) {$\boldsymbol{\mu}$};
+\node[latent] (d) at (-1.4,0) {$\tilde{\boldsymbol{b}}$};
 \node[note, left=1mm of d] (nd) {$\tilde b_g\overset{\mathrm{iid}}{\sim}[1,\sigma_0^{2}]$};
-\node[const] (ai) at (-1.6,-2.2) {$a_i$};
-\node[const] (p) at (0,-2.2) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (ai) at (-1.6,-2.2) {$a_i$};
+\node[fixed] (p) at (0,-2.2) {$\boldsymbol{p}_{\cdot i}$};
 \node[det] (b) at (-0.8,-4.0) {$\boldsymbol{\beta}_{i}$};
 \node[obs] (y) at (0.7,-5.6) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, left=1mm of b] (nb) {$a_i\boldsymbol{p}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {$\boldsymbol{\mu}\boldsymbol{\beta}_i+\boldsymbol{e}_i$};
-\node[const] (ar) at (5.0,-2.2) {$a^{\mathrm{ref}}_r$};
+\node[fixed] (ar) at (5.0,-2.2) {$a^{\mathrm{ref}}_r$};
 \node[obs] (Z) at (3.6,-3.8) {$\boldsymbol{Z}_r$};
 \node[note, below=2mm of Z] (nZ) {$a^{\mathrm{ref}}_r\boldsymbol{\mu}+\boldsymbol{E}'_r$};
-\draw[edge] (ai) -- (b); \draw[edge] (p) -- (b); \draw[edge] (b) -- (y); \draw[edge] (U) -- (y); \draw[edge] (d) to[out=-150, in=180, looseness=1.2] (y);
-\draw[edge] (U) -- (Z); \draw[edge] (ar) -- (Z);
+\draw[dependency] (ai) -- (b); \draw[dependency] (p) -- (b); \draw[dependency] (b) -- (y); \draw[dependency] (U) -- (y); \draw[dependency] (d) to[out=-150, in=180, looseness=1.2] (y);
+\draw[dependency] (U) -- (Z); \draw[dependency] (ar) -- (Z);
 \plate{ib}{(ai)(p)(b)(y)(nb)(ny)}{$i\le N$}
 \plate{rb}{(ar)(Z)(nZ)}{$r\le R$}
 \node[ptitle] at (-2.6,1.6) {(b) reparametrised, eq. (4)--(5)};
 \end{scope}
 % (c) several individuals with covariates
 \begin{scope}[xshift=190mm]
-\node[const] (A) at (0,0) {$\boldsymbol{b}_0,\boldsymbol{A}_0$};
-\node[const] (f) at (-1.6,-2.2) {$\boldsymbol{f}_i$};
-\node[stoch] (p) at (0,-2.2) {$\boldsymbol{p}_{\cdot i}$};
-\node[const] (ai) at (1.8,-2.2) {$a_i$};
+\node[fixed] (A) at (0,0) {$\boldsymbol{b}_0,\boldsymbol{A}_0$};
+\node[fixed] (f) at (-1.6,-2.2) {$\boldsymbol{f}_i$};
+\node[latent] (p) at (0,-2.2) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (ai) at (1.8,-2.2) {$a_i$};
 \node[det] (b) at (0.9,-3.9) {$\boldsymbol{\beta}_{i}$};
 \node[obs] (y) at (0.9,-5.5) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, below=2mm of y, align=center] (ny) {$\mathbb{E}\,\boldsymbol{p}_{\cdot i}=h(\boldsymbol{b}_0+\boldsymbol{A}_0^{\top}\boldsymbol{f}_i)$,\\ estimating equations (9)--(11)};
-\draw[edge] (A) -- (p); \draw[edge] (f) -- (p); \draw[edge] (p) -- (b); \draw[edge] (ai) -- (b); \draw[edge] (b) -- (y);
+\draw[dependency] (A) -- (p); \draw[dependency] (f) -- (p); \draw[dependency] (p) -- (b); \draw[dependency] (ai) -- (b); \draw[dependency] (b) -- (y);
 \plate{ic}{(f)(p)(ai)(b)(y)(ny)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.6,1.6) {(c) composition regression, eq. (8)};
 \end{scope}
@@ -2175,22 +2175,22 @@ method of moments; the proportions are plugged in as exact.
 %%| filename: fig-dag-imply
 %%| alt: Nested plate diagram. Outside the plates, fixed effects m g j and beta g j. Inside a subject plate, a fixed group label z n and a latent subject random effect u g j n combine with the fixed effects into the deterministic subject reference r g j n, equal to m plus beta times z plus u. Inside a nested plate of repeated samples, the fixed stage-I proportions theta hat and the subject reference generate the observed bulk y g n i, whose expectation is the sum over types of r g j n times theta hat j n i.
 \begin{tikzpicture}
-\node[const] (m) at (0,0) {$m_{gj},\beta_{gj}$};
+\node[fixed] (m) at (0,0) {$m_{gj},\beta_{gj}$};
 \node[note, above=1mm of m] {fixed effects (REML)};
-\node[const] (z) at (-2.4,-2.0) {$z_n$};
+\node[fixed] (z) at (-2.4,-2.0) {$z_n$};
 \node[note, left=1mm of z] {group};
-\node[stoch] (u) at (2.4,-2.0) {$u_{gjn}$};
+\node[latent] (u) at (2.4,-2.0) {$u_{gjn}$};
 \node[note, right=1mm of u] (nu) {subject effect};
 \node[det] (r) at (0,-3.8) {$r_{gjn}$};
 \node[note, right=1mm of r] (nr) {$=m_{gj}+\beta_{gj}z_n+u_{gjn}$};
-\node[const] (th) at (-2.4,-5.8) {$\hat\theta_{j,ni}$};
+\node[fixed] (th) at (-2.4,-5.8) {$\hat\theta_{j,ni}$};
 \node[note, left=1mm of th, align=right] (nth) {stage I\\ ($\nu$-SVR)};
 \node[obs] (y) at (0,-5.8) {$y_{g,ni}$};
 \node[note, below=2mm of y] (ny) {$\mathbb{E}\,y_{g,ni}=\sum_jr_{gjn}\hat\theta_{j,ni}$};
-\draw[edge] (m) -- (r); \draw[edge] (z) -- (r); \draw[edge] (u) -- (r);
-\draw[edge] (r) -- (y); \draw[edge] (th) -- (y);
+\draw[dependency] (m) -- (r); \draw[dependency] (z) -- (r); \draw[dependency] (u) -- (r);
+\draw[dependency] (r) -- (y); \draw[dependency] (th) -- (y);
 \plate{reps}{(th)(nth)(y)(ny)}{repeated samples $i\le t_n$}
-\plate{subj}{(z)(u)(nu)(r)(nr)(reps)(reps-lab)}{subjects $n=1,\ldots,N$}
+\plate{subj}{(z)(u)(nu)(r)(nr)(reps)(reps-caption)}{subjects $n=1,\ldots,N$}
 \end{tikzpicture}
 ```
 
@@ -2281,54 +2281,54 @@ derived in the
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) bMIND / EPIC-unmix: per-gene J x J covariance across types
 \begin{scope}
-\node[const] (hmu) at (-0.2,0) {$\hat{\boldsymbol{\mu}}_{g\cdot}$};
-\node[const] (hOm) at (1.8,0) {$\hat{\boldsymbol{\Gamma}}_{g},50$};
-\node[stoch] (mu) at (-0.2,-2.0) {$\boldsymbol{\mu}_{g\cdot}$};
-\node[stoch] (Om) at (1.8,-2.0) {$\boldsymbol{\Gamma}_{g}$};
-\node[stoch] (s2) at (6.6,-2.0) {$\sigma_g^{2}$};
-\node[stoch] (x) at (0.8,-4.0) {$\boldsymbol{x}_{g\cdot,i}$};
-\node[const] (p) at (-1.0,-4.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (hmu) at (-0.2,0) {$\hat{\boldsymbol{\mu}}_{g\cdot}$};
+\node[fixed] (hOm) at (1.8,0) {$\hat{\boldsymbol{\Gamma}}_{g},50$};
+\node[latent] (mu) at (-0.2,-2.0) {$\boldsymbol{\mu}_{g\cdot}$};
+\node[latent] (Om) at (1.8,-2.0) {$\boldsymbol{\Gamma}_{g}$};
+\node[latent] (s2) at (6.6,-2.0) {$\sigma_g^{2}$};
+\node[latent] (x) at (0.8,-4.0) {$\boldsymbol{x}_{g\cdot,i}$};
+\node[fixed] (p) at (-1.0,-4.0) {$\boldsymbol{p}_{\cdot i}$};
 \node[obs] (y) at (1.8,-6.0) {$y_{gi}$};
 \node[note, left=1mm of mu] (nmu) {$\mathcal{N}(\hat{\boldsymbol{\mu}},0.5\mathbf{I})$};
 \node[note, right=1mm of Om] (nOm) {$\mathrm{IW}(\hat{\boldsymbol{\Gamma}}_g,50)$, $J\times J$};
 \node[note, below=2mm of y] (ny) {$\mathcal{N}\bigl(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{x}_{g\cdot,i},\sigma_g^{2}\bigr)$};
-\draw[edge] (hmu) -- (mu); \draw[edge] (hOm) -- (Om);
-\draw[edge] (mu) -- (x); \draw[edge] (Om) -- (x); \draw[edge] (x) -- (y); \draw[edge] (p) -- (y); \draw[edge] (s2) -- (y);
+\draw[dependency] (hmu) -- (mu); \draw[dependency] (hOm) -- (Om);
+\draw[dependency] (mu) -- (x); \draw[dependency] (Om) -- (x); \draw[dependency] (x) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (s2) -- (y);
 \plate{ia}{(x)(p)(y)(ny)}{$i=1,\ldots,N$}
-\plate{ga}{(mu)(Om)(s2)(ia)(ia-lab)(nmu)}{$g=1,\ldots,G$}
+\plate{ga}{(mu)(Om)(s2)(ia)(ia-caption)(nmu)}{$g=1,\ldots,G$}
 \node[ptitle] at (-3.0,1.1) {(a) bMIND, EPIC-unmix};
 \end{scope}
 % (b) BLADE: log-normal CTS, normal-gamma prior
 \begin{scope}[xshift=106mm]
-\node[const] (h0) at (0.8,0) {$\mu_0,\kappa_0,\alpha_0,\beta_0$};
-\node[stoch] (m) at (0.8,-2.0) {$m_{gj},\lambda_{gj}$};
-\node[const] (al) at (-1.4,-2.0) {$\boldsymbol{\alpha}_{1}$};
-\node[stoch] (p) at (-1.4,-4.0) {$\boldsymbol{p}_{\cdot i}$};
-\node[stoch] (x) at (0.8,-4.0) {$x_{gj,i}$};
-\node[const] (ga) at (4.7,-4.0) {$\gamma_g$};
+\node[fixed] (h0) at (0.8,0) {$\mu_0,\kappa_0,\alpha_0,\beta_0$};
+\node[latent] (m) at (0.8,-2.0) {$m_{gj},\lambda_{gj}$};
+\node[fixed] (al) at (-1.4,-2.0) {$\boldsymbol{\alpha}_{1}$};
+\node[latent] (p) at (-1.4,-4.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[latent] (x) at (0.8,-4.0) {$x_{gj,i}$};
+\node[fixed] (ga) at (4.7,-4.0) {$\gamma_g$};
 \node[obs] (y) at (0.8,-6.0) {$y_{gi}$};
 \node[note, right=1mm of m] (nm) {normal-gamma};
 \node[note, right=1mm of x] (nx) {$\mathrm{LN}(m_{gj},\lambda_{gj}^{-1})$};
 \node[note, below=2mm of y] (ny) {$\sum_jp_{ji}x_{gj,i}$, log-normal error};
-\draw[edge] (h0) -- (m); \draw[edge] (m) -- (x); \draw[edge] (al) -- (p);
-\draw[edge] (p) -- (y); \draw[edge] (x) -- (y); \draw[edge] (ga) -- (y);
+\draw[dependency] (h0) -- (m); \draw[dependency] (m) -- (x); \draw[dependency] (al) -- (p);
+\draw[dependency] (p) -- (y); \draw[dependency] (x) -- (y); \draw[dependency] (ga) -- (y);
 \plate{ib}{(p)(x)(y)(ny)(nx)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.2,1.1) {(b) BLADE};
 \end{scope}
 % (c) BEDwARS: noisy reference signature
 \begin{scope}[xshift=196mm]
-\node[const] (mr) at (0,0) {$\boldsymbol{\mu}^{r}$};
-\node[stoch] (sj) at (2.0,0) {$\sigma_j$};
-\node[stoch] (mu) at (1.0,-2.0) {$\boldsymbol{\mu}$};
-\node[stoch] (al) at (-1.4,-2.0) {$\alpha$};
-\node[stoch] (p) at (-1.4,-4.0) {$\boldsymbol{p}_{\cdot i}$};
-\node[stoch] (s) at (3.0,-4.0) {$\sigma$};
+\node[fixed] (mr) at (0,0) {$\boldsymbol{\mu}^{r}$};
+\node[latent] (sj) at (2.0,0) {$\sigma_j$};
+\node[latent] (mu) at (1.0,-2.0) {$\boldsymbol{\mu}$};
+\node[latent] (al) at (-1.4,-2.0) {$\alpha$};
+\node[latent] (p) at (-1.4,-4.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[latent] (s) at (3.0,-4.0) {$\sigma$};
 \node[obs] (y) at (0.8,-6.0) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, right=1mm of mu] (nmu) {log-normal around $\boldsymbol{\mu}^{r}$};
 \node[note, left=1mm of p] (np) {$\mathrm{Dir}(\alpha\boldsymbol{p}_0)$};
 \node[note, below=2mm of y] (ny) {$\mathcal{N}(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},\sigma\mathbf{I})$};
-\draw[edge] (mr) -- (mu); \draw[edge] (sj) -- (mu); \draw[edge] (al) -- (p);
-\draw[edge] (mu) -- (y); \draw[edge] (p) -- (y); \draw[edge] (s) -- (y);
+\draw[dependency] (mr) -- (mu); \draw[dependency] (sj) -- (mu); \draw[dependency] (al) -- (p);
+\draw[dependency] (mu) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (s) -- (y);
 \plate{ic}{(p)(y)(ny)(np)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.6,1.1) {(c) BEDwARS};
 \end{scope}
@@ -2426,25 +2426,25 @@ special cases (our remark); no reviewed method fits it.
 %%| filename: fig-dag-blend
 %%| alt: Plate diagram. A fixed alpha generates the latent RNA fractions q i inside a bulk-sample plate. A fixed beta j generates the latent reference weights psi j i inside a nested type plate; with the fixed observed references Phi j m outside the sample plate they give the deterministic sample reference Phi B j i, the weighted sum of the references. Inside a read plate, a latent type label Y i r drawn from q i and the sample reference of that type generate the observed gene identity X tilde i r, categorical.
 \begin{tikzpicture}
-\node[const] (al) at (-3.4,0) {$\boldsymbol{\alpha}$};
-\node[stoch] (q) at (-3.4,-2.2) {$\boldsymbol{q}_{\cdot i}$};
+\node[fixed] (al) at (-3.4,0) {$\boldsymbol{\alpha}$};
+\node[latent] (q) at (-3.4,-2.2) {$\boldsymbol{q}_{\cdot i}$};
 \node[note, left=1mm of q] (nq) {$\mathrm{Dir}(\boldsymbol{\alpha})$};
-\node[const] (be) at (1.6,0) {$\boldsymbol{\beta}_j$};
-\node[stoch] (psi) at (1.6,-2.2) {$\boldsymbol{\psi}_{j,i}$};
+\node[fixed] (be) at (1.6,0) {$\boldsymbol{\beta}_j$};
+\node[latent] (psi) at (1.6,-2.2) {$\boldsymbol{\psi}_{j,i}$};
 \node[note, right=1mm of psi] (npsi) {$\mathrm{Dir}(\boldsymbol{\beta}_j)$};
 \node[det] (Phb) at (1.6,-4.4) {$\boldsymbol{\Phi}^{\mathrm{B}}_{j,i}$};
 \node[note, left=1mm of Phb] (nPhb) {$=\sum_m\psi_{j,i,m}\boldsymbol{\Phi}_{j,m}$};
-\node[const] (Ph) at (6.6,-4.4) {$\boldsymbol{\Phi}_{j,m}$};
+\node[fixed] (Ph) at (6.6,-4.4) {$\boldsymbol{\Phi}_{j,m}$};
 \node[note, above=1mm of Ph, align=center] (nPh) {observed references\\ $m\le M_j$};
-\node[stoch] (Y) at (-3.4,-6.6) {$Y_{i,r}$};
+\node[latent] (Y) at (-3.4,-6.6) {$Y_{i,r}$};
 \node[note, left=1mm of Y] (nY) {$\mathrm{Cat}(\boldsymbol{q}_{\cdot i})$};
 \node[obs] (X) at (1.6,-6.6) {$\tilde X_{i,r}$};
 \node[note, right=1mm of X] (nX) {$\mathrm{Cat}\bigl(\boldsymbol{\Phi}^{\mathrm{B}}_{Y_{i,r},i}\bigr)$};
-\draw[edge] (al) -- (q); \draw[edge] (be) -- (psi); \draw[edge] (psi) -- (Phb);
-\draw[edge] (Ph) -- (Phb); \draw[edge] (q) -- (Y); \draw[edge] (Y) -- (X); \draw[edge] (Phb) -- (X);
+\draw[dependency] (al) -- (q); \draw[dependency] (be) -- (psi); \draw[dependency] (psi) -- (Phb);
+\draw[dependency] (Ph) -- (Phb); \draw[dependency] (q) -- (Y); \draw[dependency] (Y) -- (X); \draw[dependency] (Phb) -- (X);
 \plate{types}{(psi)(npsi)(Phb)(nPhb)}{types $j$}
 \plate{reads}{(Y)(nY)(X)(nX)}{reads $r\le R_i$}
-\plate{samples}{(q)(nq)(types)(types-lab)(reads)(reads-lab)}{bulk sample $i$}
+\plate{samples}{(q)(nq)(types)(types-caption)(reads)(reads-caption)}{bulk sample $i$}
 \end{tikzpicture}
 ```
 
@@ -2520,33 +2520,33 @@ inference.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) DSection: continuous, Gaussian, gene-wise precision
 \begin{scope}
-\node[const] (p0) at (-1.4,0) {$w_0,\boldsymbol{p}_{0i}$};
-\node[const] (h) at (1.2,0) {$\mu_{gjh},\eta^{2}$};
-\node[const] (ab) at (3.6,0) {$\alpha,\beta$};
-\node[stoch] (p) at (-1.4,-2.2) {$\boldsymbol{p}_{\cdot i}$};
-\node[stoch] (x) at (1.2,-2.2) {$x_{gjh}$};
-\node[stoch] (la) at (3.6,-2.2) {$\lambda_g$};
+\node[fixed] (p0) at (-1.4,0) {$w_0,\boldsymbol{p}_{0i}$};
+\node[fixed] (h) at (1.2,0) {$\mu_{gjh},\eta^{2}$};
+\node[fixed] (ab) at (3.6,0) {$\alpha,\beta$};
+\node[latent] (p) at (-1.4,-2.2) {$\boldsymbol{p}_{\cdot i}$};
+\node[latent] (x) at (1.2,-2.2) {$x_{gjh}$};
+\node[latent] (la) at (3.6,-2.2) {$\lambda_g$};
 \node[obs] (y) at (1.2,-4.4) {$y_{gi}$};
 \node[note, below=2mm of y, align=center] (ny) {$\mathcal{N}\bigl(\sum_jp_{ji}x_{gjh(i)},\lambda_g^{-1}\bigr)$\\ variance free of $\boldsymbol{p}$};
-\draw[edge] (p0) -- (p); \draw[edge] (h) -- (x); \draw[edge] (ab) -- (la);
-\draw[edge] (p) -- (y); \draw[edge] (x) -- (y); \draw[edge] (la) -- (y);
+\draw[dependency] (p0) -- (p); \draw[dependency] (h) -- (x); \draw[dependency] (ab) -- (la);
+\draw[dependency] (p) -- (y); \draw[dependency] (x) -- (y); \draw[dependency] (la) -- (y);
 \plate{ia}{(p)(y)(ny)}{$i=1,\ldots,N$}
 \node[ptitle] at (-2.6,1.0) {(a) DSection: Gaussian on linear intensities};
 \end{scope}
 % (b) gnSPADE: multinomial counts, LDA with a gene-network MRF on labels
 \begin{scope}[xshift=92mm]
-\node[const] (al) at (-1.2,0) {$\boldsymbol{\alpha}$};
-\node[const] (eta) at (4.8,0) {$\boldsymbol{\alpha}'$};
-\node[stoch] (th) at (-1.2,-2.2) {$\boldsymbol{q}_{\cdot i}$};
-\node[stoch] (be) at (4.8,-2.2) {$\boldsymbol{\theta}_{\cdot j}$};
-\node[stoch] (z) at (-1.2,-4.4) {$z_{in}$};
+\node[fixed] (al) at (-1.2,0) {$\boldsymbol{\alpha}$};
+\node[fixed] (eta) at (4.8,0) {$\boldsymbol{\alpha}'$};
+\node[latent] (th) at (-1.2,-2.2) {$\boldsymbol{q}_{\cdot i}$};
+\node[latent] (be) at (4.8,-2.2) {$\boldsymbol{\theta}_{\cdot j}$};
+\node[latent] (z) at (-1.2,-4.4) {$z_{in}$};
 \node[obs] (w) at (1.2,-4.4) {$w_{in}$};
-\node[const] (gr) at (-3.4,-4.4) {$\mathcal{G},\lambda$};
+\node[fixed] (gr) at (-3.4,-4.4) {$\mathcal{G},\lambda$};
 \node[note, below=8mm of w, align=center] (nw) {one UMI $n$ of spot $i$:\\ $\boldsymbol{y}_{\cdot i}\mid\boldsymbol{q}_{\cdot i}\sim\mathrm{Mult}\bigl(L_i,\sum_jq_{ji}\boldsymbol{\theta}_{\cdot j}\bigr)$};
-\draw[edge] (al) -- (th); \draw[edge] (eta) -- (be); \draw[edge] (th) -- (z);
-\draw[edge] (z) -- (w); \draw[edge] (be) -- (w); \draw[edge] (gr) -- (z);
+\draw[dependency] (al) -- (th); \draw[dependency] (eta) -- (be); \draw[dependency] (th) -- (z);
+\draw[dependency] (z) -- (w); \draw[dependency] (be) -- (w); \draw[dependency] (gr) -- (z);
 \plate{n}{(z)(w)}{$n\le L_i$}
-\plate{ib}{(th)(n)(n-lab)(nw)}{$i=1,\ldots,N$}
+\plate{ib}{(th)(n)(n-caption)(nw)}{$i=1,\ldots,N$}
 \plate{jb}{(be)}{$j$}
 \node[ptitle] at (-3.4,1.0) {(b) gnSPADE: multinomial UMI counts};
 \end{scope}
@@ -2607,31 +2607,31 @@ written explicitly, and its tractability drives the choice of law.
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) DeMixT
 \begin{scope}
-\node[const] (mn) at (0,0) {$\mu_{N_jg},\sigma_{N_jg}$};
-\node[const] (mt) at (3.4,0) {$\mu_{Tg},\sigma_{Tg}$};
-\node[stoch] (n) at (0,-2.2) {$N_{j,gi}$};
-\node[stoch] (t) at (3.4,-2.2) {$T_{gi}$};
-\node[const] (pi) at (-2.0,-4.2) {$\boldsymbol{\pi}_{i}$};
+\node[fixed] (mn) at (0,0) {$\mu_{N_jg},\sigma_{N_jg}$};
+\node[fixed] (mt) at (3.4,0) {$\mu_{Tg},\sigma_{Tg}$};
+\node[latent] (n) at (0,-2.2) {$N_{j,gi}$};
+\node[latent] (t) at (3.4,-2.2) {$T_{gi}$};
+\node[fixed] (pi) at (-2.0,-4.2) {$\boldsymbol{\pi}_{i}$};
 \node[obs] (y) at (1.7,-4.2) {$y_{gi}$};
 \node[note, left=1mm of n] (nn) {$\log_2$-normal};
 \node[note, right=1mm of t] (nt) {$\log_2$-normal};
 \node[note, below=2mm of y, align=center] (ny) {$\sum_j\pi_{j,i}N_{j,gi}+(1-\sum_j\pi_{j,i})T_{gi}$\\ density by numerical integration};
-\draw[edge] (mn) -- (n); \draw[edge] (mt) -- (t); \draw[edge] (n) -- (y); \draw[edge] (t) -- (y); \draw[edge] (pi) -- (y);
+\draw[dependency] (mn) -- (n); \draw[dependency] (mt) -- (t); \draw[dependency] (n) -- (y); \draw[dependency] (t) -- (y); \draw[dependency] (pi) -- (y);
 \plate{ia}{(n)(t)(y)(ny)(pi)(nn)(nt)}{samples $i$, genes $g$}
 \node[ptitle] at (-2.6,1.0) {(a) DeMixT: log-normal components};
 \end{scope}
 % (b) DeMixNB
 \begin{scope}[xshift=116mm]
-\node[const] (mn) at (0,0) {$\mu_{ng},\phi_{ng}$};
-\node[const] (mt) at (3.4,0) {$\mu_{tg},\phi_{tg}$};
-\node[stoch] (n) at (0,-2.2) {$N_{gi}$};
-\node[stoch] (t) at (3.4,-2.2) {$T_{gi}$};
-\node[const] (pi) at (1.7,-2.2) {$\pi_{i}$};
+\node[fixed] (mn) at (0,0) {$\mu_{ng},\phi_{ng}$};
+\node[fixed] (mt) at (3.4,0) {$\mu_{tg},\phi_{tg}$};
+\node[latent] (n) at (0,-2.2) {$N_{gi}$};
+\node[latent] (t) at (3.4,-2.2) {$T_{gi}$};
+\node[fixed] (pi) at (1.7,-2.2) {$\pi_{i}$};
 \node[obs] (y) at (1.7,-4.2) {$y_{gi}$};
 \node[note, left=1mm of n] (nn) {$\mathrm{NB}((1-\pi_i)\mu_{ng},\phi_{ng})$};
 \node[note, right=1mm of t] (nt) {$\mathrm{NB}(\pi_i\mu_{tg},\phi_{tg})$};
 \node[note, below=2mm of y, align=center] (ny) {$T_{gi}+N_{gi}$\\ exact finite-sum convolution};
-\draw[edge] (mn) -- (n); \draw[edge] (mt) -- (t); \draw[edge] (pi) -- (n); \draw[edge] (pi) -- (t); \draw[edge] (n) -- (y); \draw[edge] (t) -- (y);
+\draw[dependency] (mn) -- (n); \draw[dependency] (mt) -- (t); \draw[dependency] (pi) -- (n); \draw[dependency] (pi) -- (t); \draw[dependency] (n) -- (y); \draw[dependency] (t) -- (y);
 \plate{ib}{(n)(t)(y)(ny)(pi)(nn)(nt)}{samples $i$, genes $g$}
 \node[ptitle] at (-3.4,1.0) {(b) DeMixNB: negative binomial thinning};
 \end{scope}
@@ -2751,16 +2751,16 @@ signature; with the cosine distance it uses, the term is quartic.
 %%| filename: fig-dag-swcam
 %%| alt: Latent loadings L_j inside a cell-type plate and latent scores u_ij inside a sample plate give the deterministic deviation Delta_i. With the fixed signature mu and fixed proportions p_i, the deviation generates the observed bulk y_i as mu plus Delta_i times p_i plus noise.
 \begin{tikzpicture}
-\node[stoch] (V) at (2,0.8) {$\boldsymbol{L}_j$};
-\node[const] (mu) at (4.4,0.8) {$\boldsymbol{\mu}$};
-\node[stoch] (u) at (0,-2.3) {$\boldsymbol{u}_{ij}$};
+\node[latent] (V) at (2,0.8) {$\boldsymbol{L}_j$};
+\node[fixed] (mu) at (4.4,0.8) {$\boldsymbol{\mu}$};
+\node[latent] (u) at (0,-2.3) {$\boldsymbol{u}_{ij}$};
 \node[det] (D) at (2,-2.3) {$\boldsymbol{\Delta}_i$};
-\node[const] (p) at (4.4,-2.3) {$\boldsymbol{p}_{\cdot i}$};
+\node[fixed] (p) at (4.4,-2.3) {$\boldsymbol{p}_{\cdot i}$};
 \node[obs] (y) at (3.2,-4.3) {$\boldsymbol{y}_{\cdot i}$};
 \node[note, left=3mm of y] (n1) {$\boldsymbol{\Delta}^{(j)}_i=\boldsymbol{L}_j\boldsymbol{u}_{ij}$};
 \node[note, right=3mm of y] (n2) {$(\boldsymbol{\mu}+\boldsymbol{\Delta}_i)\boldsymbol{p}_{\cdot i}+\boldsymbol{\varepsilon}_i$};
-\draw[edge] (V) -- (D); \draw[edge] (u) -- (D); \draw[edge] (D) -- (y);
-\draw[edge] (mu) -- (y); \draw[edge] (p) -- (y);
+\draw[dependency] (V) -- (D); \draw[dependency] (u) -- (D); \draw[dependency] (D) -- (y);
+\draw[dependency] (mu) -- (y); \draw[dependency] (p) -- (y);
 \plate{types}{(V)}{$j=1,\ldots,J$}
 \plate{samples}{(u)(D)(p)(y)(n1)(n2)}{$i=1,\ldots,N$}
 \end{tikzpicture}

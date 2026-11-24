@@ -560,19 +560,19 @@ Here $\mathcal{G}$ is an **undirected** graph on the $G$ genes, not the gene cou
 %%| filename: fig-ggm-pipeline
 %%| alt: Graphical model. A fixed graph script-G determines signed weights W(script-G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow.
 \begin{tikzpicture}[node distance=14mm]
-\node[const] (G) {$\mathcal{G}$};
-\node[det, right=of G] (W) {$W(\mathcal{G})$};
-\node[det, right=of W] (O) {$\boldsymbol{\Omega}$};
-\node[stoch, right=of O] (X) {$\boldsymbol{X}_i$};
-\node[const, above=10mm of X] (mu) {$\boldsymbol{\mu}_i$};
-\node[obs, right=of X] (Y) {$\boldsymbol{Y}_i$};
+\node[fixed] (G) {$\mathcal{G}$};
+\node[det, right=14mm of G] (W) {$W(\mathcal{G})$};
+\node[det, right=14mm of W] (O) {$\boldsymbol{\Omega}$};
+\node[latent, right=14mm of O] (X) {$\boldsymbol{X}_i$};
+\node[fixed, above=10mm of X] (mu) {$\boldsymbol{\mu}_i$};
+\node[obs, right=14mm of X] (Y) {$\boldsymbol{Y}_i$};
 \node[note, below=2mm of G] {graph};
 \node[note, below=2mm of W] {signed weights};
 \node[note, below=2mm of O] {$\boldsymbol{\Omega}\succ 0$};
 \node[note, below=2mm of X] (nx) {$\mathcal{N}_p(\boldsymbol{\mu}_i,\boldsymbol{\Omega}^{-1})$};
 \node[note, below=2mm of Y] (ny) {optional counts};
-\draw[edge] (G) -- (W); \draw[edge] (W) -- (O); \draw[edge] (O) -- (X);
-\draw[edge] (mu) -- (X); \draw[dashededge] (X) -- (Y);
+\draw[dependency] (G) -- (W); \draw[dependency] (W) -- (O); \draw[dependency] (O) -- (X);
+\draw[dependency] (mu) -- (X); \draw[dashededge] (X) -- (Y);
 \plate{pi}{(mu)(X)(Y)(nx)(ny)}{$i=1,\ldots,n$}
 \end{tikzpicture}
 ```

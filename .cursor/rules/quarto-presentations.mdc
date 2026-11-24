@@ -1,6 +1,6 @@
 ---
-description: Quarto authoring, Mermaid, tables, reveal.js slides
-globs: "**/*.{qmd,Rmd},**/slides/**/*,_quarto.yml,_publish.yml"
+description: Quarto authoring — labels, callouts, code display, tables, Mermaid, slides routing
+globs: "**/*.{qmd,Rmd},**/_quarto.yml,**/_publish.yml"
 alwaysApply: false
 paths:
   - "**/*.{qmd,Rmd}"
@@ -9,12 +9,15 @@ paths:
 ---
 # Quarto: documents, websites and reveal.js
 
-British English; reproducible execution; cite at point of use.
+Reproducible execution; cite claims at point of use; native Quarto/Pandoc
+features before custom JS.
 
-For slides, websites and interactive OJS/D3, use the `quarto` skill
-(`~/.claude/skills/quarto/SKILL.md`): it routes to one reference per task
-(deck setup, themes, layout, fragments, auto-animate, full-width figures,
-session info, OJS, D3, React). Read it before major deck or site edits.
+Route by output type before major edits:
+
+- **Slides** (`format: revealjs`): **quarto-revealjs** (theme, layout, motion,
+  export, OJS/D3/React in decks).
+- **Website** (`project.type: website`): **quarto-website**.
+- **Book** (`project.type: book`): **quarto-book**.
 
 ## Code display
 
@@ -29,15 +32,16 @@ session info, OJS, D3, React). Read it before major deck or site edits.
 - Lists: standard Markdown only — no Pandoc example lists, task checkboxes, or
   unicode step markers (Visual Editor safe).
 - Package names in backticks; citations `@key` unchanged.
-- Callouts: `::: {#nte-… .callout-warning}` with `@nte-…` references.
+- Callouts for real warnings only: `::: {#nte-… .callout-warning}` with
+  `@nte-…` references. `echo: false` when readers need output only.
 - Emoji: `:shortcode:` with `from: markdown+emoji` when needed.
 
 ## Tables
 
-- Manuscripts / static HTML: **`tinytable::tt()`** when the project uses it;
-  otherwise repo convention.
-- Slides / interactive HTML: **`reactable`** with `pagination = FALSE`,
-  `echo: false` unless teaching code.
+- Static output (PDF, manuscript, static HTML, slides): `tinytable::tt()`.
+- `reactable` only when HTML interactivity (sort, filter, search) helps, with
+  `pagination = FALSE` on slides.
+- Hand-written LaTeX: `booktabs` (`latex-scientific`). No `knitr::kable`.
 
 ## Mermaid
 
@@ -52,11 +56,12 @@ flowchart TD
 ```
 ````
 
-`eval: true` in site config or chunk. Inspect `pre.mermaid` + quarto-diagram JS
-before client-side fallbacks. Theme **sandstone** unless the deck defines
-otherwise.
+`eval: true` in site config or chunk. Inspect `pre.mermaid` and the
+quarto-diagram JS before client-side fallbacks. Mermaid theme `neutral`
+(`%%{init: {'theme': 'neutral'}}%%`) unless the project sets one. Mermaid is
+for workflows; probabilistic models use `graphical-models`.
 
 ## Pages that run R
 
-End each page with `sessionInfo()` in a collapsed callout (`web-layout.md` in
-the `quarto` skill).
+Set seeds in the page; end it with `sessionInfo()` in a collapsed callout
+(quarto-website skill, `references/web-layout.md`).
