@@ -49,9 +49,9 @@ simulate_bulk_from_cells(
 
 - n_cells:
 
-  Cells per bulk sample, \\n_i\\. Recycled to \\N\\. The multinomial
-  size is the rounded value; the fitted \\\hat n\\ need not be an
-  integer.
+  Cells per bulk sample, \\n_i\\. Recycled to \\N\\; pass one value per
+  sample for bulks of different sizes. The multinomial size is the
+  rounded value; the fitted \\\hat n\\ need not be an integer.
 
 - platform_scale:
 

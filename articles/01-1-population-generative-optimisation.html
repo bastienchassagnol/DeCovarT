@@ -70,7 +70,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>1.1 Population-level DeCovarT: generative model, derivatives and optimisation on the simplex</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">24 Nov 2026</p>
+      <p class="date">25 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/01-1-population-generative-optimisation.qmd" class="external-link"><code>vignettes/01-1-population-generative-optimisation.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -125,8 +126,8 @@
 <blockquote>
 <p><strong>Notation used in this vignette</strong></p>
 <p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="9c99c895-736c-4316-b6cb-7ecd064b9ecb">
-<div id="9c99c895-736c-4316-b6cb-7ecd064b9ecb" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="43b6304e-3fb6-4759-a0cc-0251a5baec13">
+<div id="43b6304e-3fb6-4759-a0cc-0251a5baec13" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
@@ -171,8 +172,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="8531a704-42b5-4567-be62-323e016e7c9e">
-<div id="8531a704-42b5-4567-be62-323e016e7c9e" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="979bf928-b72b-4b63-8c6c-cb27e6c44ce1">
+<div id="979bf928-b72b-4b63-8c6c-cb27e6c44ce1" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Cell fractions and transcript fractions.</caption>
@@ -226,8 +227,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="0de9d276-a6bc-4693-a79b-cee13c11df91">
-<div id="0de9d276-a6bc-4693-a79b-cee13c11df91" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="ec89bd50-4663-48a1-a291-4b13f31e83b8">
+<div id="ec89bd50-4663-48a1-a291-4b13f31e83b8" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Purified profiles and per-cell means of raw counts.</caption>
@@ -278,8 +279,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="3f1648bc-a068-4f37-94d5-e7f56e588cbd">
-<div id="3f1648bc-a068-4f37-94d5-e7f56e588cbd" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="09810671-63cd-4c63-b281-1ef133a5b5c0">
+<div id="09810671-63cd-4c63-b281-1ef133a5b5c0" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
@@ -366,8 +367,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="4a917018-99d0-4a2a-acd6-1b6438b1a52b">
-<div id="4a917018-99d0-4a2a-acd6-1b6438b1a52b" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="6ea38a87-a6b5-409d-bbeb-a04cbb43b68a">
+<div id="6ea38a87-a6b5-409d-bbeb-a04cbb43b68a" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>The bulk profile and the two reference paradigms. Neither is a gold-standard reference.</caption>
@@ -1069,7 +1070,7 @@ Table 2: Sequential binary partition encoded by the Helmert basis for <span cla
 <img src="figures/ilr_isometry_gram_schmidt.png" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ilr-isometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: The ILR chart is an isometry from the simplex to Euclidean space. <strong>A</strong> (<span class="math inline">J=2</span>): the simplex is a segment and the ILR chart a line; equally spaced values of <span class="math inline">\rho</span> (colour) map to compositions that crowd towards the vertices. <strong>B</strong> (<span class="math inline">J=3</span>): lines of constant <span class="math inline">\rho_{1}</span> (solid) and <span class="math inline">\rho_{2}</span> (dotted) on the ternary triangle, the composition <span class="math inline">(0.5,0.3,0.2)</span> and two segments of Aitchison length 1, one near the barycentre (green) and one near the vertex <span class="math inline">p_{3}=1</span> (gold). <strong>C</strong>: the same objects in ILR coordinates, where the grid is orthonormal and both segments have Euclidean length 1. <strong>D</strong>: in the plane orthogonal to <span class="math inline">\mathbf{1}_{3}</span>, Gram–Schmidt applied to <span class="math inline">\boldsymbol{a}_{1}=\boldsymbol{e}_{1}-\boldsymbol{e}_{2}</span> and <span class="math inline">\boldsymbol{a}_{2}=\boldsymbol{e}_{2}-\boldsymbol{e}_{3}</span> normalises <span class="math inline">\boldsymbol{a}_{1}</span> into <span class="math inline">\boldsymbol{v}_{1}</span>, removes from <span class="math inline">\boldsymbol{a}_{2}</span> its projection on <span class="math inline">\boldsymbol{v}_{1}</span> (orange), and normalises the residual into <span class="math inline">\boldsymbol{v}_{2}</span>: the two Helmert columns of <a href="#eq-helmert-columns" class="quarto-xref">Eq. 17</a>. Dashed lines are the CLR images of the canonical vectors. Script: <code>vignettes/scripts/generate_ilr_isometry_figure.R</code>.
+Figure 1: The ILR chart is an isometry from the simplex to Euclidean space. <strong>A</strong> (<span class="math inline">J=2</span>): the simplex is a segment and the ILR chart a line; equally spaced values of <span class="math inline">\rho</span> (colour) map to compositions that crowd towards the vertices. <strong>B</strong> (<span class="math inline">J=3</span>): lines of constant <span class="math inline">\rho_{1}</span> (solid) and <span class="math inline">\rho_{2}</span> (dotted) on the ternary triangle, the composition <span class="math inline">(0.5,0.3,0.2)</span> and two segments of Aitchison length 1, one near the barycentre (green) and one near the vertex <span class="math inline">p_{3}=1</span> (gold). <strong>C</strong>: the same objects in ILR coordinates, where the grid is orthonormal and both segments have Euclidean length 1. <strong>D</strong>: in the plane orthogonal to <span class="math inline">\mathbf{1}_{3}</span>, Gram–Schmidt applied to <span class="math inline">\boldsymbol{a}_{1}=\boldsymbol{e}_{1}-\boldsymbol{e}_{2}</span> and <span class="math inline">\boldsymbol{a}_{2}=\boldsymbol{e}_{2}-\boldsymbol{e}_{3}</span> normalises <span class="math inline">\boldsymbol{a}_{1}</span> into <span class="math inline">\boldsymbol{v}_{1}</span>, removes from <span class="math inline">\boldsymbol{a}_{2}</span> its projection on <span class="math inline">\boldsymbol{v}_{1}</span> (orange), and normalises the residual into <span class="math inline">\boldsymbol{v}_{2}</span>: the two Helmert columns of <a href="#eq-helmert-columns" class="quarto-xref">Eq. 17</a>. Dashed lines are the CLR images of the canonical vectors. Script: <code>scripts/theory_illustrations/fig_01_1_ilr_isometry.R</code>.
 </figcaption></figure>
 </div>
 <p><a href="#fig-ilr-isometry" class="quarto-xref">Figure 1</a> summarises the construction. Gram–Schmidt applied to the successive differences <span class="math inline">\boldsymbol{e}_{k}-\boldsymbol{e}_{k+1}</span>, which span <span class="math inline">\mathbf{1}_{J}^{\perp}</span>, returns exactly the columns of <a href="#eq-helmert-columns" class="quarto-xref">Eq. 17</a> for every <span class="math inline">J</span> (panel D); the resulting chart is isometric, so equal Aitchison lengths become equal Euclidean lengths (panels B–C).</p>
@@ -1566,7 +1567,7 @@ p_{j}\bigl(
 =\sqrt{J}\prod_{j}p_{j}</span>. A Dirichlet<span class="math inline">(\boldsymbol{\alpha})</span> prior therefore becomes <span class="math inline">\sum_{j}\alpha_{j}\log p_{j}</span> in <span class="math inline">\boldsymbol{\rho}</span>, a concave function that pushes the mode away from the boundary. Even the uniform prior (<span class="math inline">\boldsymbol{\alpha}=\mathbf{1}</span>) is not flat in <span class="math inline">\boldsymbol{\rho}</span>, so a posterior mode depends on the chart in which it is computed; posterior means and intervals for <span class="math inline">\boldsymbol{p}</span> do not.</li>
 <li>
 <em>CLR or ILR regression.</em> Covariates enter linearly on the log-ratio scale, <span class="math inline">\boldsymbol{\rho}_{i}=\mathbf{B}\boldsymbol{z}_{i}+\boldsymbol{u}_{i}</span>, which is the compositional analogue of a multinomial-logit model and gives the marginal effect of a covariate on the composition.</li>
-<li>The experimental MAP <code>CTS</code> path (<code>scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code>, derived in the <a href="05-2-bayesian-wiener.html#sec-map-blup">perspectives</a> vignette) is one starting point.</li>
+<li>The MAP <code>CTS</code> update derived in the <a href="05-2-bayesian-wiener.html#sec-map-blup">perspectives</a> vignette is one starting point (its experimental script was removed; the last version is linked there).</li>
 </ul>
 <p><strong>Estimates on the boundary.</strong> Several routes go beyond the active-set approach; none is implemented.</p>
 <ul>
@@ -1792,21 +1793,14 @@ p_{j}\bigl(
 <section class="level2"><h3 id="sec-backend-decision">Decision tree<a class="anchor" aria-label="anchor" href="#sec-backend-decision"></a>
 </h3>
 <p>Structure is supplied explicitly, never inferred from floating-point near-zeros, so a numerical near-zero is never mistaken for an exact conditional independence. <code>covariance_structure_from_graph_model()</code> maps a network topology to the recommended backend. A sparse <em>precision</em> <span class="math inline">\boldsymbol{\Omega}_j</span> does not imply a sparse <em>covariance</em> <span class="math inline">\boldsymbol{\Sigma}_j</span>; only structure that survives in <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> itself accelerates the likelihood.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-backend-decision</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-backend-decision</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: Decision tree. The covariance Sigma(p), the sum over j of p_j squared Sigma_j, leads to a question about its declared structure. Five branches: no structure gives dense Cholesky at cost G cubed; disconnected modules give block Cholesky; ordered local dependence gives banded Cholesky; a fixed sparse pattern gives sparse Cholesky with a symbolic ordering computed once; shared programmes or hub genes give a Woodbury or Schur update at cost G r squared.</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}[node distance=7mm]</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (A) {<span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss">{</span><span class="sc">\Sigma</span><span class="ss">}(</span><span class="sc">\boldsymbol</span><span class="ss">{p})=</span><span class="sc">\sum</span><span class="ss">_{j} p_j^{2}</span><span class="sc">\,\boldsymbol</span><span class="ss">{</span><span class="sc">\Sigma</span><span class="ss">}_j$</span>};</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[choice, below=of A] (B) {Declared covariance<span class="fu">\\</span> structure?};</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, anchor=north, text width=2.8cm] (D) at (<span class="ss">$(B.south)+(-7.0,-1.1)$</span>) {<span class="fu">\textit</span>{none (default)}<span class="fu">\\</span>[3pt] Dense Cholesky<span class="fu">\\</span> <span class="ss">$O(G^{3})$</span>};</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, anchor=north, text width=2.8cm] (E) at (<span class="ss">$(B.south)+(-3.5,-1.1)$</span>) {<span class="fu">\textit</span>{disconnected modules (stochastic block model)}<span class="fu">\\</span>[3pt] Block Cholesky<span class="fu">\\</span> <span class="ss">$O</span><span class="sc">\bigl</span><span class="ss">(</span><span class="sc">\sum</span><span class="ss">_b G_b^{3}</span><span class="sc">\bigr</span><span class="ss">)$</span>};</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, anchor=north, text width=2.8cm] (F) at (<span class="ss">$(B.south)+(0,-1.1)$</span>) {<span class="fu">\textit</span>{ordered local dependence (band, AR)}<span class="fu">\\</span>[3pt] Banded Cholesky<span class="fu">\\</span> <span class="ss">$O(G b^{2})$</span>};</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, anchor=north, text width=2.8cm] (G) at (<span class="ss">$(B.south)+(3.5,-1.1)$</span>) {<span class="fu">\textit</span>{fixed sparse pattern (Erd<span class="fu">\H</span>{o}s--R<span class="fu">\'</span>enyi, scale-free, small-world)}<span class="fu">\\</span>[3pt] Sparse Cholesky,<span class="fu">\\</span> symbolic ordering once};</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, anchor=north, text width=2.8cm] (H) at (<span class="ss">$(B.south)+(7.0,-1.1)$</span>) {<span class="fu">\textit</span>{shared programmes, bridge hubs (pathways, housekeeping)}<span class="fu">\\</span>[3pt] Woodbury / Schur<span class="fu">\\</span> <span class="ss">$O(G r^{2})$</span>};</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (A) -- (B);</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">\foreach</span> <span class="fu">\n</span> in {D,E,F,G,H} <span class="fu">\draw</span>[edge] (B.south) -- (<span class="fu">\n</span>.north);</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
+<div id="fig-backend-decision" class="quarto-float quarto-figure quarto-figure-center" alt="Decision tree. The covariance Sigma(p), the sum over j of p_j squared Sigma_j, leads to a question about its declared structure. Five branches: no structure gives dense Cholesky at cost G cubed; disconnected modules give block Cholesky; ordered local dependence gives banded Cholesky; a fixed sparse pattern gives sparse Cholesky with a symbolic ordering computed once; shared programmes or hub genes give a Woodbury or Schur update at cost G r squared.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/tikz/fig-backend-decision.svg" alt="Decision tree. The covariance Sigma(p), the sum over j of p_j squared Sigma_j, leads to a question about its declared structure. Five branches: no structure gives dense Cholesky at cost G cubed; disconnected modules give block Cholesky; ordered local dependence gives banded Cholesky; a fixed sparse pattern gives sparse Cholesky with a symbolic ordering computed once; shared programmes or hub genes give a Woodbury or Schur update at cost G r squared.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 2: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.
+</figcaption></figure>
+</div>
 <p>Each refinement is exact, not approximate:</p>
 <ul>
 <li>
@@ -1820,7 +1814,7 @@ p_{j}\bigl(
 \mathbf{U}^{\mathsf{T}}</span> — the factor-analysis form <span class="math inline">\boldsymbol{\Sigma}=\mathbf{W}\mathbf{W}^{\mathsf{T}}+\boldsymbol{\Psi}</span>. The Woodbury identity and the matrix-determinant lemma <span class="citation" data-cites="hagerUpdatingInverseMatrix1989">(<a href="#ref-hagerUpdatingInverseMatrix1989" role="doc-biblioref">Hager 1989</a>)</span> move the <span class="math inline">O(G^{3})</span> cost to the low rank <span class="math inline">r</span>. A few bridge / housekeeping hub genes give the arrow-matrix special case handled by the same Schur-complement algebra.</li>
 </ul>
 <div class="cell">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Experimental: source the backends after loading the package.</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/experimental/covariance_backends.R"</span><span class="op">)</span></span>
 <span><span class="co"># Declare structure explicitly, then use the operator interface.</span></span>

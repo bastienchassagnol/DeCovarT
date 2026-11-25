@@ -134,24 +134,14 @@ scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver
 calls use
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
-``` tikz
-%%| label: fig-pipeline-api
-%%| fig-cap: Pipeline from synthetic moment generation to deconvolution.
-%%| filename: fig-pipeline-api
-%%| alt: Pipeline. A graph script-G_j gives signed weights W(script-G_j), then a positive-definite precision Omega_j, then the covariance Sigma_j as its inverse. Sigma_j and the means mu = s Q K to the one half feed simulate_hierarchical_grn_moments, whose output goes to simulate_bulk_mixture and then deconvolute_ratios.
-\begin{tikzpicture}[node distance=6mm and 7mm]
-\node[box] (A) {Graph $\mathcal{G}_j$};
-\node[box, right=of A] (B) {Weights $W(\mathcal{G}_j)$};
-\node[box, right=of B] (C) {Precision $\boldsymbol{\Omega}_j\succ 0$};
-\node[box, right=of C] (D) {$\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$};
-\node[keybox, below=9mm of D] (F) {\texttt{simulate\_hierarchical\_grn\_moments()}};
-\node[box, left=12mm of F] (E) {Means $\boldsymbol{\mu}=s\mathbf{Q}K^{1/2}$\\ (target Gram $K$)};
-\node[keybox, below=of F] (G) {\texttt{simulate\_bulk\_mixture()}};
-\node[keybox, below=of G] (H) {\texttt{deconvolute\_ratios()}};
-\draw[edge] (A) -- (B); \draw[edge] (B) -- (C); \draw[edge] (C) -- (D);
-\draw[edge] (D) -- (F); \draw[edge] (E) -- (F); \draw[edge] (F) -- (G); \draw[edge] (G) -- (H);
-\end{tikzpicture}
-```
+![Pipeline. A graph script-G_j gives signed weights W(script-G_j), then
+a positive-definite precision Omega_j, then the covariance Sigma_j as
+its inverse. Sigma_j and the means mu = s Q K to the one half feed
+simulate_hierarchical_grn_moments, whose output goes to
+simulate_bulk_mixture and then
+deconvolute_ratios.](figures/tikz/fig-pipeline-api.svg)
+
+Figure 1: Pipeline from synthetic moment generation to deconvolution.
 
 Show the code
 
@@ -254,7 +244,7 @@ Gram matrix).
 > deterministic QR frame; passing `seed` draws a Gaussian QR (Haar-like)
 > frame instead.
 
-[Figure 1](#fig-cholesky-vs-spectral) compares the symmetric square root
+[Figure 2](#fig-cholesky-vs-spectral) compares the symmetric square root
 used here with the lower-triangular Cholesky factor of the same K. Both
 are matrix square roots; they differ by an orthogonal transformation of
 the coordinate axes, which is exactly the Gram uniqueness (realisations
@@ -262,7 +252,7 @@ are unique up to orthogonal maps of the ambient space).
 
 ![](figures/cholesky_vs_spectral_decomposition.svg)
 
-Figure 1: Symmetric (spectral) square root versus Cholesky factor of a
+Figure 2: Symmetric (spectral) square root versus Cholesky factor of a
 target Gram. Left: K^{1/2} is symmetric and rotates the standard basis
 into an eigenframe. Right: the Cholesky factor L with K=LL^{\mathsf{T}}
 is lower triangular, so the first coordinate is aligned with the first
@@ -277,7 +267,7 @@ Theis 2021](#ref-alieeAutoGeneSAutomaticGene2021))) is recorded in
 finite J. Cholesky as a Monte Carlo device is in
 [Sec. 3.3](#sec-chol-mc).
 
-[Figure 2](#fig-cosine-geometry) visualises three operating points
+[Figure 3](#fig-cosine-geometry) visualises three operating points
 (\gamma\in\\0,\\0.3,\\1\\) for G=2 genes and J=2 cell types. Cell type 1
 is fixed along the positive gene-1 axis; only the **angular** position
 of cell type 2 is varied so that \gamma=0 is exactly orthogonal.
@@ -295,7 +285,7 @@ construction coincide up to a rotation.
 
 ![](04-1-synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png)
 
-Figure 2: Cosine-control toy for J=2 cell types and G=2 genes. Cell type
+Figure 3: Cosine-control toy for J=2 cell types and G=2 genes. Cell type
 1 is fixed on the positive gene-1 axis; only the angular position of
 cell type 2 varies (so \gamma=0 is orthogonal). Coloured arrows: mean
 directions; shaded wedge: angle between means. Labels report the
@@ -392,7 +382,7 @@ The same factor embeds J unit vectors as the *rows* of L (padded by
 zeros in \mathbb{R}^{G}). The first type is aligned with the first
 coordinate; later types pick up successive residuals, so the embedding
 is order-dependent. The symmetric root K^{1/2} has no preferred axis.
-[Figure 1](#fig-cholesky-vs-spectral) is that distinction. Vector
+[Figure 2](#fig-cholesky-vs-spectral) is that distinction. Vector
 realisations of a Gram matrix are unique only up to an orthogonal map of
 the ambient space: if
 \boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R, so is
@@ -439,28 +429,14 @@ completes it to \Omega\succ 0 by an affine spectral shift;
 maps each slice \boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1} (cell
 types need not share one network).
 
-``` tikz
-%%| label: fig-ggm-pipeline
-%%| fig-cap: Undirected simulation pipeline from topology to observations (optional observation layer dashed).
-%%| filename: fig-ggm-pipeline
-%%| alt: Graphical model. A fixed graph script-G determines signed weights W(script-G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow.
-\begin{tikzpicture}[node distance=14mm]
-\node[fixed] (G) {$\mathcal{G}$};
-\node[det, right=14mm of G] (W) {$W(\mathcal{G})$};
-\node[det, right=14mm of W] (O) {$\boldsymbol{\Omega}$};
-\node[latent, right=14mm of O] (X) {$\boldsymbol{X}_i$};
-\node[fixed, above=10mm of X] (mu) {$\boldsymbol{\mu}_i$};
-\node[obs, right=14mm of X] (Y) {$\boldsymbol{Y}_i$};
-\node[note, below=2mm of G] {graph};
-\node[note, below=2mm of W] {signed weights};
-\node[note, below=2mm of O] {$\boldsymbol{\Omega}\succ 0$};
-\node[note, below=2mm of X] (nx) {$\mathcal{N}_p(\boldsymbol{\mu}_i,\boldsymbol{\Omega}^{-1})$};
-\node[note, below=2mm of Y] (ny) {optional counts};
-\draw[dependency] (G) -- (W); \draw[dependency] (W) -- (O); \draw[dependency] (O) -- (X);
-\draw[dependency] (mu) -- (X); \draw[dashededge] (X) -- (Y);
-\plate{pi}{(mu)(X)(Y)(nx)(ny)}{$i=1,\ldots,n$}
-\end{tikzpicture}
-```
+![Graphical model. A fixed graph script-G determines signed weights
+W(script-G), which determine the positive-definite precision Omega.
+Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the
+latent Gaussian profile X_i, which optionally generates observed counts
+Y_i through a dashed arrow.](figures/tikz/fig-ggm-pipeline.svg)
+
+Figure 4: Undirected simulation pipeline from topology to observations
+(optional observation layer dashed).
 
 ### Graph structure generators
 
@@ -469,7 +445,7 @@ types need not share one network).
 
 [Table 1](#tbl-topologies) compares the main **undirected** topology
 families used in GGM benchmarks, with R entry points.
-[Figure 3](#fig-topologies) sketches the six families most often used in
+[Figure 5](#fig-topologies) sketches the six families most often used in
 random-like network structure generation.
 
 | Structure | Definition and controls | R entry points | Advantages | Limitations |
@@ -485,7 +461,7 @@ Table 1: Topology families for undirected GGM simulation (R-focused).
 
 ![](figures/fig_network_topologies_six.png)
 
-Figure 3: Six undirected topology families used in GGM simulation:
+Figure 5: Six undirected topology families used in GGM simulation:
 Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free),
 stochastic block (cluster), band / AR, star / hub, and small-world
 (Watts–Strogatz).
@@ -585,7 +561,7 @@ Several conclusions follow.
     when activation-like and inhibition-like associations matter.
 3.  **BLGGM is a two-scale hybrid** ([Wu and Luo
     2022](#ref-wuEstimatingHeterogeneousGene2022)), shown in
-    [Figure 4](#fig-blggm-two-pronged):
+    [Figure 6](#fig-blggm-two-pronged):
     - **Global partition.** Genes are assigned to blocks (a
       stochastic-block–like cut); between-block edges are sparse.
     - **Local motifs.** Inside each block the topology can be a dense
@@ -601,7 +577,7 @@ Several conclusions follow.
 
 ![](figures/fig_blggm_two_pronged.png)
 
-Figure 4: Two-pronged BLGGM-style topology: a global stochastic-block
+Figure 6: Two-pronged BLGGM-style topology: a global stochastic-block
 partition of genes, then a local motif (dense module, star, or circle)
 inside each block ([Wu and Luo
 2022](#ref-wuEstimatingHeterogeneousGene2022)).
@@ -802,7 +778,7 @@ a complementary pseudo-bulk toolkit with six named fraction scenarios
 (`even`, `random`, `mirror_db`, `weighted`, `pure`, `custom`) when
 aggregating single-cell profiles; see the [SimBu “Simulate pseudo bulk
 datasets”](https://bioconductor.org/packages/release/bioc/vignettes/SimBu/inst/doc/SimBu.html)
-section. [Figure 5](#fig-simbu-entropy) shows five of those designs for
+section. [Figure 7](#fig-simbu-entropy) shows five of those designs for
 J=6 types as stacked compositions, labelled by
 H^{\star}(\boldsymbol{p}). High-entropy (`even`) mixtures spread mass
 across types; low-entropy (`pure`) mixtures collapse onto one type.
@@ -817,7 +793,7 @@ hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/R2-covariance-driv
 
 ![](04-1-synthetic-scenarios_files/figure-html/fig-simbu-entropy-1.png)
 
-Figure 5: Illustrative J=6 compositions spanning `SimBu`-style fraction
+Figure 7: Illustrative J=6 compositions spanning `SimBu`-style fraction
 scenarios, ordered by decreasing normalised Shannon entropy
 H^{\star}(\boldsymbol{p}). Each bar is one design; `geom_label` reports
 H^{\star}. `mirror_db` is omitted (it copies an empirical atlas rather
@@ -1080,7 +1056,7 @@ GLS quasi-score, DeCovarT.
 
 ![](figures/fig_hoyer_sparsity.png)
 
-Figure 6: Hoyer sparsity of a nonnegative edge-weight vector: a flat
+Figure 8: Hoyer sparsity of a nonnegative edge-weight vector: a flat
 spectrum scores 0; a single dominant edge scores 1 ([Hoyer
 2004](#ref-hoyerNonnegativeMatrixFactorization2004)).
 
@@ -1141,7 +1117,7 @@ ADEMP checklist.
 
 Every distance below is an **error** unless noted (F1, Pearson,
 coverage): 0 is ideal whenever a canonical bound exists.
-[Figure 7](#fig-metrics-families) shows how L_1, L_2, L\_{\infty},
+[Figure 9](#fig-metrics-families) shows how L_1, L_2, L\_{\infty},
 Aitchison, and angular balls sit on the simplex;
 [Note 13](#nte-comp-geometry) reads that geometry.
 
@@ -1155,7 +1131,7 @@ discrepancies between \boldsymbol{p}^{\star} and \hat{\boldsymbol{p}}.
 \(b\) How those distances behave near the barycentre versus near a
 vertex of the simplex.
 
-Figure 7: Compositional error metrics for \boldsymbol{p} on
+Figure 9: Compositional error metrics for \boldsymbol{p} on
 \Delta^{J-1}.
 
 > **Note 13: Euclidean versus log-ratio geometry on the simplex**
@@ -1165,7 +1141,7 @@ Figure 7: Compositional error metrics for \boldsymbol{p} on
 > Euclidean vector
 > \boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star} therefore
 > has a different meaning at the barycentre than near a vertex
-> ([Figure 7 (b)](#fig-comp-interp)).
+> ([Figure 9 (b)](#fig-comp-interp)).
 >
 > - **RMSE / MAE / MaxAE** treat a 0.05 miss on a type with p_j=0.50
 >   like a 0.05 miss on a type with p_j=0.01. Abundant types dominate.
@@ -1246,7 +1222,7 @@ columns.
 
 ![](figures/fig_hierarchical_rmse_metrics.png)
 
-Figure 8: Hierarchical relative RMSE (hrRMSE) used when some reference
+Figure 10: Hierarchical relative RMSE (hrRMSE) used when some reference
 types are missing: residual error is scaled by the biological variance
 of \boldsymbol{p}^{\star} rather than by raw proportion units ([Ba et
 al. 2026](#ref-baWhenLessNot2026)).
@@ -1458,7 +1434,7 @@ Table 13: ILR score and Hessian extrema are now stored on
 > median and IQR of elapsed time and PSS from the `optimisation` table
 > rather than a single end-to-end clock. Pair `kkt_residual` with
 > `numerical_converged` and `theoretical_converged`; the three
-> stacked-bar outcomes in [Figure 9](#fig-simulation-outcomes-venn)
+> stacked-bar outcomes in [Figure 11](#fig-simulation-outcomes-venn)
 > partition every replicate. Quote `score_norm` / `local_maximum` only
 > for interior ILR fits, and report both \lambda\_{\min}(H_z) and
 > \lambda\_{\max}(H_z) so a saddle (\lambda\_{\min}\<0\<\lambda\_{\max})
@@ -1469,7 +1445,7 @@ Table 13: ILR score and Hessian extrema are now stored on
 Monte Carlo solver outcomes as an Euler diagram: numerical failure is
 nested in theoretical failure; theoretical success is disjoint.
 
-Figure 9: Euler diagram of the three ADEMP solver outcomes. Numerical
+Figure 11: Euler diagram of the three ADEMP solver outcomes. Numerical
 failure (solver crash or a non-finite simplex) implies theoretical
 failure, so the red disc sits inside the amber set. Theoretical success
 is the disjoint green disc. Stacked bars in
@@ -1571,7 +1547,7 @@ books are `output/fig02/performance_visualisations/qq_normal.pdf`,
 
 [![](figures/fig-qqplot-explainer.png)](https://datainterview.com)
 
-Figure 10: Q-Q plots: points hug the diagonal when the normal assumption
+Figure 12: Q-Q plots: points hug the diagonal when the normal assumption
 holds, and curve away when it does not. Normal: points on the line.
 Heavy tails: S-curve, ends flare. Right-skewed: concave-up bend. Light
 tails: flatter S-shape.
@@ -1632,7 +1608,7 @@ then score both the reference geometry and the mixture composition:
 3.  **Cellular compositions.** Choose \boldsymbol{p} on a Shannon grid
     from uniform (H^{\star}=1) to near-pure (H^{\star}\approx 0),
     matching the `SimBu` fraction vocabulary when comparing to
-    pseudo-bulk tools ([Figure 5](#fig-simbu-entropy)).
+    pseudo-bulk tools ([Figure 7](#fig-simbu-entropy)).
 
 See [Note 22](#nte-benchmark-spec) for a compact factorial checklist.
 
@@ -1640,7 +1616,7 @@ See [Note 22](#nte-benchmark-spec) for a compact factorial checklist.
 >
 > Use one pipeline for a given topology of a given cell type’s
 > covariance structure ([Eq. 16](#eq-benchmark-pipe),
-> **?@fig-ggm-pipeline**):
+> [Figure 4](#fig-ggm-pipeline)):
 >
 > \text{topology} \rightarrow \text{signed weights} \rightarrow
 > \text{SPD precision} \rightarrow \text{mean design} \rightarrow
@@ -1652,7 +1628,7 @@ See [Note 22](#nte-benchmark-spec) for a compact factorial checklist.
 > approximate. - composition grid from uniform (H^{\star}=1) to
 > near-pure (H^{\star}\approx 0), matching the `SimBu` fraction
 > vocabulary when comparing to pseudo-bulk tools
-> ([Figure 5](#fig-simbu-entropy)). - add the mean layer
+> ([Figure 7](#fig-simbu-entropy)). - add the mean layer
 > **independently** of graph generation.
 
 > **Note 23: Execution: no nested parallelism, `furrr`, L’Ecuyer

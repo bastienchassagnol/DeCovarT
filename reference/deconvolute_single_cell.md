@@ -21,7 +21,9 @@ Its limit is the joint maximum-likelihood estimate of
 
 With `profile = FALSE` the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
-`mean_scale` and `variance_scale` fixes them at those values.
+`mean_scale` and `variance_scale` fixes them at those values; only the
+\\J-1\\ composition coordinates are then estimated, so \\G=J\\ genes
+suffice (with profiled scales the fit needs \\G\>J\\).
 
 With `optimiser = "newton"` (default) every fit uses the analytic score
 and observed Hessian with the PORT trust region of
@@ -33,8 +35,13 @@ objective is maximised by L-BFGS-B on the closure
 \\\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top} \boldsymbol{w}\\,
 \\\boldsymbol{w}\ge0\\, as in
 [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md);
-it can return exact zeros, where `rho` and the covariances are `NA`. The
-returned `vcov` is the delta-method image of the inverse negative
+it can return exact zeros, where `rho` and the covariances are `NA`.
+With `optimiser = "marquardt"` it is maximised by
+[`marqLevAlg::marqLevAlg()`](https://rdrr.io/pkg/marqLevAlg/man/marqLevAlg.html)
+in ILR coordinates, as in
+[`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md):
+Levenberg damping and the relative-distance-to-maximum stopping rule.
+The returned `vcov` is the delta-method image of the inverse negative
 profile Hessian; intervals are
 [`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md).
 
@@ -53,7 +60,7 @@ deconvolute_single_cell(
   variance_scale = NULL,
   estimand = c("cellular", "transcript"),
   cell_size = NULL,
-  optimiser = c("newton", "lbfgsb")
+  optimiser = c("newton", "lbfgsb", "marquardt")
 )
 ```
 
@@ -108,8 +115,9 @@ deconvolute_single_cell(
 
 - optimiser:
 
-  `"newton"` (trust-region Newton in ILR coordinates) or `"lbfgsb"`
-  (L-BFGS-B on the closed simplex).
+  `"newton"` (trust-region Newton in ILR coordinates), `"lbfgsb"`
+  (L-BFGS-B on the closed simplex) or `"marquardt"` (Marquardt-Levenberg
+  in ILR coordinates).
 
 ## Value
 

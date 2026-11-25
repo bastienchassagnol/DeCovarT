@@ -3,7 +3,9 @@
 Maximises the profile log-likelihood plus half the log determinant of
 the observed profile information. The penalty uses the negative profile
 Hessian, not an expected Fisher matrix. Scales stay concentrated out, so
-the penalty does not add a third free scale.
+the penalty does not add a third free scale. With `mean_scale` and
+`variance_scale` the scales are known instead: the log-likelihood and
+the penalty are those of the fixed-scale model.
 
 ## Usage
 
@@ -13,7 +15,9 @@ fit_firth_single_cell(
   mean_signature_matrix,
   Sigma,
   epsilon = 1e-08,
-  itmax = 80L
+  itmax = 80L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 ```
 
@@ -39,6 +43,10 @@ fit_firth_single_cell(
 - itmax:
 
   Maximum number of iterations.
+
+- mean_scale, variance_scale:
+
+  Optional fixed scales. Supply both or neither.
 
 ## Value
 

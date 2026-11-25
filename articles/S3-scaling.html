@@ -70,7 +70,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S3 — Solver Scalability</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S3_scaling.R</code></p>
 
-      <p class="date">24 Nov 2026</p>
+      <p class="date">25 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/S3-scaling.qmd" class="external-link"><code>vignettes/S3-scaling.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -240,7 +241,7 @@
 <span>    proportions <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html" class="external-link">map2</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">entropy_norm</span>, \<span class="op">(</span><span class="va">j</span>, <span class="va">h</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="co"># concentration parameter from normalised entropy</span></span>
 <span>      <span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">h</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="va">j</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu">gtools</span><span class="fu">::</span><span class="fu">rdirichlet</span><span class="op">(</span><span class="fl">1L</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">alpha</span>, <span class="va">j</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu">gtools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gtools/man/dirichlet.html" class="external-link">rdirichlet</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">alpha</span>, <span class="va">j</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="op">}</span><span class="op">)</span>,</span>
 <span>    covariance <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/pmap.html" class="external-link">pmap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">G</span>, <span class="va">kappa_target</span><span class="op">)</span>, \<span class="op">(</span><span class="va">j</span>, <span class="va">g</span>, <span class="va">kappa</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span>, \<span class="op">(</span><span class="va">jj</span><span class="op">)</span> <span class="op">{</span></span>

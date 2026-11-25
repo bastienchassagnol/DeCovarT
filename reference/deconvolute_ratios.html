@@ -66,7 +66,8 @@ is provided, DeCovarT methods maximise
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -129,6 +130,7 @@ is provided, DeCovarT methods maximise
 <span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  likelihood <span class="op">=</span> <span class="fu"><a href="population_likelihood.html">population_likelihood</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  nuisance_true <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nuisance_nominal <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -170,7 +172,14 @@ interval methods to evaluate at that solver's estimate: <code>wald</code>,
 true composition); for the single-cell model, <code>wald_reml</code>, <code>ilr_reml</code>
 and <code>profile_reml</code> add the REML calibration. Solvers that return a
 list read the estimate from <code>coefficients</code>, or from <code>composition</code> for
-<code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code>.</p></dd>
+<code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code>. An optional <code>scales</code> entry, <code>"true"</code> or
+<code>"nominal"</code>, plugs known single-cell scales into each fit: <code>FUN</code>
+receives <code>mean_scale</code> and <code>variance_scale</code> (if it has those
+arguments) from the bulk's column of <code>nuisance_true</code> or from
+<code>nuisance_nominal</code>, and the likelihood is evaluated at those scales.
+An optional <code>working_sigma</code> function maps <code>Sigma</code> to the covariances
+that method assumes (for instance their diagonals); the fit, its
+diagnostics and its intervals then use that working model.</p></dd>
 
 
 <dt id="arg-standardise">standardise<a class="anchor" aria-label="anchor" href="#arg-standardise"></a></dt>
@@ -221,6 +230,12 @@ diagnostics, the Wald standard errors and the interval menu.</p></dd>
 <dd><p>Optional \(2\times N\) matrix of the true scales
 \((c,\phi)\) of the single-cell model, for the coverage of their
 intervals.</p></dd>
+
+
+<dt id="arg-nuisance-nominal">nuisance_nominal<a class="anchor" aria-label="anchor" href="#arg-nuisance-nominal"></a></dt>
+<dd><p>Optional named vector (<code>mean_scale</code>,
+<code>variance_scale</code>): the scales a user would assume, for methods with
+<code>scales = "nominal"</code>.</p></dd>
 
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
@@ -357,8 +372,8 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 15</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    493<span style="text-decoration: underline;">353</span>984       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    493<span style="text-decoration: underline;">353</span>984       0.974  TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls         0.001<span style="text-decoration: underline;">000</span>    493<span style="text-decoration: underline;">671</span>424       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls         0           493<span style="text-decoration: underline;">671</span>424       0.974  TRUE               </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: theoretical_converged &lt;lgl&gt;, n_zero &lt;int&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   loglik_regret &lt;dbl&gt;, local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   max_eigenvalue &lt;dbl&gt;, converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>

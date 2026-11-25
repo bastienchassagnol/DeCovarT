@@ -3,11 +3,17 @@
 deconvolute_single_cell(). With fixed, the free block is an ILR
 chart of the remaining face, so a coordinate can be held at zero, and
 it is fitted by Newton-Raphson on the profile log-likelihood with the
-PORT trust region of stats::nlminb(), as restricted_mle_decovart()."><meta property="og:description" content="Profiles the two technical scales out. Without fixed, this is
+PORT trust region of stats::nlminb(), as restricted_mle_decovart().
+With mean_scale and variance_scale, the scales are known and held
+at those values under both the full and the restricted fit, so the
+model needs only \(G\ge J\) genes."><meta property="og:description" content="Profiles the two technical scales out. Without fixed, this is
 deconvolute_single_cell(). With fixed, the free block is an ILR
 chart of the remaining face, so a coordinate can be held at zero, and
 it is fitted by Newton-Raphson on the profile log-likelihood with the
-PORT trust region of stats::nlminb(), as restricted_mle_decovart()."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+PORT trust region of stats::nlminb(), as restricted_mle_decovart().
+With mean_scale and variance_scale, the scales are known and held
+at those values under both the full and the restricted fit, so the
+model needs only \(G\ge J\) genes."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -52,7 +58,8 @@ PORT trust region of stats::nlminb(), as restricted_mle_decovart()."><meta prope
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -90,6 +97,9 @@ PORT trust region of stats::nlminb(), as restricted_mle_decovart()."><meta prope
 chart of the remaining face, so a coordinate can be held at zero, and
 it is fitted by Newton-Raphson on the profile log-likelihood with the
 PORT trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>, as <code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>.</p>
+<p>With <code>mean_scale</code> and <code>variance_scale</code>, the scales are known and held
+at those values under both the full and the restricted fit, so the
+model needs only \(G\ge J\) genes.</p>
     </div>
 
     <div class="section level2">
@@ -100,7 +110,9 @@ PORT trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="
 <span>  <span class="va">Sigma</span>,</span>
 <span>  fixed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-08</span>,</span>
-<span>  itmax <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  itmax <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  mean_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  variance_scale <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -131,6 +143,11 @@ PORT trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="
 
 <dt id="arg-itmax">itmax<a class="anchor" aria-label="anchor" href="#arg-itmax"></a></dt>
 <dd><p>Maximum number of iterations.</p></dd>
+
+
+<dt id="arg-mean-scale-variance-scale">mean_scale, variance_scale<a class="anchor" aria-label="anchor" href="#arg-mean-scale-variance-scale"></a></dt>
+<dd><p>Optional fixed scales. Supply both
+or neither.</p></dd>
 
 </dl></div>
     <div class="section level2">

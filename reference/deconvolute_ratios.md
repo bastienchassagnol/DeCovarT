@@ -28,6 +28,7 @@ deconvolute_ratios(
   progress_every = 10L,
   likelihood = population_likelihood(),
   nuisance_true = NULL,
+  nuisance_nominal = NULL,
   label = NULL
 )
 ```
@@ -67,6 +68,14 @@ deconvolute_ratios(
   Solvers that return a list read the estimate from `coefficients`, or
   from `composition` for
   [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md).
+  An optional `scales` entry, `"true"` or `"nominal"`, plugs known
+  single-cell scales into each fit: `FUN` receives `mean_scale` and
+  `variance_scale` (if it has those arguments) from the bulk's column of
+  `nuisance_true` or from `nuisance_nominal`, and the likelihood is
+  evaluated at those scales. An optional `working_sigma` function maps
+  `Sigma` to the covariances that method assumes (for instance their
+  diagonals); the fit, its diagnostics and its intervals then use that
+  working model.
 
 - standardise:
 
@@ -119,6 +128,11 @@ deconvolute_ratios(
 
   Optional \\2\times N\\ matrix of the true scales \\(c,\phi)\\ of the
   single-cell model, for the coverage of their intervals.
+
+- nuisance_nominal:
+
+  Optional named vector (`mean_scale`, `variance_scale`): the scales a
+  user would assume, for methods with `scales = "nominal"`.
 
 - label:
 
@@ -241,8 +255,8 @@ deconvolute_ratios(
 #> # A tibble: 2 × 15
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    493353984       0.0352 TRUE               
-#> 2 sample_2  nnls                0    493353984       0.974  TRUE               
+#> 1 sample_1  nnls         0.001000    493671424       0.0352 TRUE               
+#> 2 sample_2  nnls         0           493671424       0.974  TRUE               
 #> # ℹ 9 more variables: theoretical_converged <lgl>, n_zero <int>,
 #> #   loglik_regret <dbl>, local_maximum <lgl>, min_eigenvalue <dbl>,
 #> #   max_eigenvalue <dbl>, converged <list>, ct1 <dbl>, ct2 <dbl>

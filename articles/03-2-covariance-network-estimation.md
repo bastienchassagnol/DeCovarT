@@ -1060,7 +1060,7 @@ tuning parameter is the FDR level \alpha.
 covariance ([Chiquet et al.
 2018](#ref-chiquetVariationalInferenceSparse2018),
 [2021](#ref-chiquetPoissonLognormalModelVersatile2021))
-(**?@fig-grn-pln**):
+([Figure 1](#fig-grn-pln)):
 
 \boldsymbol{z}\_{\cdot
 c}\sim\mathcal{N}\_G(\boldsymbol{\mu}\_z,\boldsymbol{\Sigma}\_z), \qquad
@@ -1113,27 +1113,19 @@ the Poisson term, is exported is the bracket of
 exports and what [Sec. 4.1](#sec-cov-cv) scores; the scale must match
 the one used for the mean signature.
 
-``` tikz
-%%| label: fig-grn-pln
-%%| fig-cap: Poisson–lognormal model for one cell type. The latent log-expression $\boldsymbol{z}_{\cdot c}$ carries the covariance $\boldsymbol{\Sigma}_{z}$ and its precision; the counts add independent Poisson noise given $\boldsymbol{z}_{\cdot c}$ and the size factor $s_c$. Covariances between genes come only from $\boldsymbol{z}_{\cdot c}$ (and from the spread of $s_c$); the Poisson term adds to the diagonal only.
-%%| filename: fig-cov-pln
-%%| alt: Directed acyclic graph. Fixed parameters mu z and Sigma z point to the latent log-expression z c, which points to the observed counts x c. A fixed size factor s c also points to x c. Notes give z c as Gaussian with mean mu z and covariance Sigma z, and x g c as Poisson with mean s c times exp z g c. Cells c sit in an inner plate inside an outer plate over cell types j.
-\begin{tikzpicture}
-\node[fixed] (mu) at (0,1.2) {$\boldsymbol{\mu}_{z}$};
-\node[fixed] (sg) at (0,-1.2) {$\boldsymbol{\Sigma}_{z}$};
-\node[latent] (z) at (2.6,0) {$\boldsymbol{z}_{\cdot c}$};
-\node[obs] (x) at (6.8,0) {$\boldsymbol{x}_{\cdot c}$};
-\node[fixed] (s) at (6.8,2.0) {$s_{c}$};
-\node[note, below=3mm of z] (nz) {$\boldsymbol{z}_{\cdot c}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{z},\boldsymbol{\Sigma}_{z})$};
-\node[note, below=3mm of x] (nx) {$x_{gc}\mid z_{gc}\sim\mathcal{P}(s_{c}e^{z_{gc}})$};
-\draw[dependency] (mu) -- (z);
-\draw[dependency] (sg) -- (z);
-\draw[dependency] (z) -- (x);
-\draw[dependency] (s) -- (x);
-\plate{cells}{(z)(x)(s)(nz)(nx)}{$c = 1,\ldots,C_{j}$}
-\plate{types}{(mu)(sg)(cells)(cells-caption)}{$j = 1,\ldots,J$}
-\end{tikzpicture}
-```
+![Directed acyclic graph. Fixed parameters mu z and Sigma z point to the
+latent log-expression z c, which points to the observed counts x c. A
+fixed size factor s c also points to x c. Notes give z c as Gaussian
+with mean mu z and covariance Sigma z, and x g c as Poisson with mean s
+c times exp z g c. Cells c sit in an inner plate inside an outer plate
+over cell types j.](figures/tikz/fig-cov-pln.svg)
+
+Figure 1: Poisson–lognormal model for one cell type. The latent
+log-expression \boldsymbol{z}\_{\cdot c} carries the covariance
+\boldsymbol{\Sigma}\_{z} and its precision; the counts add independent
+Poisson noise given \boldsymbol{z}\_{\cdot c} and the size factor s_c.
+Covariances between genes come only from \boldsymbol{z}\_{\cdot c} (and
+from the spread of s_c); the Poisson term adds to the diagonal only.
 
 ## Hyper-parameter tuning
 
@@ -1715,44 +1707,7 @@ generate a \boldsymbol{\Sigma}\_j for DeCovarT.
 > blocked when it meets the conditioning set. **?@fig-separation** draws
 > both.
 >
-> ``` tikz
-> %%| label: fig-separation
-> %%| fig-cap: Directed $d$-separation (chain blocked, collider opened), undirected $u$-separation on a minimal I-map, and the nesting of a Markov boundary inside a Markov blanket.
-> %%| filename: fig-cov-separation
-> %%| alt: Three panels. A is a chain A to B to C with B conditioned, so the path is blocked. B is a collider A and C both pointing at conditioned B, so the path is opened. C is an undirected graph on X: neighbours N1 and N2 form the Markov boundary, and a larger plate adds a non-neighbour E as a Markov blanket. O lies outside the blanket.
-> \begin{tikzpicture}[node distance=8mm and 11mm]
->   \node[obs] (a) {$A$};
->   \node[obs, right=11mm of a] (b) {$B$};
->   \node[obs, right=11mm of b] (c) {$C$};
->   \draw[dependency] (a) -- (b);
->   \draw[dependency] (b) -- (c);
->   \node[elabel, above=5mm of b] {A. Chain};
->   \node[note, below=5mm of b] {blocked};
->
->   \node[obs] (a2) at (5.6,0.55) {$A$};
->   \node[obs] (c2) at (5.6,-0.55) {$C$};
->   \node[obs] (b2) at (7.5,0) {$B$};
->   \draw[dependency] (a2) -- (b2);
->   \draw[dependency] (c2) -- (b2);
->   \node[elabel, above=5mm of b2] {B. Collider};
->   \node[note, below=6mm of c2] {opened};
->
->   \node[obs] (x) at (11.6,0) {$X$};
->   \node[obs] (n1) at (10.0,0.95) {$N_1$};
->   \node[obs] (n2) at (10.0,-0.95) {$N_2$};
->   \node[obs] (e) at (12.5,1.15) {$E$};
->   \node[obs] (o) at (13.3,-1.35) {$O$};
->   \draw (n1) -- (x);
->   \draw (n2) -- (x);
->   \draw (e) -- (n1);
->   \draw (o) -- (n2);
->   \plate{boundary}{(n1)(n2)}{boundary}
->   \plate{blanket}{(n1)(n2)(e)(boundary)(boundary-caption)}{blanket}
->   \node[elabel, above=2mm of e] {C. Undirected};
-> \end{tikzpicture}
-> ```
->
-> ------------------------------------------------------------------------
+> ### ![Three panels. A is a chain A to B to C with B conditioned, so the path is blocked. B is a collider A and C both pointing at conditioned B, so the path is opened. C is an undirected graph on X: neighbours N1 and N2 form the Markov boundary, and a larger plate adds a non-neighbour E as a Markov blanket. O lies outside the blanket.](figures/tikz/fig-cov-separation.svg)
 >
 > ### Blanket versus boundary
 >

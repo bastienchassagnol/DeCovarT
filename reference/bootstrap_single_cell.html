@@ -4,12 +4,26 @@
 \hat{\boldsymbol{p}},\hat\phi\boldsymbol{S}_W(\hat{\boldsymbol{p}}))\)
 and refits the profile model. Percentile intervals are returned for
 the composition and for the two scales. The reference moments stay
-fixed."><meta property="og:description" content="Draws
+fixed.
+With mean_scale and variance_scale, the scales are known: every
+replicate is drawn at those scales and refitted with them held fixed.
+n_cells_sdlog &amp;gt; 0 then propagates an uncertain cell count: each
+replicate multiplies both scales (\(c=an\) and \(\phi=a^2n\) are
+linear in \(n\)) by a log-normal factor of mean one and that
+log-scale standard deviation before drawing, and still refits at the
+supplied scales."><meta property="og:description" content="Draws
 \(\boldsymbol{Y}^{(b)}\sim\mathcal{N}(\hat c\tilde{\boldsymbol{\mu}}
 \hat{\boldsymbol{p}},\hat\phi\boldsymbol{S}_W(\hat{\boldsymbol{p}}))\)
 and refits the profile model. Percentile intervals are returned for
 the composition and for the two scales. The reference moments stay
-fixed."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+fixed.
+With mean_scale and variance_scale, the scales are known: every
+replicate is drawn at those scales and refitted with them held fixed.
+n_cells_sdlog &amp;gt; 0 then propagates an uncertain cell count: each
+replicate multiplies both scales (\(c=an\) and \(\phi=a^2n\) are
+linear in \(n\)) by a log-normal factor of mean one and that
+log-scale standard deviation before drawing, and still refits at the
+supplied scales."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -54,7 +68,8 @@ fixed."><meta property="og:image" content="https://bastienchassagnol.github.io/D
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -93,6 +108,13 @@ fixed."><meta property="og:image" content="https://bastienchassagnol.github.io/D
 and refits the profile model. Percentile intervals are returned for
 the composition and for the two scales. The reference moments stay
 fixed.</p>
+<p>With <code>mean_scale</code> and <code>variance_scale</code>, the scales are known: every
+replicate is drawn at those scales and refitted with them held fixed.
+<code>n_cells_sdlog &gt; 0</code> then propagates an uncertain cell count: each
+replicate multiplies both scales (\(c=an\) and \(\phi=a^2n\) are
+linear in \(n\)) by a log-normal factor of mean one and that
+log-scale standard deviation before drawing, and still refits at the
+supplied scales.</p>
     </div>
 
     <div class="section level2">
@@ -105,7 +127,10 @@ fixed.</p>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  itmax <span class="op">=</span> <span class="fl">40L</span>,</span>
-<span>  optimiser <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"newton"</span>, <span class="st">"lbfgsb"</span><span class="op">)</span></span>
+<span>  optimiser <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"newton"</span>, <span class="st">"lbfgsb"</span>, <span class="st">"marquardt"</span><span class="op">)</span>,</span>
+<span>  mean_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  variance_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_cells_sdlog <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -145,6 +170,16 @@ fixed.</p>
 <dt id="arg-optimiser">optimiser<a class="anchor" aria-label="anchor" href="#arg-optimiser"></a></dt>
 <dd><p>Passed to <code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code> for the fit and
 every refit, so the bootstrap matches the estimator being assessed.</p></dd>
+
+
+<dt id="arg-mean-scale-variance-scale">mean_scale, variance_scale<a class="anchor" aria-label="anchor" href="#arg-mean-scale-variance-scale"></a></dt>
+<dd><p>Optional fixed scales. Supply both
+or neither.</p></dd>
+
+
+<dt id="arg-n-cells-sdlog">n_cells_sdlog<a class="anchor" aria-label="anchor" href="#arg-n-cells-sdlog"></a></dt>
+<dd><p>Log-scale standard deviation of the cell count,
+used with known scales only.</p></dd>
 
 </dl></div>
     <div class="section level2">

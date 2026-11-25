@@ -18,14 +18,15 @@ articles:
   notation: notation.html
   R1-bivariate-toy: R1-bivariate-toy.html
   R2-covariance-driven: R2-covariance-driven.html
-  R3-single-cell-hierarchical: R3-single-cell-hierarchical.html
+  R3-bivariate-single-cell: R3-bivariate-single-cell.html
+  R4-single-cell-hierarchical: R4-single-cell-hierarchical.html
   S1-identifiability: S1-identifiability.html
   S2-covariance-inversion: S2-covariance-inversion.html
   S3-scaling: S3-scaling.html
   S4-covariance-modeling: S4-covariance-modeling.html
   S5-misspecification: S5-misspecification.html
   S6-feature-screening-scenario: S6-feature-screening-scenario.html
-last_built: 2026-11-24T18:04Z
+last_built: 2026-11-25T15:40Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

@@ -1,5 +1,53 @@
 # Changelog
 
+## DeCovarT 2.7.0
+
+### Single-cell model at known scales
+
+- [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md),
+  `vcov_single_cell(scales_known = TRUE)`,
+  [`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md),
+  [`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md),
+  [`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md),
+  [`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)
+  and
+  [`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md)
+  accept known scales (`mean_scale`, `variance_scale`). With known
+  scales only the composition is estimated, so G = J genes suffice; with
+  profiled scales the fit still needs G \> J.
+  [`simulate_bulk_from_cells()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_from_cells.md)
+  no longer requires G \> J.
+- `deconvolute_single_cell(optimiser = "marquardt")` and
+  `bootstrap_single_cell(optimiser = "marquardt")`: Marquardt-Levenberg
+  (`marqLevAlg`) in ILR coordinates, through the driver now shared with
+  [`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md).
+- `bootstrap_single_cell(n_cells_sdlog =)` redraws the cell count of
+  each replicate from a log-normal law, so the interval carries an
+  uncertain cell count.
+- `single_cell_likelihood(mean_scale, variance_scale)` evaluates the
+  model at known scales. In
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
+  a method entry may carry `scales = "true"` (the true scales of each
+  bulk) or `"nominal"` (the design value, `nuisance_nominal`), and
+  `working_sigma` (the covariances that method assumes, for instance
+  their diagonals). The simulator reads `n_cells_cv` to draw one
+  log-normal cell count per bulk.
+
+### Simulation study
+
+- New scenario `scripts/fig05_bivariate_single_cell.R` and vignette
+  `R3-bivariate-single-cell` (§2.4): the bivariate toy on the
+  single-cell model. The two-lineage scenario becomes
+  `scripts/fig06_single_cell_hierarchical.R` and vignette
+  `R4-single-cell-hierarchical` (§2.5).
+- The RNA-Sieve runner installs a corrected `_minimize_alpha`: under
+  cvxpy 1.6 the released update never moved the proportions from their
+  start. Competitor results of figures 3 and 6 computed before this fix
+  score RNA-Sieve’s start.
+- Vignette TikZ diagrams are compiled locally to SVG
+  (`scripts/dev/compile_vignette_tikz.R`); the TikZ source stays in the
+  vignette, hidden.
+
 ## DeCovarT 2.6.0
 
 ### Gaussian draws from Cholesky factors
@@ -183,7 +231,8 @@
     Fisher and Godambe intervals recomputed on all genes.
   - `scripts/auxiliary/` is split into `scripts/benchmark_metrics/` and
     `scripts/visualisation/`; the vignette figure scripts move to
-    `vignettes/scripts/`; the bibliography tools in
+    `vignettes/scripts/` (later merged into
+    `scripts/theory_illustrations/`); the bibliography tools in
     `scripts/curate_bibliography/` are a `uv` project.
   - Theory vignettes are reorganised into population and single-cell
     references, each split into generative model and optimisation, then
@@ -317,10 +366,10 @@
   (folded into
   [`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)),
   `compute_glmnet_gene_scores()` (moved, with its cross-validated
-  variant, to `scripts/experimental/compute_glmnet_gene_scores.R`), and
-  the unexported file writers. Scores that do not apply in a benchmark
-  table are now `NA` instead of the string `"irrelevant"`. The package
-  no longer writes files (srr G4.0 is now not applicable).
+  variant, to `scripts/experimental/compute_glmnet_gene_scores.R`, since
+  removed), and the unexported file writers. Scores that do not apply in
+  a benchmark table are now `NA` instead of the string `"irrelevant"`.
+  The package no longer writes files (srr G4.0 is now not applicable).
 
 - **Script helpers out of `R/`.** `write_simulation_artefacts()`,
   `read_simulation_artefacts()`, the fig02 / fig03 factor orders and

@@ -4,7 +4,9 @@
 \sum_j p_j^2\boldsymbol{\Sigma}_j)\);
 single_cell_likelihood() is the mixture of cells, with its two scales
 \((c,\phi)\) profiled out, so every function is evaluated at the
-closed-form scales of the composition. They play the part of
+closed-form scales of the composition; with mean_scale and
+variance_scale the scales are known instead and held at those values
+(the plug-in model, identifiable from \(G=J\) genes). They play the part of
 stats::family() in stats::glm(): deconvolute_ratios() and
 run_simulation_benchmark() take one as likelihood, either the object
 or the constructor itself."><meta property="og:description" content="population_likelihood() is the Gaussian convolution
@@ -12,7 +14,9 @@ or the constructor itself."><meta property="og:description" content="population_
 \sum_j p_j^2\boldsymbol{\Sigma}_j)\);
 single_cell_likelihood() is the mixture of cells, with its two scales
 \((c,\phi)\) profiled out, so every function is evaluated at the
-closed-form scales of the composition. They play the part of
+closed-form scales of the composition; with mean_scale and
+variance_scale the scales are known instead and held at those values
+(the plug-in model, identifiable from \(G=J\) genes). They play the part of
 stats::family() in stats::glm(): deconvolute_ratios() and
 run_simulation_benchmark() take one as likelihood, either the object
 or the constructor itself."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
@@ -60,7 +64,8 @@ or the constructor itself."><meta property="og:image" content="https://bastiench
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -98,7 +103,9 @@ or the constructor itself."><meta property="og:image" content="https://bastiench
 \sum_j p_j^2\boldsymbol{\Sigma}_j)\);
 <code>single_cell_likelihood()</code> is the mixture of cells, with its two scales
 \((c,\phi)\) profiled out, so every function is evaluated at the
-closed-form scales of the composition. They play the part of
+closed-form scales of the composition; with <code>mean_scale</code> and
+<code>variance_scale</code> the scales are known instead and held at those values
+(the plug-in model, identifiable from \(G=J\) genes). They play the part of
 <code><a href="https://rdrr.io/r/stats/family.html" class="external-link">stats::family()</a></code> in <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code>: <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code> and
 <code><a href="run_simulation_benchmark.html">run_simulation_benchmark()</a></code> take one as <code>likelihood</code>, either the object
 or the constructor itself.</p>
@@ -108,9 +115,18 @@ or the constructor itself.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">population_likelihood</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">single_cell_likelihood</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">single_cell_likelihood</span><span class="op">(</span>mean_scale <span class="op">=</span> <span class="cn">NULL</span>, variance_scale <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
+
+
+<dl><dt id="arg-mean-scale-variance-scale">mean_scale, variance_scale<a class="anchor" aria-label="anchor" href="#arg-mean-scale-variance-scale"></a></dt>
+<dd><p>Known scales \(c\) and \(\phi\)
+of the single-cell model; <code>NULL</code> (default) profiles them out.</p></dd>
+
+</dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>decovart_likelihood</code>.</p>
@@ -119,6 +135,10 @@ or the constructor itself.</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Each object is a list of class <code>decovart_likelihood</code> with</p><ul><li><p><code>name</code>: <code>"population"</code> or <code>"single_cell"</code>;</p></li>
 <li><p><code>nuisance</code>: whether the model has the scales \((c,\phi)\);</p></li>
+<li><p>for the single-cell model, <code>scales_known</code> and
+<code>with_scales(mean_scale, variance_scale)</code>, which returns the same
+model at known scales (<code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code> uses it for a method
+with a <code>scales</code> entry);</p></li>
 <li><p><code>parameters(cell_names)</code>: the rows of every interval matrix, the
 cell types and, for the single-cell model, <code>mean_scale</code>,
 <code>variance_scale</code>, <code>platform_scale_a</code> and <code>cell_count_n</code>;</p></li>
@@ -137,7 +157,8 @@ the interval menu at the estimate <code>p_hat</code>, as a two-column matrix.</p
 <li><p><code>profile</code>: likelihood-ratio inversion; it refits from <code>y</code>, so it does
 not depend on the solver that produced <code>p_hat</code>;</p></li>
 <li><p><code>bootstrap</code>: percentile interval of a parametric bootstrap refitted by
-<code>ci$optimiser</code>;</p></li>
+<code>ci$optimiser</code> (single-cell model at known scales: <code>ci$n_cells_sdlog</code>
+draws an uncertain cell count, see <code><a href="bootstrap_single_cell.html">bootstrap_single_cell()</a></code>);</p></li>
 <li><p><code>oracle</code>: <code>p_hat</code> plus or minus the Wald half-width evaluated at the
 true composition.</p></li>
 </ul><p>For the single-cell model, <code>_reml</code> appended to <code>wald</code>, <code>ilr</code> or

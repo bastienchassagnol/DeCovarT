@@ -6,6 +6,13 @@ c\tilde{\boldsymbol{\mu}}
 and refits the profile model. Percentile intervals are returned for the
 composition and for the two scales. The reference moments stay fixed.
 
+With `mean_scale` and `variance_scale`, the scales are known: every
+replicate is drawn at those scales and refitted with them held fixed.
+`n_cells_sdlog > 0` then propagates an uncertain cell count: each
+replicate multiplies both scales (\\c=an\\ and \\\phi=a^2n\\ are linear
+in \\n\\) by a log-normal factor of mean one and that log-scale standard
+deviation before drawing, and still refits at the supplied scales.
+
 ## Usage
 
 ``` r
@@ -17,7 +24,10 @@ bootstrap_single_cell(
   level = 0.95,
   epsilon = 1e-06,
   itmax = 40L,
-  optimiser = c("newton", "lbfgsb")
+  optimiser = c("newton", "lbfgsb", "marquardt"),
+  mean_scale = NULL,
+  variance_scale = NULL,
+  n_cells_sdlog = 0
 )
 ```
 
@@ -58,6 +68,15 @@ bootstrap_single_cell(
   [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md)
   for the fit and every refit, so the bootstrap matches the estimator
   being assessed.
+
+- mean_scale, variance_scale:
+
+  Optional fixed scales. Supply both or neither.
+
+- n_cells_sdlog:
+
+  Log-scale standard deviation of the cell count, used with known scales
+  only.
 
 ## Value
 

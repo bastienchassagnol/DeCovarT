@@ -5,7 +5,9 @@
 p_j^2\boldsymbol{\Sigma}\_j)\\; `single_cell_likelihood()` is the
 mixture of cells, with its two scales \\(c,\phi)\\ profiled out, so
 every function is evaluated at the closed-form scales of the
-composition. They play the part of
+composition; with `mean_scale` and `variance_scale` the scales are known
+instead and held at those values (the plug-in model, identifiable from
+\\G=J\\ genes). They play the part of
 [`stats::family()`](https://rdrr.io/r/stats/family.html) in
 [`stats::glm()`](https://rdrr.io/r/stats/glm.html):
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
@@ -18,8 +20,15 @@ take one as `likelihood`, either the object or the constructor itself.
 ``` r
 population_likelihood()
 
-single_cell_likelihood()
+single_cell_likelihood(mean_scale = NULL, variance_scale = NULL)
 ```
+
+## Arguments
+
+- mean_scale, variance_scale:
+
+  Known scales \\c\\ and \\\phi\\ of the single-cell model; `NULL`
+  (default) profiles them out.
 
 ## Value
 
@@ -32,6 +41,12 @@ Each object is a list of class `decovart_likelihood` with
 - `name`: `"population"` or `"single_cell"`;
 
 - `nuisance`: whether the model has the scales \\(c,\phi)\\;
+
+- for the single-cell model, `scales_known` and
+  `with_scales(mean_scale, variance_scale)`, which returns the same
+  model at known scales
+  ([`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+  uses it for a method with a `scales` entry);
 
 - `parameters(cell_names)`: the rows of every interval matrix, the cell
   types and, for the single-cell model, `mean_scale`, `variance_scale`,
@@ -60,7 +75,9 @@ The interval methods are
   not depend on the solver that produced `p_hat`;
 
 - `bootstrap`: percentile interval of a parametric bootstrap refitted by
-  `ci$optimiser`;
+  `ci$optimiser` (single-cell model at known scales: `ci$n_cells_sdlog`
+  draws an uncertain cell count, see
+  [`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md));
 
 - `oracle`: `p_hat` plus or minus the Wald half-width evaluated at the
   true composition.

@@ -17,22 +17,17 @@ discriminative signal. Construction, ADEMP benchmark, and the static
 network figure live in a **single** script,
 `scripts/fig03_variance_covariance_driven.R` (seed `20260807`).
 
-``` tikz
-%%| label: fig-covariance-design
-%%| fig-cap: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.
-%%| filename: fig-covariance-design
-%%| alt: Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 8 deconvolution methods.
-\begin{tikzpicture}
-\node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ $H^{\star}=1,\ 0.5,\ 0.1$};
-\node[box, text width=3.1cm] (G) at (3.6,0) {$2\times 2$ graph assignments\\ CT1, CT2: scale-free or cluster SBM};
-\node[box, text width=3.1cm] (C) at (7.2,0) {CT3 graph held at scale-free};
-\node[box, text width=3.1cm] (K) at (10.8,0) {3 target \texttt{BarOmega} levels $\bar\varpi$\\ low, moderate, high};
-\node[keybox] (S) at (5.4,-2.2) {36 scenarios\\ $4\times3\times3$};
-\node[keybox] (A) at (5.4,-3.9) {8 methods, 5 interval constructions};
-\foreach \n in {P,G,C,K} \draw[edge] (\n.south) -- (S.north);
-\draw[edge] (S) -- (A);
-\end{tikzpicture}
-```
+![Four design factors, three Shannon compositions H star, a 2 by 2 graph
+assignment for cell types 1 and 2, cell type 3 held at scale-free, and
+three target MixSim BarOmega levels, combine into 36 scenarios, each
+analysed by 8 deconvolution
+methods.](figures/tikz/fig-covariance-design.svg)
+
+Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 /
+0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free
+versus cluster SBM; type 3 held at scale-free), three target MixSim
+average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios),
+analysed by eight methods.
 
 Show the code
 
@@ -88,7 +83,7 @@ flowchart TB
   SbSb --> SbSbHi["High overlap"]
 ```
 
-Figure 1: Hierarchical reading of the covariance factorial: 2-by-2 graph
+Figure 2: Hierarchical reading of the covariance factorial: 2-by-2 graph
 assignment on mean-collinear cell types 1 and 2 (type 3 held at
 scale-free), then low / moderate / high target MixSim BarOmega (4 x 3 =
 12 covariance draws). Each leaf is crossed with the three Shannon
@@ -194,7 +189,7 @@ f\_{\mathrm{cov}} rises with s.
 
 ![](figures/fig_network_topologies.png)
 
-Figure 2: Two generator examples on G=20 nodes (scale-free, cluster
+Figure 3: Two generator examples on G=20 nodes (scale-free, cluster
 SBM). Mean-collinear cell types 1 and 2 are each assigned one of these
 families; type 3 is held at scale-free.
 
@@ -339,7 +334,9 @@ dplyr::filter(benchmark$intervals, is_composition) |>
   dplyr::select(ID, algorithm, ci_method, parameter, coverage, mean_width)
 ```
 
-## Visualisations
+## Results
+
+### Results description
 
 Every figure is redrawn from two files in `output/fig03/`:
 `fig03_benchmark.rds` (run settings, design, true parameters and every
@@ -384,7 +381,7 @@ Table 7: Plot books of the covariance-driven scenario.
 Redraw every book without refitting with `POSTPROCESS_ONLY <- TRUE` at
 the top of `scripts/fig03_variance_covariance_driven.R`.
 
-### Two-dimensional projections of a Gaussian convolution
+#### Two-dimensional projections of a Gaussian convolution
 
 With G=20 the purified Gaussians and the bulk convolution are no longer
 drawable in the gene plane. `latent_projections.pdf` maps each selected
@@ -408,14 +405,14 @@ composition, four graph assignments) to two planes.
 > component densities are not the convolution law used for
 > deconvolution.
 
-#### Principal components of the purified profiles
+##### Principal components of the purified profiles
 
 Principal components of the pooled purified draws, coloured by type,
 show what the **means** alone separate: types 1 and 2, whose means have
 cosine 0.9, overlap on the first two components, while type 3 stands
 apart.
 
-#### Supervised `MclustDR` plane
+##### Supervised `MclustDR` plane
 
 The second panel fits `mclust::MclustDA(..., modelType = "EDDA")` to the
 labelled purified draws, then
@@ -432,7 +429,7 @@ factor analyses (Thomson scores) and mixtures of common factor analysers
 were dropped: they described each type, or an unlabelled mixture, but
 not the contrast between types.
 
-### Solver runtime and memory
+#### Solver runtime and memory
 
 `runtime.pdf` and `memory.pdf` use the same composition order as the
 other performance books (balanced, then moderately unbalanced, then
@@ -444,16 +441,71 @@ per-sample `optimisation$elapsed_sec` or `memory_bytes` (converted to
 MiB), with a left-side `geom_rug()` of the raw Monte Carlo draws and a
 log10 y-axis.
 
-### Likelihood geometry and solver behaviour
+#### Accuracy and intervals of the archived run
 
 > **Note**
 >
-> The numbers in this section come from the archived run of
-> `output/archives/fig03/` (N=50, Wald intervals only), which still
-> included Marquardt–Levenberg and the earlier L-BFGS-B that
+> The numbers in this section and in the discussion below come from the
+> archived run of `output/archives/fig03/` (N=50, Wald intervals only),
+> which still included Marquardt–Levenberg and the earlier L-BFGS-B that
 > renormalised a box-constrained fit. They will be replaced by those of
 > the production run; the mechanisms they illustrate do not depend on
 > the solver list.
+
+##### Balanced compositions (forest + Fisher)
+
+The Newton/Marquardt forest in the pack is restricted to H^{\star}=1
+(p^{\star}=(1/3,1/3,1/3)). On that slice the two second-order solvers
+are interchangeable. At low overlap (`V1`, both graphs scale-free) RMSE
+for p_1 is 0.113, bias 0.012, empirical SD 0.113, coverage 0.99. At high
+overlap (`V7`) RMSE rises only to 0.124 and coverage stays 0.99. Median
+RMSE for p_1 across the four graph assignments is 0.122 (low
+\bar\varpi), 0.134 (moderate), 0.147 (high); type 3, whose mean is not
+collinear, stays easier at low overlap (median RMSE 0.064) and catches
+up as overlap grows (0.130). Expected-Fisher ILR standard errors in
+`theoretical_wald_se.csv` tell the same story: \mathrm{SE}\_{\rho_1}
+goes from 0.63 (`V1`) to 0.97 (`V7`), and the condition number of the
+ILR information drops from 6.8 to 1.7 — not because the problem becomes
+better posed, but because *both* eigenvalues shrink and the ellipsoid
+becomes a large, round disk. Graph assignment (scale-free versus cluster
+SBM) moves those SEs by a smaller amount than \bar\varpi does. Topology
+is visible; **average overlap is the dominant knob**, matching the
+design claim, for *balanced* p^{\star} and for *second-order convolution
+MLEs*.
+
+##### Boundary pile-up (raincloud, all H^{\star})
+
+The sampled raincloud (`raincloud_sampled.csv`) includes moderately and
+highly unbalanced Shannon targets. Among non-missing point estimates,
+76\\ of `CIBERSORT` values lie at 0 or 1. At the scenario-wise median
+(`sample_role = q50`), type 3 is exactly zero in 35 of 36 scenarios
+(mean \hat p_3=0.0008). That is the clip-and-renormalise step, not a
+convolution mode on a face. `lsei` sits on a bound in 42\\ of sampled
+cells overall and in 58\\ of highly unbalanced cells; `LBFGS` in 26\\
+and 36\\; Marquardt in 10\\ and 17\\; Newton in 4\\ and 12\\. On
+balanced raincloud rows Newton and Marquardt never hit \\0,1\\; LSEI
+still does (21\\). Mean-only and SVR methods convert a collinear mean
+map into a **hard** boundary estimate; ILR convolution methods convert
+it into a **soft** interior mode, until p^{\star} itself is a rare-type
+vertex.
+
+Median absolute error of the q\_{50} p_1 fit across scenarios is 0.048
+(Newton), 0.100 (`lsei`), 0.114 (`LBFGS`), 0.142 (Marquardt), 0.159
+(`CIBERSORT`). The Marquardt figure is not a contradiction of the
+balanced forest: on the highly unbalanced scenario `V3`
+(p^{\star}\approx(0.980,0.010,0.010)) the q\_{50} estimates are 0.92
+(Newton), 0.93 (`lsei`), 1.00 (`CIBERSORT`), 0.82 (`LBFGS`), and 0.78
+(Marquardt). LSEI is closer to the vertex because the QP *wants* a
+vertex; Marquardt is pulled toward the barycentre because RDM refuses a
+long ILR walk, the same mechanism as `B811` in the bivariate pack.
+Covariance information therefore helps only if the solver actually
+follows the convolution ridge to the rare-type coordinate. A mean-only
+vertex can beat a damped interior MLE on raw p_1 error when the truth is
+already a vertex; it will still report \hat p_3=0 and cannot support a
+chi-bar-square test that the type is absent ([boundary
+inference](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-boundary)).
+
+### Discussion and interpretation of relative deconvolution performance
 
 Cell types 1 and 2 share cosine 0.9, so the mean map
 \boldsymbol{\mu}\boldsymbol{p} is close to singular in the (p_1,p_2)
@@ -509,59 +561,6 @@ a free-scale fit, could sit on a face that is not a stationary point of
 bulk ([finite-sample
 MLE](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-finite-sample)).
 
-#### Balanced compositions (forest + Fisher)
-
-The Newton/Marquardt forest in the pack is restricted to H^{\star}=1
-(p^{\star}=(1/3,1/3,1/3)). On that slice the two second-order solvers
-are interchangeable. At low overlap (`V1`, both graphs scale-free) RMSE
-for p_1 is 0.113, bias 0.012, empirical SD 0.113, coverage 0.99. At high
-overlap (`V7`) RMSE rises only to 0.124 and coverage stays 0.99. Median
-RMSE for p_1 across the four graph assignments is 0.122 (low
-\bar\varpi), 0.134 (moderate), 0.147 (high); type 3, whose mean is not
-collinear, stays easier at low overlap (median RMSE 0.064) and catches
-up as overlap grows (0.130). Expected-Fisher ILR standard errors in
-`theoretical_wald_se.csv` tell the same story: \mathrm{SE}\_{\rho_1}
-goes from 0.63 (`V1`) to 0.97 (`V7`), and the condition number of the
-ILR information drops from 6.8 to 1.7 — not because the problem becomes
-better posed, but because *both* eigenvalues shrink and the ellipsoid
-becomes a large, round disk. Graph assignment (scale-free versus cluster
-SBM) moves those SEs by a smaller amount than \bar\varpi does. Topology
-is visible; **average overlap is the dominant knob**, matching the
-design claim, for *balanced* p^{\star} and for *second-order convolution
-MLEs*.
-
-#### Boundary pile-up (raincloud, all H^{\star})
-
-The sampled raincloud (`raincloud_sampled.csv`) includes moderately and
-highly unbalanced Shannon targets. Among non-missing point estimates,
-76\\ of `CIBERSORT` values lie at 0 or 1. At the scenario-wise median
-(`sample_role = q50`), type 3 is exactly zero in 35 of 36 scenarios
-(mean \hat p_3=0.0008). That is the clip-and-renormalise step, not a
-convolution mode on a face. `lsei` sits on a bound in 42\\ of sampled
-cells overall and in 58\\ of highly unbalanced cells; `LBFGS` in 26\\
-and 36\\; Marquardt in 10\\ and 17\\; Newton in 4\\ and 12\\. On
-balanced raincloud rows Newton and Marquardt never hit \\0,1\\; LSEI
-still does (21\\). Mean-only and SVR methods convert a collinear mean
-map into a **hard** boundary estimate; ILR convolution methods convert
-it into a **soft** interior mode, until p^{\star} itself is a rare-type
-vertex.
-
-Median absolute error of the q\_{50} p_1 fit across scenarios is 0.048
-(Newton), 0.100 (`lsei`), 0.114 (`LBFGS`), 0.142 (Marquardt), 0.159
-(`CIBERSORT`). The Marquardt figure is not a contradiction of the
-balanced forest: on the highly unbalanced scenario `V3`
-(p^{\star}\approx(0.980,0.010,0.010)) the q\_{50} estimates are 0.92
-(Newton), 0.93 (`lsei`), 1.00 (`CIBERSORT`), 0.82 (`LBFGS`), and 0.78
-(Marquardt). LSEI is closer to the vertex because the QP *wants* a
-vertex; Marquardt is pulled toward the barycentre because RDM refuses a
-long ILR walk, the same mechanism as `B811` in the bivariate pack.
-Covariance information therefore helps only if the solver actually
-follows the convolution ridge to the rare-type coordinate. A mean-only
-vertex can beat a damped interior MLE on raw p_1 error when the truth is
-already a vertex; it will still report \hat p_3=0 and cannot support a
-chi-bar-square test that the type is absent ([boundary
-inference](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-boundary)).
-
 #### Ridges in the ILR slices
 
 `ilr_loglik_profiles.csv` slices \ell(\rho_1,\rho_2) at
@@ -586,6 +585,10 @@ ellipse from
 
 - Bivariate toy:
   [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/R1-bivariate-toy.md)
+- Bivariate toy on the single-cell model:
+  [§2.4](https://bastienchassagnol.github.io/DeCovarT/articles/R3-bivariate-single-cell.md)
+- Single-cell, two lineages:
+  [§2.5](https://bastienchassagnol.github.io/DeCovarT/articles/R4-single-cell-hierarchical.md)
 - Moment generator: [How to build synthetic
   scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/04-1-synthetic-scenarios.md)
 - Overlap and SPD distances: [Distances, overlap, and covariance

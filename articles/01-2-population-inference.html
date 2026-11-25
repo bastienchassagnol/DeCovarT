@@ -70,7 +70,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>1.2 Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">24 Nov 2026</p>
+      <p class="date">25 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/01-2-population-inference.qmd" class="external-link"><code>vignettes/01-2-population-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -146,8 +147,8 @@
 <blockquote>
 <p><strong>Notation used in this vignette</strong></p>
 <p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="9c99c895-736c-4316-b6cb-7ecd064b9ecb">
-<div id="9c99c895-736c-4316-b6cb-7ecd064b9ecb" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="43b6304e-3fb6-4759-a0cc-0251a5baec13">
+<div id="43b6304e-3fb6-4759-a0cc-0251a5baec13" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
@@ -192,8 +193,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="8531a704-42b5-4567-be62-323e016e7c9e">
-<div id="8531a704-42b5-4567-be62-323e016e7c9e" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="979bf928-b72b-4b63-8c6c-cb27e6c44ce1">
+<div id="979bf928-b72b-4b63-8c6c-cb27e6c44ce1" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Cell fractions and transcript fractions.</caption>
@@ -247,8 +248,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="0de9d276-a6bc-4693-a79b-cee13c11df91">
-<div id="0de9d276-a6bc-4693-a79b-cee13c11df91" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="ec89bd50-4663-48a1-a291-4b13f31e83b8">
+<div id="ec89bd50-4663-48a1-a291-4b13f31e83b8" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Purified profiles and per-cell means of raw counts.</caption>
@@ -299,8 +300,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="3f1648bc-a068-4f37-94d5-e7f56e588cbd">
-<div id="3f1648bc-a068-4f37-94d5-e7f56e588cbd" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="09810671-63cd-4c63-b281-1ef133a5b5c0">
+<div id="09810671-63cd-4c63-b281-1ef133a5b5c0" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
@@ -387,8 +388,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="4f883012-5670-4dff-a753-39fc96730549">
-<div id="4f883012-5670-4dff-a753-39fc96730549" class="cell" data-tags="[&quot;notation-technical&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="bcbc0cb5-d7b1-490e-81a3-92af594876cd">
+<div id="bcbc0cb5-d7b1-490e-81a3-92af594876cd" class="cell" data-tags="[&quot;notation-technical&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Size factors, capture efficiencies, and measurement noise.</caption>
@@ -455,8 +456,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="4a917018-99d0-4a2a-acd6-1b6438b1a52b">
-<div id="4a917018-99d0-4a2a-acd6-1b6438b1a52b" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="6ea38a87-a6b5-409d-bbeb-a04cbb43b68a">
+<div id="6ea38a87-a6b5-409d-bbeb-a04cbb43b68a" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>The bulk profile and the two reference paradigms. Neither is a gold-standard reference.</caption>
@@ -523,8 +524,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="97508891-922b-4d34-8e35-a2b51c72c01c">
-<div id="97508891-922b-4d34-8e35-a2b51c72c01c" class="cell" data-tags="[&quot;notation-feature&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="5989430d-9eff-4ea4-849b-9033d8f34247">
+<div id="5989430d-9eff-4ea4-849b-9033d8f34247" class="cell" data-tags="[&quot;notation-feature&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Dispersion, deviance, and detection rate.</caption>
@@ -1934,11 +1935,7 @@ Table 3: Inferential procedures for DeCovarT proportions. <code><a href="../ref
 <p>Directions that would strengthen DeCovarT intervals, in rough order of implementation cost.</p>
 <ul>
 <li>
-<strong>Godambe sandwich for a misspecified convolution.</strong> <code>RNA-Sieve</code> replaces Fisher by the Godambe information when the CLT model is wrong <span class="citation" data-cites="erdmann-phamLikelihoodbasedDeconvolutionBulk2021">(<a href="#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" role="doc-biblioref">Erdmann-Pham et al. 2021</a>)</span> (<a href="#sec-rna-sieve" class="quarto-xref">Sec. 4.7</a>; the one-column construction is <a href="#sec-sandwich" class="quarto-xref">Sec. 3.9</a>). The same sandwich on DeCovarT’s score would widen Wald intervals under protocol shift without discarding the multivariate covariance. It remains a first-order <em>interior</em> device: faces still need the chi-bar-square LRT or a restricted bootstrap.</li>
-<li>
-<strong>Score-test inversion</strong> (<a href="#sec-test-inversion" class="quarto-xref">Sec. 3.4</a>). Each candidate value needs only the restricted fit, so the scan costs the same number of fits as the profile, and the score in <span class="math inline">\boldsymbol{p}</span> coordinates stays defined on a face.</li>
-<li>
-<strong>Higher-order likelihood corrections</strong> (<a href="#sec-higher-order" class="quarto-xref">Sec. 3.7</a>). The Bartlett factor from the restricted bootstrap, <span class="math inline">r^{\ast}</span> through <code>likelihoodAsy</code>, and the Cox–Reid adjusted profile of <a href="#eq-cox-reid" class="quarto-xref">Eq. 16</a> target the small-replication regime of <a href="#nte-replication" class="quarto-xref">Note 5</a>, which is DeCovarT’s regime.</li>
+<strong>Higher-order likelihood corrections</strong> (<a href="#sec-higher-order" class="quarto-xref">Sec. 3.7</a>). The Bartlett factor from the restricted bootstrap, <span class="math inline">r^{\ast}</span> through <code>likelihoodAsy</code>.</li>
 <li>
 <strong>Bayesian compositional models.</strong> A logistic-normal or Dirichlet prior on <span class="math inline">\boldsymbol{p}</span> regularises the boundary: the posterior stays proper where the ILR Wald interval degenerates, and credible intervals are usually more stable near a face. A credible interval is not an exact frequentist interval, and the prior must be defensible scientifically.</li>
 </ul>

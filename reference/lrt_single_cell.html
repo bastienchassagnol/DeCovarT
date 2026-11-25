@@ -54,7 +54,8 @@ composition constraints only."><meta property="og:image" content="https://bastie
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -105,7 +106,9 @@ composition constraints only.</p>
 <span>  n_boundary <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boundary_tol <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-08</span>,</span>
-<span>  itmax <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  itmax <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  mean_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  variance_scale <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -140,6 +143,11 @@ composition constraints only.</p>
 
 <dt id="arg-itmax">itmax<a class="anchor" aria-label="anchor" href="#arg-itmax"></a></dt>
 <dd><p>Maximum number of iterations.</p></dd>
+
+
+<dt id="arg-mean-scale-variance-scale">mean_scale, variance_scale<a class="anchor" aria-label="anchor" href="#arg-mean-scale-variance-scale"></a></dt>
+<dd><p>Optional known scales, held under both
+hypotheses (see <code><a href="restricted_mle_single_cell.html">restricted_mle_single_cell()</a></code>).</p></dd>
 
 </dl></div>
     <div class="section level2">

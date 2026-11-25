@@ -72,7 +72,8 @@ reference. The returned estimand is the realised cell fraction
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -155,7 +156,8 @@ matrix. Each column must sum to 1.</p></dd>
 
 
 <dt id="arg-n-cells">n_cells<a class="anchor" aria-label="anchor" href="#arg-n-cells"></a></dt>
-<dd><p>Cells per bulk sample, \(n_i\). Recycled to \(N\).
+<dd><p>Cells per bulk sample, \(n_i\). Recycled to \(N\);
+pass one value per sample for bulks of different sizes.
 The multinomial size is the rounded value; the fitted
 \(\hat n\) need not be an integer.</p></dd>
 

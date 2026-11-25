@@ -536,42 +536,26 @@ stays on [Eq. 12](#eq-mln-alr). The two can be coupled by a regression
 of the gene-ALR mean on \boldsymbol{p}\_i, for example
 \boldsymbol{\mu}\_w(\boldsymbol{p}\_i)=\mathbf{B}\boldsymbol{p}\_i,
 still without forming a Gaussian convolution of cell-type covariances.
-**?@fig-mln-dag** is that joint directed graph, drawn with the symbol
-key of the other plate diagrams: grey circles observed, blue circles
-latent, dotted circles deterministic, squares fixed.
+[Figure 2](#fig-mln-dag) is that joint directed graph, drawn with the
+symbol key of the other plate diagrams: grey circles observed, blue
+circles latent, dotted circles deterministic, squares fixed.
 
-``` tikz
-%%| label: fig-mln-dag
-%%| fig-cap: Directed graph for a logit-normal multinomial gene composition (McGregor et al.) extended with a second simplex for cell-type ratios. Grey circles are observed, unshaded circles are latent, diamonds are deterministic and squares are fixed parameters. The dashed arrow from $\boldsymbol{p}_{\cdot i}$ into $\boldsymbol{\mu}_w$ is the optional deconvolution link; it is not a Gaussian convolution of $\boldsymbol{\Sigma}_j$.
-%%| filename: fig-mln-dag
-%%| alt: Graphical model inside a plate over bulk samples i. Fixed mu_rho and Omega_rho generate the latent ALR coordinate rho_i; p_i is computed from rho_i; a dashed arrow from p_i to the deterministic mean mu_w = B p_i marks the optional deconvolution link. mu_w and the fixed precision Omega_w generate the latent gene log-ratios w_i; the gene composition pi_i is computed from w_i; the observed library size n_i, drawn from fixed mu_n and sigma_n squared, and pi_i generate the observed counts y_i through a multinomial.
-\begin{tikzpicture}[node distance=12mm]
-\node[fixed] (mur) {$\boldsymbol{\mu}_{\rho}$};
-\node[fixed, right=6mm of mur] (Or) {$\boldsymbol{\Omega}_{\rho}$};
-\node[latent, below=12mm of $(mur)!0.5!(Or)$] (rho) {$\boldsymbol{\rho}_i$};
-\node[det, below=12mm of rho] (p) {$\boldsymbol{p}_{\cdot i}$};
-\node[det, right=14mm of p] (muw) {$\boldsymbol{\mu}_w$};
-\node[fixed, right=14mm of muw] (Ow) {$\boldsymbol{\Omega}_w$};
-\node[latent, below=12mm of $(muw)!0.5!(Ow)$] (w) {$\boldsymbol{w}_i$};
-\node[det, below=12mm of w] (pi) {$\boldsymbol{\pi}_i$};
-\node[obs, below=12mm of pi] (y) {$\boldsymbol{y}_{\cdot i}$};
-\node[obs, left=16mm of y] (n) {$n_i$};
-\node[fixed, left=10mm of n] (mun) {$\mu_n,\sigma_n^{2}$};
-\node[note, left=1mm of rho] (nr) {$\mathcal{N}(\boldsymbol{\mu}_{\rho},\boldsymbol{\Omega}_{\rho}^{-1})$};
-\node[note, left=1mm of p] (np) {$\mathrm{alr}^{-1}(\boldsymbol{\rho}_i)$};
-\node[note, right=1mm of w] (nw) {$\mathcal{N}_{G-1}(\boldsymbol{\mu}_w,\boldsymbol{\Omega}_w^{-1})$};
-\node[note, right=1mm of pi] (npi) {$\psi(\boldsymbol{w}_i)$};
-\node[note, right=1mm of y] (ny) {$\mathrm{Multinomial}(n_i,\boldsymbol{\pi}_i)$};
-\node[note, above=1mm of muw] (nmw) {$\mathbf{B}\boldsymbol{p}_{\cdot i}$};
-\draw[dependency] (mur) -- (rho); \draw[dependency] (Or) -- (rho);
-\draw[dependency] (rho) -- (p);
-\draw[dashededge] (p) -- (muw);
-\draw[dependency] (muw) -- (w); \draw[dependency] (Ow) -- (w);
-\draw[dependency] (w) -- (pi); \draw[dependency] (pi) -- (y);
-\draw[dependency] (mun) -- (n); \draw[dependency] (n) -- (y);
-\plate{samples}{(rho)(p)(muw)(nmw)(w)(pi)(y)(n)(nr)(np)(nw)(npi)(ny)}{$i=1,\ldots,N$}
-\end{tikzpicture}
-```
+![Graphical model inside a plate over bulk samples i. Fixed mu_rho and
+Omega_rho generate the latent ALR coordinate rho_i; p_i is computed from
+rho_i; a dashed arrow from p_i to the deterministic mean mu_w = B p_i
+marks the optional deconvolution link. mu_w and the fixed precision
+Omega_w generate the latent gene log-ratios w_i; the gene composition
+pi_i is computed from w_i; the observed library size n_i, drawn from
+fixed mu_n and sigma_n squared, and pi_i generate the observed counts
+y_i through a multinomial.](figures/tikz/fig-mln-dag.svg)
+
+Figure 2: Directed graph for a logit-normal multinomial gene composition
+(McGregor et al.) extended with a second simplex for cell-type ratios.
+Grey circles are observed, unshaded circles are latent, diamonds are
+deterministic and squares are fixed parameters. The dashed arrow from
+\boldsymbol{p}\_{\cdot i} into \boldsymbol{\mu}\_w is the optional
+deconvolution link; it is not a Gaussian convolution of
+\boldsymbol{\Sigma}\_j.
 
 ## References
 

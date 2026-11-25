@@ -37,6 +37,16 @@ from the bundle rules.
   by design. No `--no-verify` unless asked. The project does not use
   `renv`; lintr hooks set `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`.
   `slides/_extensions/` is excluded from the whitespace hooks.
+- **Diagrams (TikZ).** Sources stay in the vignette inside
+  `::: {.content-hidden}`; the SVG is pre-compiled locally with
+  `Rscript scripts/dev/compile_vignette_tikz.R` (needs LuaLaTeX with
+  tikz-bayesnet, `gs`, `pdftocairo`) and committed under
+  `vignettes/figures/tikz/` (preamble:
+  `vignettes/figures/tikz/preamble.tex`). CI never compiles TikZ. If CI
+  ever gets a TeX distribution (e.g. a cached TinyTeX with
+  tikz-bayesnet), the pandoc-ext/diagram filter with `TIKZ_BIN` pointing
+  at `scripts/dev/tikz-lualatex.sh` could compile the blocks at render
+  time instead.
 - **Plots.** Faceted `ggplot2` figures use
   [`theme_decovart_facets()`](https://bastienchassagnol.github.io/DeCovarT/reference/theme_decovart_facets.md).
 - **Two citation streams, never mixed.** Literature: Zotero export into

@@ -2361,26 +2361,9 @@ derives that menu, with its REML calibration for few genes.
 > Directions that would strengthen DeCovarT intervals, in rough order of
 > implementation cost.
 >
-> - **Godambe sandwich for a misspecified convolution.** `RNA-Sieve`
->   replaces Fisher by the Godambe information when the CLT model is
->   wrong ([Erdmann-Pham et al.
->   2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021))
->   ([Sec. 4.7](#sec-rna-sieve); the one-column construction is
->   [Sec. 3.9](#sec-sandwich)). The same sandwich on DeCovarT’s score
->   would widen Wald intervals under protocol shift without discarding
->   the multivariate covariance. It remains a first-order *interior*
->   device: faces still need the chi-bar-square LRT or a restricted
->   bootstrap.
-> - **Score-test inversion** ([Sec. 3.4](#sec-test-inversion)). Each
->   candidate value needs only the restricted fit, so the scan costs the
->   same number of fits as the profile, and the score in \boldsymbol{p}
->   coordinates stays defined on a face.
 > - **Higher-order likelihood corrections**
 >   ([Sec. 3.7](#sec-higher-order)). The Bartlett factor from the
->   restricted bootstrap, r^{\ast} through `likelihoodAsy`, and the
->   Cox–Reid adjusted profile of [Eq. 16](#eq-cox-reid) target the
->   small-replication regime of [Note 5](#nte-replication), which is
->   DeCovarT’s regime.
+>   restricted bootstrap, r^{\ast} through `likelihoodAsy`.
 > - **Bayesian compositional models.** A logistic-normal or Dirichlet
 >   prior on \boldsymbol{p} regularises the boundary: the posterior
 >   stays proper where the ILR Wald interval degenerates, and credible

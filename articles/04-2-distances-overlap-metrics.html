@@ -70,7 +70,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>4.2 Distances, overlap, and covariance information</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">24 Nov 2026</p>
+      <p class="date">25 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/04-2-distances-overlap-metrics.qmd" class="external-link"><code>vignettes/04-2-distances-overlap-metrics.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -129,8 +130,8 @@
 <blockquote>
 <p><strong>Notation used in this vignette</strong></p>
 <p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="9c99c895-736c-4316-b6cb-7ecd064b9ecb">
-<div id="9c99c895-736c-4316-b6cb-7ecd064b9ecb" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="43b6304e-3fb6-4759-a0cc-0251a5baec13">
+<div id="43b6304e-3fb6-4759-a0cc-0251a5baec13" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
@@ -175,8 +176,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="3f1648bc-a068-4f37-94d5-e7f56e588cbd">
-<div id="3f1648bc-a068-4f37-94d5-e7f56e588cbd" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="09810671-63cd-4c63-b281-1ef133a5b5c0">
+<div id="09810671-63cd-4c63-b281-1ef133a5b5c0" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
@@ -263,8 +264,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="ba4d39b5-704d-4fa7-a1d6-d78e89c4192b">
-<div id="ba4d39b5-704d-4fa7-a1d6-d78e89c4192b" class="cell" data-tags="[&quot;notation-overlap&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="749069b5-f9fd-4617-8fed-0b16aacda7d2">
+<div id="749069b5-f9fd-4617-8fed-0b16aacda7d2" class="cell" data-tags="[&quot;notation-overlap&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>MixSim overlap between cell types.</caption>
@@ -363,19 +364,14 @@ d_R(A,B)
 <strong>Inverse-transform sampling</strong> then maps each coordinate <span class="math inline">u_g\mapsto\Phi^{-1}(u_g)</span> and left-multiplies by the Cholesky factor of <span class="math inline">\Sigma_j</span>, so the image is exactly <span class="math inline">\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)</span>. Without that map, Sobol points would not have the right Gaussian law.</li>
 </ul>
 <p>The remaining implementation details are precomputed Cholesky factors, log-density evaluation, and stratification by component (not draws from the mixture). When <span class="math inline">G\ge 4</span>, <code><a href="../reference/compute_average_overlap.html">compute_average_overlap()</a></code> emits a <code>cli</code> note and uses this estimator. Hellinger of the purified Gaussians remains a cheap closed-form <em>descriptor</em>, not a MixSim <code>BarOmega</code> substitute.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-overlap-routes</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: Routes to MixSim-style average overlap. Exact Davies quadrature is used only for G &lt; 4; otherwise stratified Sobol Monte Carlo.</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-overlap-routes</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: Decision. Component Gaussians lead to the test G less than 4. Yes: exact Davies quadrature with MixSim overlap. No: stratified Sobol Monte Carlo with overlap_gaussian_mc.</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (A) at (0,0) {Component Gaussians <span class="ss">$</span><span class="sc">\mathcal</span><span class="ss">{N}(</span><span class="sc">\boldsymbol</span><span class="ss">{</span><span class="sc">\mu</span><span class="ss">}_{</span><span class="sc">\cdot</span><span class="ss"> j},</span><span class="sc">\boldsymbol</span><span class="ss">{</span><span class="sc">\Sigma</span><span class="ss">}_j)$</span>};</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[choice] (B) at (0,-1.7) {<span class="ss">$G&lt;4$</span>?};</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box] (C) at (-3,-3.5) {<span class="fu">\texttt</span>{MixSim::overlap()}<span class="fu">\\</span> Davies quadrature};</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box] (D) at (3,-3.5) {<span class="fu">\texttt</span>{overlap<span class="fu">\_</span>gaussian<span class="fu">\_</span>mc()}<span class="fu">\\</span> stratified Sobol Monte Carlo};</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (A) -- (B);</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (B) -| node[elabel, pos=0.25] {yes} (C);</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (B) -| node[elabel, pos=0.25] {no} (D);</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
+<div id="fig-overlap-routes" class="quarto-float quarto-figure quarto-figure-center" alt="Decision. Component Gaussians lead to the test G less than 4. Yes: exact Davies quadrature with MixSim overlap. No: stratified Sobol Monte Carlo with overlap_gaussian_mc.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-overlap-routes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/tikz/fig-overlap-routes.svg" alt="Decision. Component Gaussians lead to the test G less than 4. Yes: exact Davies quadrature with MixSim overlap. No: stratified Sobol Monte Carlo with overlap_gaussian_mc.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-overlap-routes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 1: Routes to MixSim-style average overlap. Exact Davies quadrature is used only for G &lt; 4; otherwise stratified Sobol Monte Carlo.
+</figcaption></figure>
+</div>
 <div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-fig03-scale">Fig03: topology fixed, overlap as the knob<a class="anchor" aria-label="anchor" href="#sec-fig03-scale"></a>
 </h2>

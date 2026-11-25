@@ -8,6 +8,10 @@ the profile log-likelihood with the PORT trust region of
 [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html), as
 [`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md).
 
+With `mean_scale` and `variance_scale`, the scales are known and held at
+those values under both the full and the restricted fit, so the model
+needs only \\G\ge J\\ genes.
+
 ## Usage
 
 ``` r
@@ -17,7 +21,9 @@ restricted_mle_single_cell(
   Sigma,
   fixed = NULL,
   epsilon = 1e-08,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 ```
 
@@ -48,6 +54,10 @@ restricted_mle_single_cell(
 - itmax:
 
   Maximum number of iterations.
+
+- mean_scale, variance_scale:
+
+  Optional fixed scales. Supply both or neither.
 
 ## Value
 

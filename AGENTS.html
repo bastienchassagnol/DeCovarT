@@ -44,7 +44,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -89,6 +90,8 @@
 <strong>Checks before a push</strong> touching package code: <code>devtools::check()</code> and <code>pkgcheck::pkgcheck()</code>, warnings included; a local <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> when exports, <code>_pkgdown.yml</code>, vignettes or docs workflows change. Before a CRAN submission follow <code>dev/package-dev-notes.md</code> (CRAN incoming section).</li>
 <li>
 <strong>pre-commit.</strong> <code>pre-commit clean</code>, stage everything, <code>pre-commit run</code>, re-stage autofixes, commit. Autofix hooks fail once by design. No <code>--no-verify</code> unless asked. The project does not use <code>renv</code>; lintr hooks set <code>RENV_CONFIG_AUTOLOADER_ENABLED=FALSE</code>. <code>slides/_extensions/</code> is excluded from the whitespace hooks.</li>
+<li>
+<strong>Diagrams (TikZ).</strong> Sources stay in the vignette inside <code>::: {.content-hidden}</code>; the SVG is pre-compiled locally with <code>Rscript scripts/dev/compile_vignette_tikz.R</code> (needs LuaLaTeX with tikz-bayesnet, <code>gs</code>, <code>pdftocairo</code>) and committed under <code>vignettes/figures/tikz/</code> (preamble: <code>vignettes/figures/tikz/preamble.tex</code>). CI never compiles TikZ. If CI ever gets a TeX distribution (e.g. a cached TinyTeX with tikz-bayesnet), the pandoc-ext/diagram filter with <code>TIKZ_BIN</code> pointing at <code>scripts/dev/tikz-lualatex.sh</code> could compile the blocks at render time instead.</li>
 <li>
 <strong>Plots.</strong> Faceted <code>ggplot2</code> figures use <code><a href="reference/theme_decovart_facets.html">theme_decovart_facets()</a></code>.</li>
 <li>

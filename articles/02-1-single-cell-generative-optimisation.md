@@ -214,30 +214,23 @@
 > Table 1: Where each element of the article’s single-cell model is
 > derived.
 
-``` tikz
-%%| label: fig-four-strategies
-%%| fig-cap: Four strategies to align a single-cell reference with a bulk sample. Strategies 1--3 differ by the scale on which the bulk is observed and estimate the scales jointly with the composition; Strategy 4 estimates the technical and biological scales first and plugs them into the regression or likelihood. Italic lines name the reviewed methods that already sit on each branch.
-%%| filename: fig-four-strategies
-%%| alt: Flowchart. A single-cell reference leads to a question about the bulk scale and where scales are estimated. Four boxes follow: cell-count convolution targeting integer counts; averaged mixture targeting proportions on the simplex with the number of cells as a nuisance; compositional bulk targeting RNA fractions; plug-in scales estimated beforehand. Each box lists its covariance and the methods that use it, and ends in a note: proportions by division; the purified-profile convolution as a limit; RNA fractions differ from cell fractions unless cell sizes are equal; plug-in uncertainty must be propagated.
-\begin{tikzpicture}[every node/.append style={}]
-\node[keybox, text width=9cm] (ref) at (0,0) {Single-cell reference: $\tilde{\boldsymbol{\mu}}_{\cdot j}$ and $\boldsymbol{\Sigma}_{W,j}$ from $R=1$;\ $\boldsymbol{\Sigma}_{B,j}$ needs $R\ge 2$};
-\node[choice] (q) at (0,-1.8) {Bulk scale, and where\\ are the scales estimated?};
-\node[box, anchor=north, text width=3.6cm] (s1) at (-6.3,-3.4) {\textbf{1. Cell-count convolution}\\ \textit{bulk: absolute molecules}\\[2pt] target $\boldsymbol{m}_{\cdot i}\in\mathbb{N}^{J}$, no simplex\\[2pt] $a_i^{2}[\boldsymbol{S}_W(\boldsymbol{m}_{\cdot i})+\boldsymbol{S}_B(\boldsymbol{m}_{\cdot i})]+\boldsymbol{D}_i$\\[3pt] \textit{RNA-Sieve ($n_i$), MuSiC eq. (2), DWLS}};
-\node[box, anchor=north, text width=3.6cm] (s2) at (-2.1,-3.4) {\textbf{2. Averaged mixture}\\ \textit{bulk: per-cell average}\\[2pt] target $\boldsymbol{p}_{\cdot i}\in\Delta^{J-1}$, $n_i$ nuisance\\[2pt] $c_i^{2}\boldsymbol{S}_B(\boldsymbol{p}_{\cdot i})+\phi_i\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})+\boldsymbol{D}_i$\\[3pt] \textit{DECALS, MEAD ($\boldsymbol{\beta}_i=c_i\boldsymbol{p}_{\cdot i}$), DeCovarT}};
-\node[box, anchor=north, text width=3.6cm] (s3) at (2.1,-3.4) {\textbf{3. Compositional bulk}\\ \textit{bulk: library-normalised}\\[2pt] target RNA fractions $\boldsymbol{q}_{\cdot i}$\\[2pt] closure $\boldsymbol{T}_i/\mathbf{1}^{\top}\boldsymbol{T}_i$, delta method\\[3pt] \textit{MuSiC ($C_i$), Bisque (CPM), DECALS (FPKM)}};
-\node[box, anchor=north, text width=3.6cm] (s4) at (6.3,-3.4) {\textbf{4. Plug-in scales}\\ \textit{bulk: scales estimated beforehand}\\[2pt] estimate $s_c$, $S_j$, $\tilde{\boldsymbol{b}}$, $c_i$ first, then fit $\boldsymbol{p}_{\cdot i}$ with the scales fixed\\[3pt] \textit{MuSiC ($S_j$), RCTD ($\tilde{\boldsymbol{b}}$, $N_i$), Bisque, MEAD ($a^{\mathrm{ref}}_r$), EPIC}};
-\node[note, text width=3.6cm, align=flush center] (o1) at ([yshift=-7mm]s1.south) {$p_{ji}=m_{ji}/n_i$ by division};
-\node[note, text width=3.6cm, align=flush center] (o2) at ([yshift=-7mm]s2.south) {purified profiles: $n_i\to\infty$, $c_i=1$};
-\node[note, text width=3.6cm, align=flush center] (o3) at ([yshift=-7mm]s3.south) {$\boldsymbol{q}_{\cdot i}\neq\boldsymbol{p}_{\cdot i}$ unless $S_j$ constant};
-\node[note, text width=3.6cm, align=flush center] (o4) at ([yshift=-7mm]s4.south) {plug-in uncertainty must be propagated};
-\draw[edge] (ref) -- (q);
-\draw[edge] (q.south) -- (s1.north);
-\draw[edge] (q.south) -- (s2.north);
-\draw[edge] (q.south) -- (s3.north);
-\draw[edge] (q.south) -- (s4.north);
-\foreach \k in {1,2,3,4} \draw[edge] (s\k.south) -- (o\k.north);
-\end{tikzpicture}
-```
+![Flowchart. A single-cell reference leads to a question about the bulk
+scale and where scales are estimated. Four boxes follow: cell-count
+convolution targeting integer counts; averaged mixture targeting
+proportions on the simplex with the number of cells as a nuisance;
+compositional bulk targeting RNA fractions; plug-in scales estimated
+beforehand. Each box lists its covariance and the methods that use it,
+and ends in a note: proportions by division; the purified-profile
+convolution as a limit; RNA fractions differ from cell fractions unless
+cell sizes are equal; plug-in uncertainty must be
+propagated.](figures/tikz/fig-four-strategies.svg)
+
+Figure 1: Four strategies to align a single-cell reference with a bulk
+sample. Strategies 1–3 differ by the scale on which the bulk is observed
+and estimate the scales jointly with the composition; Strategy 4
+estimates the technical and biological scales first and plugs them into
+the regression or likelihood. Italic lines name the reviewed methods
+that already sit on each branch.
 
 ## From cells to reference moments
 
@@ -252,18 +245,18 @@ resulting profiles on the same scale as bulk sample i.
 quadratic between-sample variability, and diagonal bulk measurement
 noise.](images/covariance_three_variability_factors.png)
 
-Figure 1: Within-sample cell noise, between-replicate biological
+Figure 2: Within-sample cell noise, between-replicate biological
 covariance, and residual bulk noise.
 
 ![MuSiC model assumptions A1 same population, A2 conserved cell-size
 ratios, A3 conserved library-size ratios, and A3-prime for absolute
 cell-type proportions.](images/music_model_assumptions.png)
 
-Figure 2: MuSiC assumptions for library-size normalisation: same
+Figure 3: MuSiC assumptions for library-size normalisation: same
 population, conserved cell-size ratios, conserved library-size ratios,
 and the stronger A3-prime hypothesis for absolute cell-type fractions.
 
-[Figure 1](#fig-three-variability) is the target decomposition. Panel A
+[Figure 2](#fig-three-variability) is the target decomposition. Panel A
 is a purified population profile (quadratic in p\_{ji}). Panel B is one
 single-cell reference (linear in p\_{ji}). Panel C is the hierarchical
 model once R independent replicates exist.
@@ -436,25 +429,18 @@ is already inside \boldsymbol{\Sigma}\_{B,j} and
 allowed. Off-diagonal residual correlation would double-count the
 network.
 
-``` tikz
-%%| label: fig-three-regimes
-%%| fig-cap: Which covariance terms the reference design identifies. FACS profiles supply only the quadratic layer. One single-cell replicate supplies only the linear layer. $R\ge 2$ replicates separate both, plus a diagonal bulk residual.
-%%| filename: fig-three-regimes
-%%| alt: Flowchart. The reference used to build mu_j and Sigma_j splits into FACS-sorted population profiles, a single-cell reference with one replicate, and a single-cell reference with at least two replicates. They lead respectively to a quadratic convolution in p squared Sigma B, a linear mixture p Sigma W divided by n_i, and both layers separated. All three add a diagonal bulk residual D_i.
-\begin{tikzpicture}
-\node[keybox] (ref) at (0,0) {Reference used to build $\boldsymbol{\mu}_{\cdot j}$ and $\boldsymbol{\Sigma}_j$};
-\node[box, text width=3.6cm] (facs) at (-4.4,-1.8) {FACS-sorted population profiles};
-\node[box, text width=3.6cm] (r1) at (0,-1.8) {Single-cell reference, $R=1$};
-\node[box, text width=3.6cm] (rR) at (4.4,-1.8) {Single-cell reference, $R\ge 2$};
-\node[box, text width=3.6cm] (q) at (-4.4,-3.6) {quadratic convolution\\ $\sum_j p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}$};
-\node[box, text width=3.6cm] (lin) at (0,-3.6) {linear mixture\\ $n_i^{-1}\sum_j p_{ji}\boldsymbol{\Sigma}_{W,j}$};
-\node[box, text width=3.6cm] (both) at (4.4,-3.6) {quadratic $\boldsymbol{\Sigma}_{B,j}$ and linear $\boldsymbol{\Sigma}_{W,j}$ separated};
-\node[dimbox] (noise) at (0,-5.4) {plus diagonal bulk residual $\boldsymbol{D}_i=\boldsymbol{\Sigma}_{\mathrm{obs},i}$};
-\draw[edge] (ref) -- (facs); \draw[edge] (ref) -- (r1); \draw[edge] (ref) -- (rR);
-\draw[edge] (facs) -- (q); \draw[edge] (r1) -- (lin); \draw[edge] (rR) -- (both);
-\draw[edge] (q) -- (noise); \draw[edge] (lin) -- (noise); \draw[edge] (both) -- (noise);
-\end{tikzpicture}
-```
+![Flowchart. The reference used to build mu_j and Sigma_j splits into
+FACS-sorted population profiles, a single-cell reference with one
+replicate, and a single-cell reference with at least two replicates.
+They lead respectively to a quadratic convolution in p squared Sigma B,
+a linear mixture p Sigma W divided by n_i, and both layers separated.
+All three add a diagonal bulk residual
+D_i.](figures/tikz/fig-three-regimes.svg)
+
+Figure 4: Which covariance terms the reference design identifies. FACS
+profiles supply only the quadratic layer. One single-cell replicate
+supplies only the linear layer. R\ge 2 replicates separate both, plus a
+diagonal bulk residual.
 
 ### Aligning reference profiles with bulk sample i
 
@@ -492,7 +478,7 @@ i}=\boldsymbol{p}\_{\cdot i} when S_j is constant across j. That
 constant-efficiency hypothesis is assumption A3' of `MuSiC`: the ratio
 of average library size equals the ratio of average cell size,
 equivalently a common capture efficiency \gamma_j=L_j/S_j
-([Figure 2](#fig-music-assumptions)). Under A3', the per-cell mean of
+([Figure 3](#fig-music-assumptions)). Under A3', the per-cell mean of
 raw counts \tilde{\boldsymbol{\mu}}\_{\cdot j} carries the true size
 ratios and the fitted weights are cytometry fractions
 \boldsymbol{p}\_{\cdot i}. A library-normalised signature
@@ -666,67 +652,28 @@ quadratically. Equicorrelated cells are the special case
 The identity [Eq. 14](#eq-master-identity) fixes the covariance once the
 dependence between summands is fixed. Deconvolution models differ by a
 second choice: whether the cell type of each summand is random or given.
-**?@fig-dag-dependence** lays out the four cases from no dependence to
-full dependence.
+[Figure 5](#fig-dag-dependence) lays out the four cases from no
+dependence to full dependence.
 
-``` tikz
-%%| label: fig-dag-dependence
-%%| fig-cap: Four generative stories for a bulk profile $\boldsymbol{y}$, ordered by the dependence between cells. (a) A mixture: each of $n$ cells draws its type label from $\mathrm{Cat}(\boldsymbol{p})$. (b) Independent cells with fixed counts $m_j$. (c) Equicorrelated cells sharing a type-level effect $\boldsymbol{B}_j$. (d) One population profile per type, scaled by $p_j$. The note under each $\boldsymbol{y}$ is its covariance; $\boldsymbol{\delta}_j=\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}\boldsymbol{p}$.
-%%| filename: fig-dag-dependence
-%%| alt: Four panels from left to right. Panel a: fixed p generates a latent label z_c, which with fixed means and covariances generates a latent cell X_c inside a plate over n cells; the bulk y is their sum, with covariance n times the sum of p_j Sigma_j plus n times the spread of the type means. Panel b: within a plate over types, fixed counts m_j and moments generate independent cells; covariance sum of m_j Sigma_j. Panel c: a latent type effect B_j is shared by the cells of type j; covariance sum of m_j times 1 plus m_j minus 1 times rho_j, times Sigma_j. Panel d: one latent profile Z_j per type, scaled by p_j; covariance sum of p_j squared Sigma_j.
-\begin{tikzpicture}
-\tikzset{ptitle/.style={font=\bfseries\small, anchor=south west, align=left}}
-% (a) mixture: random labels
-\begin{scope}
-\node[fixed] (p) at (0,0) {$\boldsymbol{p}$};
-\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu},\boldsymbol{\Sigma}_{\cdot}$};
-\node[latent] (z) at (0,-2.0) {$z_c$};
-\node[latent] (x) at (1.0,-3.8) {$\boldsymbol{X}_c$};
-\node[note, left=1mm of z] (nz) {$\mathrm{Cat}(\boldsymbol{p})$};
-\plate{c}{(z)(x)(nz)}{$c=1,\ldots,n$}
-\node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
-\node[note, below=1mm of y, align=center] (ny) {$n\sum_j p_j\boldsymbol{\Sigma}_j$\\ $+\,n\sum_j p_j\boldsymbol{\delta}_j\boldsymbol{\delta}_j^{\top}$};
-\draw[dependency] (p) -- (z); \draw[dependency] (z) -- (x); \draw[dependency] (th) -- (x); \draw[dependency] (x) -- (y);
-\node[ptitle] at (-1.8,1.0) {(a) mixture of cells};
-\end{scope}
-% (b) convolution of independent cells, counts fixed
-\begin{scope}[xshift=52mm]
-\node[fixed] (m) at (0,0) {$m_j$};
-\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}$};
-\node[latent] (x) at (1.0,-2.6) {$\boldsymbol{X}_{jc}$};
-\plate{c}{(x)}{$c\le m_j$}
-\plate{j}{(m)(th)(c)(c-caption)}{$j=1,\ldots,J$}
-\node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
-\node[note, below=1mm of y] (ny) {$\sum_j m_j\boldsymbol{\Sigma}_j$};
-\draw[dependency] (m) -- (x); \draw[dependency] (th) -- (x); \draw[dependency] (j.south -| y) -- (y);
-\node[ptitle] at (-1.0,1.0) {(b) independent cells};
-\end{scope}
-% (c) equicorrelated cells: shared type effect
-\begin{scope}[xshift=104mm]
-\node[fixed] (m) at (0,0) {$m_j$};
-\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j},\varrho_j$};
-\node[latent] (Bj) at (2.0,-1.9) {$\boldsymbol{B}_{j}$};
-\node[latent] (x) at (1.0,-3.6) {$\boldsymbol{X}_{jc}$};
-\plate{c}{(x)}{$c\le m_j$}
-\plate{j}{(m)(th)(Bj)(c)(c-caption)}{$j=1,\ldots,J$}
-\node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
-\node[note, below=1mm of y] (ny) {$\sum_j m_j[1+(m_j-1)\varrho_j]\boldsymbol{\Sigma}_j$};
-\draw[dependency] (th) -- (Bj); \draw[dependency] (Bj) -- (x); \draw[dependency] (m) -- (x); \draw[dependency] (j.south -| y) -- (y);
-\node[ptitle] at (-1.0,1.0) {(c) equicorrelated cells};
-\end{scope}
-% (d) convolution of population profiles
-\begin{scope}[xshift=160mm]
-\node[fixed] (p) at (0,0) {$p_j$};
-\node[fixed] (th) at (2.0,0) {$\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}$};
-\node[latent] (Z) at (2.0,-2.6) {$\boldsymbol{Z}_{j}$};
-\plate{j}{(p)(th)(Z)}{$j=1,\ldots,J$}
-\node[det] (y) at (1.0,-6.9) {$\boldsymbol{y}$};
-\node[note, below=1mm of y] (ny) {$\sum_j p_j^{2}\boldsymbol{\Sigma}_j$};
-\draw[dependency] (th) -- (Z); \draw[dependency] (Z) -- (y); \draw[dependency] (p) -- (y);
-\node[ptitle] at (-1.0,1.0) {(d) population profiles};
-\end{scope}
-\end{tikzpicture}
-```
+![Four panels from left to right. Panel a: fixed p generates a latent
+label z_c, which with fixed means and covariances generates a latent
+cell X_c inside a plate over n cells; the bulk y is their sum, with
+covariance n times the sum of p_j Sigma_j plus n times the spread of the
+type means. Panel b: within a plate over types, fixed counts m_j and
+moments generate independent cells; covariance sum of m_j Sigma_j. Panel
+c: a latent type effect B_j is shared by the cells of type j; covariance
+sum of m_j times 1 plus m_j minus 1 times rho_j, times Sigma_j. Panel d:
+one latent profile Z_j per type, scaled by p_j; covariance sum of p_j
+squared Sigma_j.](figures/tikz/fig-dag-dependence.svg)
+
+Figure 5: Four generative stories for a bulk profile \boldsymbol{y},
+ordered by the dependence between cells. (a) A mixture: each of n cells
+draws its type label from \mathrm{Cat}(\boldsymbol{p}). (b) Independent
+cells with fixed counts m_j. (c) Equicorrelated cells sharing a
+type-level effect \boldsymbol{B}\_j. (d) One population profile per
+type, scaled by p_j. The note under each \boldsymbol{y} is its
+covariance; \boldsymbol{\delta}\_j=\boldsymbol{\mu}\_{\cdot
+j}-\boldsymbol{\mu}\boldsymbol{p}.
 
 **Mixture of cells.** If the type label z_c of each of n cells is drawn
 from \mathrm{Cat}(\boldsymbol{p}), one cell follows the Gaussian mixture
@@ -945,7 +892,7 @@ compare joint and plug-in estimation of the scales.
 
 ## Four strategies to align a single-cell reference with bulk
 
-**?@fig-four-strategies** is the map of the strategies, with the
+[Figure 1](#fig-four-strategies) is the map of the strategies, with the
 reviewed methods on each branch. Strategies 1–3 differ by the scale on
 which the bulk is observed, and estimate every scale jointly with the
 composition. Strategy 4 keeps one of those likelihoods but estimates the
@@ -1545,41 +1492,19 @@ from auxiliary data, and holds them fixed in the regression or
 likelihood. It is the strategy that most published methods use in
 practice, usually without saying so.
 
-``` tikz
-%%| label: fig-dag-plugin
-%%| fig-cap: Joint versus plug-in estimation of nuisance scales $\boldsymbol{\eta}$ (size factors, cell sizes, platform, sample scale). (a) Strategies 1--3 maximise the bulk likelihood in $\boldsymbol{p}_{\cdot i}$ and $\boldsymbol{\eta}_i$ together. (b) Strategy 4 estimates $\hat{\boldsymbol{\eta}}$ from auxiliary data, then fits $\boldsymbol{p}_{\cdot i}$ with $\hat{\boldsymbol{\eta}}$ held fixed.
-%%| filename: fig-dag-plugin
-%%| alt: Two panels. Panel a: fixed type moments outside a bulk plate; inside, fixed p_i and nuisance eta_i generate the observed y_i, maximised jointly. Panel b: observed auxiliary data inside their own plate give the deterministic estimate eta hat in stage 1; inside the bulk plate, fixed p_i, the type moments and eta hat, through a dashed plug-in arrow, generate y_i in stage 2.
-\begin{tikzpicture}
-\tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
-% (a) joint
-\begin{scope}
-\node[fixed] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{W,\cdot}$};
-\node[fixed] (p) at (-1.2,-2.4) {$\boldsymbol{p}_{\cdot i}$};
-\node[fixed] (eta) at (1.2,-2.4) {$\boldsymbol{\eta}_i$};
-\node[obs] (y) at (0,-4.2) {$\boldsymbol{y}_{\cdot i}$};
-\node[note, below=2mm of y, align=center] (ny) {$\ell_i(\boldsymbol{p}_{\cdot i},\boldsymbol{\eta}_i)$ maximised jointly;\\ information $I_{pp}-I_{p\eta}I_{\eta\eta}^{-1}I_{\eta p}$};
-\draw[dependency] (mu) -- (y); \draw[dependency] (p) -- (y); \draw[dependency] (eta) -- (y);
-\plate{ia}{(p)(eta)(y)(ny)}{$i=1,\ldots,N$}
-\node[ptitle] at (-2.6,1.9) {(a) joint: Strategies 1--3};
-\end{scope}
-% (b) plug-in
-\begin{scope}[xshift=82mm]
-\node[obs] (aux) at (-1.0,0) {$\boldsymbol{A}_k$};
-\node[note, above=1mm of aux, align=center] (naux) {spike-ins, Poisson genes,\\ paired bulk, cell sizes};
-\plate{k}{(aux)(naux)}{auxiliary data $k$}
-\node[det] (eh) at (2.0,0) {$\hat{\boldsymbol{\eta}}$};
-\node[note, above=1mm of eh] {stage 1};
-\node[fixed] (mu) at (3.8,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{W,\cdot}$};
-\node[fixed] (p) at (0.8,-2.4) {$\boldsymbol{p}_{\cdot i}$};
-\node[obs] (y) at (2.0,-4.2) {$\boldsymbol{y}_{\cdot i}$};
-\node[note, below=2mm of y, align=center] (ny) {stage 2: $\ell_i(\boldsymbol{p}_{\cdot i};\hat{\boldsymbol{\eta}})$, $\hat{\boldsymbol{\eta}}$ held fixed;\\ information $I_{pp}$, plus a two-step correction};
-\draw[dependency] (aux) -- (eh); \draw[dashededge] (eh) -- (y); \draw[dependency] (mu) -- (y); \draw[dependency] (p) -- (y);
-\plate{ib}{(p)(y)(ny)}{$i=1,\ldots,N$}
-\node[ptitle] at (-3.0,1.9) {(b) plug-in: Strategy 4};
-\end{scope}
-\end{tikzpicture}
-```
+![Two panels. Panel a: fixed type moments outside a bulk plate; inside,
+fixed p_i and nuisance eta_i generate the observed y_i, maximised
+jointly. Panel b: observed auxiliary data inside their own plate give
+the deterministic estimate eta hat in stage 1; inside the bulk plate,
+fixed p_i, the type moments and eta hat, through a dashed plug-in arrow,
+generate y_i in stage 2.](figures/tikz/fig-dag-plugin.svg)
+
+Figure 6: Joint versus plug-in estimation of nuisance scales
+\boldsymbol{\eta} (size factors, cell sizes, platform, sample scale).
+(a) Strategies 1–3 maximise the bulk likelihood in
+\boldsymbol{p}\_{\cdot i} and \boldsymbol{\eta}\_i together. (b)
+Strategy 4 estimates \hat{\boldsymbol{\eta}} from auxiliary data, then
+fits \boldsymbol{p}\_{\cdot i} with \hat{\boldsymbol{\eta}} held fixed.
 
 #### What is plugged in
 

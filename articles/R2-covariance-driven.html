@@ -71,7 +71,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -108,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.3 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_covariance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">24 Nov 2026</p>
+      <p class="date">25 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/R2-covariance-driven.qmd" class="external-link"><code>vignettes/R2-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -125,44 +126,38 @@
 </details>
 </div>
 <p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 20</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_covariance_driven.R</code> (seed <code>20260807</code>).</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-covariance-design</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-covariance-design</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 8 deconvolution methods.</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (P) at (0,0) {3 compositions<span class="fu">\\</span> <span class="ss">$H^{</span><span class="sc">\star</span><span class="ss">}=1,</span><span class="sc">\ </span><span class="ss">0.5,</span><span class="sc">\ </span><span class="ss">0.1$</span>};</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (G) at (3.6,0) {<span class="ss">$2</span><span class="sc">\times</span><span class="ss"> 2$</span> graph assignments<span class="fu">\\</span> CT1, CT2: scale-free or cluster SBM};</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (C) at (7.2,0) {CT3 graph held at scale-free};</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=3.1cm] (K) at (10.8,0) {3 target <span class="fu">\texttt</span>{BarOmega} levels <span class="ss">$</span><span class="sc">\bar\varpi</span><span class="ss">$</span><span class="fu">\\</span> low, moderate, high};</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (S) at (5.4,-2.2) {36 scenarios<span class="fu">\\</span> <span class="ss">$4</span><span class="sc">\times</span><span class="ss">3</span><span class="sc">\times</span><span class="ss">3$</span>};</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (A) at (5.4,-3.9) {8 methods, 5 interval constructions};</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">\foreach</span> <span class="fu">\n</span> in {P,G,C,K} <span class="fu">\draw</span>[edge] (<span class="fu">\n</span>.south) -- (S.north);</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (S) -- (A);</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
+<div id="fig-covariance-design" class="quarto-float quarto-figure quarto-figure-center" alt="Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 8 deconvolution methods.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/tikz/fig-covariance-design.svg" alt="Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 8 deconvolution methods.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.
+</figcaption></figure>
+</div>
 <div class="cell" data-eval="true" data-layout-align="default">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>config:</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Covariance-driven G=20, J=3"]</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSf["CT1 SF, CT2 SF"]</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSb["CT1 SF, CT2 SBM"]</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSf["CT1 SBM, CT2 SF"]</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSb["CT1 SBM, CT2 SBM"]</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfLo["Low overlap"]</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfMo["Moderate overlap"]</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfHi["High overlap"]</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbLo["Low overlap"]</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbMo["Moderate overlap"]</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbHi["High overlap"]</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfLo["Low overlap"]</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfMo["Moderate overlap"]</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfHi["High overlap"]</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>config:</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Covariance-driven G=20, J=3"]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSf["CT1 SF, CT2 SF"]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSb["CT1 SF, CT2 SBM"]</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSf["CT1 SBM, CT2 SF"]</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSb["CT1 SBM, CT2 SBM"]</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfLo["Low overlap"]</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfMo["Moderate overlap"]</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfHi["High overlap"]</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbLo["Low overlap"]</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbMo["Moderate overlap"]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbHi["High overlap"]</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfLo["Low overlap"]</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfMo["Moderate overlap"]</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfHi["High overlap"]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
 </details><div class="cell-output-display">
 <div id="fig-covariance-design-tree" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -195,7 +190,7 @@ flowchart TB
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Hierarchical reading of the covariance factorial: 2-by-2 graph assignment on mean-collinear cell types 1 and 2 (type 3 held at scale-free), then low / moderate / high target MixSim BarOmega (4 x 3 = 12 covariance draws). Each leaf is crossed with the three Shannon compositions H* = 1 / 0.5 / 0.1.
+Figure 2: Hierarchical reading of the covariance factorial: 2-by-2 graph assignment on mean-collinear cell types 1 and 2 (type 3 held at scale-free), then low / moderate / high target MixSim BarOmega (4 x 3 = 12 covariance draws). Each leaf is crossed with the three Shannon compositions H* = 1 / 0.5 / 0.1.
 </figcaption></figure>
 </div>
 </div>
@@ -302,7 +297,7 @@ Table 2: Covariance factorial (graphs <span class="math inline">\times</span> t
 <img src="figures/fig_network_topologies.png" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Two generator examples on <span class="math inline">G=20</span> nodes (scale-free, cluster SBM). Mean-collinear cell types 1 and 2 are each assigned one of these families; type 3 is held at scale-free.
+Figure 3: Two generator examples on <span class="math inline">G=20</span> nodes (scale-free, cluster SBM). Mean-collinear cell types 1 and 2 are each assigned one of these families; type 3 is held at scale-free.
 </figcaption></figure>
 </div>
 <p>Two generators were considered but not adopted:</p>
@@ -538,7 +533,7 @@ Table 6: Interval menu (<a href="01-2-population-inference.html">population inf
 </div>
 <p>Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>; the interval table also gives the mean and median width and the share of intervals leaving <span class="math inline">[0,1]</span>.</p>
 <div class="cell">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">)</span></span>
 <span><span class="co">#&gt; meta config theta_true descriptors supplementary regression</span></span>
@@ -548,11 +543,13 @@ Table 6: Interval menu (<a href="01-2-population-inference.html">population inf
 </details>
 </div>
 <div style="page-break-after: always;"></div>
-</section></section><section class="section level2"><h2 id="sec-hybrid-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-hybrid-viz"></a>
+</section></section><section class="section level2"><h2 id="sec-hybrid-results">Results<a class="anchor" aria-label="anchor" href="#sec-hybrid-results"></a>
 </h2>
+<section class="level2"><h3 id="sec-hybrid-viz">Results description<a class="anchor" aria-label="anchor" href="#sec-hybrid-viz"></a>
+</h3>
 <p>Every figure is redrawn from two files in <code>output/fig03/</code>: <code>fig03_benchmark.rds</code> (run settings, design, true parameters and every metric table) and <code>fig03_plot_data.rds</code>, a list keyed by figure file stem that holds the data handed to each plot function.</p>
 <div class="cell">
-<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_plot_data.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span></span>
@@ -671,8 +668,8 @@ Table 7: Plot books of the covariance-driven scenario.
 </figure>
 </div>
 <p>Redraw every book without refitting with <code>POSTPROCESS_ONLY &lt;- TRUE</code> at the top of <code>scripts/fig03_variance_covariance_driven.R</code>.</p>
-<section class="level2"><h3 id="sec-hybrid-2d-proj">Two-dimensional projections of a Gaussian convolution<a class="anchor" aria-label="anchor" href="#sec-hybrid-2d-proj"></a>
-</h3>
+<section class="level3"><h4 id="sec-hybrid-2d-proj">Two-dimensional projections of a Gaussian convolution<a class="anchor" aria-label="anchor" href="#sec-hybrid-2d-proj"></a>
+</h4>
 <p>With <span class="math inline">G=20</span> the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. <code>latent_projections.pdf</code> maps each selected scenario (lowest and highest overlap, balanced and highly unbalanced composition, four graph assignments) to two planes.</p>
 <div id="nte-conv-not-gmm">
 <div class="decovart-callout callout-warning">
@@ -682,37 +679,39 @@ Table 7: Plot books of the covariance-driven scenario.
 </blockquote>
 </div>
 </div>
-<section class="level3"><h4 id="principal-components-of-the-purified-profiles">Principal components of the purified profiles<a class="anchor" aria-label="anchor" href="#principal-components-of-the-purified-profiles"></a>
-</h4>
+<section class="level4"><h5 id="principal-components-of-the-purified-profiles">Principal components of the purified profiles<a class="anchor" aria-label="anchor" href="#principal-components-of-the-purified-profiles"></a>
+</h5>
 <p>Principal components of the pooled purified draws, coloured by type, show what the <strong>means</strong> alone separate: types 1 and 2, whose means have cosine <span class="math inline">0.9</span>, overlap on the first two components, while type 3 stands apart.</p>
-</section><section class="level3"><h4 id="supervised-mclustdr-plane">Supervised <code>MclustDR</code> plane<a class="anchor" aria-label="anchor" href="#supervised-mclustdr-plane"></a>
-</h4>
+</section><section class="level4"><h5 id="supervised-mclustdr-plane">Supervised <code>MclustDR</code> plane<a class="anchor" aria-label="anchor" href="#supervised-mclustdr-plane"></a>
+</h5>
 <p>The second panel fits <code>mclust::MclustDA(..., modelType = "EDDA")</code> to the labelled purified draws, then <code><a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link">mclust::MclustDR()</a></code> <span class="citation" data-cites="R-mclust scruccaDimensionReductionModelbased2010a scruccaGraphicalToolsModelbased2015">(<a href="#ref-R-mclust" role="doc-biblioref">Fraley et al. 2026</a>; <a href="#ref-scruccaDimensionReductionModelbased2010a" role="doc-biblioref">Scrucca 2010</a>, <a href="#ref-scruccaGraphicalToolsModelbased2015" role="doc-biblioref">2015</a>)</span> (<a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link"><code>MclustDR</code> reference</a>). Its kernel combines the separation of the class means with the differences of the class covariances, which is the signal DeCovarT exploits. Its generalised eigenvalues measure class-relevant variability, not ordinary PCA variance. The panels with independent factor analyses (Thomson scores) and mixtures of common factor analysers were dropped: they described each type, or an unlabelled mixture, but not the contrast between types.</p>
-</section></section><section class="level2"><h3 id="sec-hybrid-resources">Solver runtime and memory<a class="anchor" aria-label="anchor" href="#sec-hybrid-resources"></a>
-</h3>
+</section></section><section class="level3"><h4 id="sec-hybrid-resources">Solver runtime and memory<a class="anchor" aria-label="anchor" href="#sec-hybrid-resources"></a>
+</h4>
 <p><code>runtime.pdf</code> and <code>memory.pdf</code> use the same composition order as the other performance books (balanced, then moderately unbalanced, then highly unbalanced): <strong>one page per</strong> (). Each page facets the three MixSim overlap levels, puts CT1/CT2 topology on the x-axis (<code>SF/SF</code>, <code>SF/SBM</code>, <code>SBM/SF</code>, <code>SBM/SBM</code>), and maps solver to colour, fill, and grouping. The geometry is a vertical ggdist half-eye (raincloud) of the per-sample <code>optimisation$elapsed_sec</code> or <code>memory_bytes</code> (converted to MiB), with a left-side <code>geom_rug()</code> of the raw Monte Carlo draws and a log10 y-axis.</p>
-</section><section class="level2"><h3 id="sec-hybrid-findings">Likelihood geometry and solver behaviour<a class="anchor" aria-label="anchor" href="#sec-hybrid-findings"></a>
-</h3>
+</section><section class="level3"><h4 id="accuracy-and-intervals-of-the-archived-run">Accuracy and intervals of the archived run<a class="anchor" aria-label="anchor" href="#accuracy-and-intervals-of-the-archived-run"></a>
+</h4>
 <div>
 <div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note</strong></p>
-<p>The numbers in this section come from the archived run of <code>output/archives/fig03/</code> (<span class="math inline">N=50</span>, Wald intervals only), which still included Marquardt–Levenberg and the earlier L-BFGS-B that renormalised a box-constrained fit. They will be replaced by those of the production run; the mechanisms they illustrate do not depend on the solver list.</p>
+<p>The numbers in this section and in the discussion below come from the archived run of <code>output/archives/fig03/</code> (<span class="math inline">N=50</span>, Wald intervals only), which still included Marquardt–Levenberg and the earlier L-BFGS-B that renormalised a box-constrained fit. They will be replaced by those of the production run; the mechanisms they illustrate do not depend on the solver list.</p>
 </blockquote>
 </div>
 </div>
+<section class="level4"><h5 id="balanced-compositions-forest-fisher">Balanced compositions (forest + Fisher)<a class="anchor" aria-label="anchor" href="#balanced-compositions-forest-fisher"></a>
+</h5>
+<p>The Newton/Marquardt forest in the pack is restricted to <span class="math inline">H^{\star}=1</span> (<span class="math inline">p^{\star}=(1/3,1/3,1/3)</span>). On that slice the two second-order solvers are interchangeable. At low overlap (<code>V1</code>, both graphs scale-free) RMSE for <span class="math inline">p_1</span> is <span class="math inline">0.113</span>, bias <span class="math inline">0.012</span>, empirical SD <span class="math inline">0.113</span>, coverage <span class="math inline">0.99</span>. At high overlap (<code>V7</code>) RMSE rises only to <span class="math inline">0.124</span> and coverage stays <span class="math inline">0.99</span>. Median RMSE for <span class="math inline">p_1</span> across the four graph assignments is <span class="math inline">0.122</span> (low <span class="math inline">\bar\varpi</span>), <span class="math inline">0.134</span> (moderate), <span class="math inline">0.147</span> (high); type 3, whose mean is not collinear, stays easier at low overlap (median RMSE <span class="math inline">0.064</span>) and catches up as overlap grows (<span class="math inline">0.130</span>). Expected-Fisher ILR standard errors in <code>theoretical_wald_se.csv</code> tell the same story: <span class="math inline">\mathrm{SE}_{\rho_1}</span> goes from <span class="math inline">0.63</span> (<code>V1</code>) to <span class="math inline">0.97</span> (<code>V7</code>), and the condition number of the ILR information drops from <span class="math inline">6.8</span> to <span class="math inline">1.7</span> — not because the problem becomes better posed, but because <em>both</em> eigenvalues shrink and the ellipsoid becomes a large, round disk. Graph assignment (scale-free versus cluster SBM) moves those SEs by a smaller amount than <span class="math inline">\bar\varpi</span> does. Topology is visible; <strong>average overlap is the dominant knob</strong>, matching the design claim, for <em>balanced</em> <span class="math inline">p^{\star}</span> and for <em>second-order convolution MLEs</em>.</p>
+</section><section class="level4"><h5 id="boundary-pile-up-raincloud-all-hstar">Boundary pile-up (raincloud, all <span class="math inline">H^{\star}</span>)<a class="anchor" aria-label="anchor" href="#boundary-pile-up-raincloud-all-hstar"></a>
+</h5>
+<p>The sampled raincloud (<code>raincloud_sampled.csv</code>) includes moderately and highly unbalanced Shannon targets. Among non-missing point estimates, <span class="math inline">76\%</span> of <code>CIBERSORT</code> values lie at <span class="math inline">0</span> or <span class="math inline">1</span>. At the scenario-wise median (<code>sample_role = q50</code>), type 3 is exactly zero in <span class="math inline">35</span> of <span class="math inline">36</span> scenarios (mean <span class="math inline">\hat p_3=0.0008</span>). That is the clip-and-renormalise step, not a convolution mode on a face. <code>lsei</code> sits on a bound in <span class="math inline">42\%</span> of sampled cells overall and in <span class="math inline">58\%</span> of highly unbalanced cells; <code>LBFGS</code> in <span class="math inline">26\%</span> and <span class="math inline">36\%</span>; Marquardt in <span class="math inline">10\%</span> and <span class="math inline">17\%</span>; Newton in <span class="math inline">4\%</span> and <span class="math inline">12\%</span>. On balanced raincloud rows Newton and Marquardt never hit <span class="math inline">\{0,1\}</span>; LSEI still does (<span class="math inline">21\%</span>). Mean-only and SVR methods convert a collinear mean map into a <strong>hard</strong> boundary estimate; ILR convolution methods convert it into a <strong>soft</strong> interior mode, until <span class="math inline">p^{\star}</span> itself is a rare-type vertex.</p>
+<p>Median absolute error of the <span class="math inline">q_{50}</span> <span class="math inline">p_1</span> fit across scenarios is <span class="math inline">0.048</span> (Newton), <span class="math inline">0.100</span> (<code>lsei</code>), <span class="math inline">0.114</span> (<code>LBFGS</code>), <span class="math inline">0.142</span> (Marquardt), <span class="math inline">0.159</span> (<code>CIBERSORT</code>). The Marquardt figure is not a contradiction of the balanced forest: on the highly unbalanced scenario <code>V3</code> (<span class="math inline">p^{\star}\approx(0.980,0.010,0.010)</span>) the <span class="math inline">q_{50}</span> estimates are <span class="math inline">0.92</span> (Newton), <span class="math inline">0.93</span> (<code>lsei</code>), <span class="math inline">1.00</span> (<code>CIBERSORT</code>), <span class="math inline">0.82</span> (<code>LBFGS</code>), and <span class="math inline">0.78</span> (Marquardt). LSEI is closer to the vertex because the QP <em>wants</em> a vertex; Marquardt is pulled toward the barycentre because RDM refuses a long ILR walk, the same mechanism as <code>B811</code> in the bivariate pack. Covariance information therefore helps only if the solver actually follows the convolution ridge to the rare-type coordinate. A mean-only vertex can beat a damped interior MLE on raw <span class="math inline">p_1</span> error when the truth is already a vertex; it will still report <span class="math inline">\hat p_3=0</span> and cannot support a chi-bar-square test that the type is absent (<a href="01-2-population-inference.html#sec-boundary">boundary inference</a>).</p>
+</section></section></section><section class="level2"><h3 id="sec-hybrid-findings">Discussion and interpretation of relative deconvolution performance<a class="anchor" aria-label="anchor" href="#sec-hybrid-findings"></a>
+</h3>
 <p>Cell types 1 and 2 share cosine <span class="math inline">0.9</span>, so the mean map <span class="math inline">\boldsymbol{\mu}\boldsymbol{p}</span> is close to singular in the <span class="math inline">(p_1,p_2)</span> plane: type 3 is the only well-separated mean. MixSim <span class="math inline">\bar\varpi</span> then sets how much of the remaining signal lives in <span class="math inline">\{\boldsymbol{\Sigma}_j\}</span>. The pack in <code>output/fig03/mle_explanation/</code> (descriptors, ILR slices of <span class="math inline">\ell</span> at <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}</span>, expected-Fisher SEs, Newton/Marquardt forests on <strong>balanced</strong> compositions, and a quantile-sampled raincloud across all <span class="math inline">H^{\star}</span>) is the numerical reading of that geometry. As in the bivariate toy, three layers must be kept apart: the convolution <span class="math inline">\ell</span>, the surrogate each solver optimises, and the chart / KKT / stopping rule.</p>
 <section class="level3"><h4 id="surrogates-versus-the-convolution">Surrogates versus the convolution<a class="anchor" aria-label="anchor" href="#surrogates-versus-the-convolution"></a>
 </h4>
 <p><code>lsei</code> (<code>limSolve</code>) is again a convex QP for <span class="math inline">\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|_2^2</span> on the simplex <span class="citation" data-cites="R-limSolve gongDeconRNASeqStatisticalFramework2013 dessoleLawsonHansonAlgorithmDeviation2023 boydConvexOptimization2004">(<a href="#ref-R-limSolve" role="doc-biblioref"><span class="nocase">Soetaert et al.</span> 2026</a>; <a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>; <a href="#ref-dessoleLawsonHansonAlgorithmDeviation2023" role="doc-biblioref">Dessole et al. 2023</a>; <a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004</a>)</span>. With two nearly collinear signature columns the QP is under-determined in the <span class="math inline">(p_1,p_2)</span> direction; the equality <span class="math inline">\sum p_j=1</span> plus bounds then put mass on a face. <code>CIBERSORT</code> replaces squares by a <span class="math inline">\nu</span>-SVR hinge <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>. The dual is a convex quadratic programme solved by sequential working-set methods <span class="citation" data-cites="fanWorkingSetSelection2005">(<a href="#ref-fanWorkingSetSelection2005" role="doc-biblioref">Fan et al. 2005</a>)</span>. The wrapper does <strong>not</strong> constrain coefficients to the simplex during the fit: negatives are clipped to zero and the remainder is renormalised. Clipping is a Euclidean projection onto the positive orthant, not a constrained MLE, so a support vector that overshoots becomes a vertex of <span class="math inline">\Delta^{2}</span>. Neither method sees <span class="math inline">p_j^2\boldsymbol{\Sigma}_j</span>.</p>
 <p>DeCovarT solvers maximise the Gaussian convolution. <code>Newton-Raphson</code> and <code>Marquardt-Levenberg</code> do so in ILR, with a full Hessian versus Marquardt damping plus RDM <span class="citation" data-cites="marquardtAlgorithmLeastSquaresEstimation1963 commengesNewtonLikeAlgorithmLikelihood2006 philippsRobustEfficientOptimization2021 R-marqLevAlg">(<a href="#ref-marquardtAlgorithmLeastSquaresEstimation1963" role="doc-biblioref">Marquardt 1963</a>; <a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>; <a href="#ref-philippsRobustEfficientOptimization2021" role="doc-biblioref">Philipps et al. 2021</a>, <a href="#ref-R-marqLevAlg" role="doc-biblioref">2023</a>)</span>. <code>L-BFGS-B</code> uses a limited-memory inverse Hessian on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w</span>, <span class="math inline">\boldsymbol w\ge0</span> <span class="citation" data-cites="byrdLimitedMemoryAlgorithm1995 zhuAlgorithm778LBFGSB1997">(<a href="#ref-byrdLimitedMemoryAlgorithm1995" role="doc-biblioref">Byrd et al. 1995</a>; <a href="#ref-zhuAlgorithm778LBFGSB1997" role="doc-biblioref">Zhu et al. 1997</a>)</span>. The same caveats as in <a href="R1-bivariate-toy.html#sec-bivariate-findings">the bivariate interpretation</a> apply: Boyd’s local-quadratic Newton rate needs a locally strongly concave <span class="math inline">\ell</span>; RDM stops when further ILR steps are smaller than statistical error; the archived box-constrained BFGS, which renormalised a free-scale fit, could sit on a face that is not a stationary point of <span class="math inline">\ell</span> (the closure chart now used cannot). All of this is still <span class="math inline">N=1</span> per bulk (<a href="01-2-population-inference.html#sec-finite-sample">finite-sample MLE</a>).</p>
-</section><section class="level3"><h4 id="balanced-compositions-forest-fisher">Balanced compositions (forest + Fisher)<a class="anchor" aria-label="anchor" href="#balanced-compositions-forest-fisher"></a>
-</h4>
-<p>The Newton/Marquardt forest in the pack is restricted to <span class="math inline">H^{\star}=1</span> (<span class="math inline">p^{\star}=(1/3,1/3,1/3)</span>). On that slice the two second-order solvers are interchangeable. At low overlap (<code>V1</code>, both graphs scale-free) RMSE for <span class="math inline">p_1</span> is <span class="math inline">0.113</span>, bias <span class="math inline">0.012</span>, empirical SD <span class="math inline">0.113</span>, coverage <span class="math inline">0.99</span>. At high overlap (<code>V7</code>) RMSE rises only to <span class="math inline">0.124</span> and coverage stays <span class="math inline">0.99</span>. Median RMSE for <span class="math inline">p_1</span> across the four graph assignments is <span class="math inline">0.122</span> (low <span class="math inline">\bar\varpi</span>), <span class="math inline">0.134</span> (moderate), <span class="math inline">0.147</span> (high); type 3, whose mean is not collinear, stays easier at low overlap (median RMSE <span class="math inline">0.064</span>) and catches up as overlap grows (<span class="math inline">0.130</span>). Expected-Fisher ILR standard errors in <code>theoretical_wald_se.csv</code> tell the same story: <span class="math inline">\mathrm{SE}_{\rho_1}</span> goes from <span class="math inline">0.63</span> (<code>V1</code>) to <span class="math inline">0.97</span> (<code>V7</code>), and the condition number of the ILR information drops from <span class="math inline">6.8</span> to <span class="math inline">1.7</span> — not because the problem becomes better posed, but because <em>both</em> eigenvalues shrink and the ellipsoid becomes a large, round disk. Graph assignment (scale-free versus cluster SBM) moves those SEs by a smaller amount than <span class="math inline">\bar\varpi</span> does. Topology is visible; <strong>average overlap is the dominant knob</strong>, matching the design claim, for <em>balanced</em> <span class="math inline">p^{\star}</span> and for <em>second-order convolution MLEs</em>.</p>
-</section><section class="level3"><h4 id="boundary-pile-up-raincloud-all-hstar">Boundary pile-up (raincloud, all <span class="math inline">H^{\star}</span>)<a class="anchor" aria-label="anchor" href="#boundary-pile-up-raincloud-all-hstar"></a>
-</h4>
-<p>The sampled raincloud (<code>raincloud_sampled.csv</code>) includes moderately and highly unbalanced Shannon targets. Among non-missing point estimates, <span class="math inline">76\%</span> of <code>CIBERSORT</code> values lie at <span class="math inline">0</span> or <span class="math inline">1</span>. At the scenario-wise median (<code>sample_role = q50</code>), type 3 is exactly zero in <span class="math inline">35</span> of <span class="math inline">36</span> scenarios (mean <span class="math inline">\hat p_3=0.0008</span>). That is the clip-and-renormalise step, not a convolution mode on a face. <code>lsei</code> sits on a bound in <span class="math inline">42\%</span> of sampled cells overall and in <span class="math inline">58\%</span> of highly unbalanced cells; <code>LBFGS</code> in <span class="math inline">26\%</span> and <span class="math inline">36\%</span>; Marquardt in <span class="math inline">10\%</span> and <span class="math inline">17\%</span>; Newton in <span class="math inline">4\%</span> and <span class="math inline">12\%</span>. On balanced raincloud rows Newton and Marquardt never hit <span class="math inline">\{0,1\}</span>; LSEI still does (<span class="math inline">21\%</span>). Mean-only and SVR methods convert a collinear mean map into a <strong>hard</strong> boundary estimate; ILR convolution methods convert it into a <strong>soft</strong> interior mode, until <span class="math inline">p^{\star}</span> itself is a rare-type vertex.</p>
-<p>Median absolute error of the <span class="math inline">q_{50}</span> <span class="math inline">p_1</span> fit across scenarios is <span class="math inline">0.048</span> (Newton), <span class="math inline">0.100</span> (<code>lsei</code>), <span class="math inline">0.114</span> (<code>LBFGS</code>), <span class="math inline">0.142</span> (Marquardt), <span class="math inline">0.159</span> (<code>CIBERSORT</code>). The Marquardt figure is not a contradiction of the balanced forest: on the highly unbalanced scenario <code>V3</code> (<span class="math inline">p^{\star}\approx(0.980,0.010,0.010)</span>) the <span class="math inline">q_{50}</span> estimates are <span class="math inline">0.92</span> (Newton), <span class="math inline">0.93</span> (<code>lsei</code>), <span class="math inline">1.00</span> (<code>CIBERSORT</code>), <span class="math inline">0.82</span> (<code>LBFGS</code>), and <span class="math inline">0.78</span> (Marquardt). LSEI is closer to the vertex because the QP <em>wants</em> a vertex; Marquardt is pulled toward the barycentre because RDM refuses a long ILR walk, the same mechanism as <code>B811</code> in the bivariate pack. Covariance information therefore helps only if the solver actually follows the convolution ridge to the rare-type coordinate. A mean-only vertex can beat a damped interior MLE on raw <span class="math inline">p_1</span> error when the truth is already a vertex; it will still report <span class="math inline">\hat p_3=0</span> and cannot support a chi-bar-square test that the type is absent (<a href="01-2-population-inference.html#sec-boundary">boundary inference</a>).</p>
 </section><section class="level3"><h4 id="ridges-in-the-ilr-slices">Ridges in the ILR slices<a class="anchor" aria-label="anchor" href="#ridges-in-the-ilr-slices"></a>
 </h4>
 <p><code>ilr_loglik_profiles.csv</code> slices <span class="math inline">\ell(\rho_1,\rho_2)</span> at <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}</span>. High <span class="math inline">\bar\varpi</span> produces ridges along the type-1/type-2 contrast (the collinear mean direction): many <span class="math inline">(\rho_1,\rho_2)</span> give almost the same convolution Gaussian. Newton follows the ridge until the Hessian in the remaining well-identified direction (type 3 versus <span class="math inline">\{1,2\}</span>) stops it. Marquardt stops earlier when RDM sees no inferential gain. <code>L-BFGS-B</code>, stepping in <span class="math inline">p</span> with only box bounds, can leave the simplex during the line search and land near a face after <span class="math inline">p/\sum p</span>, which is the raincloud’s <span class="math inline">26\%</span> bound rate. None of these paths is the Godambe sandwich or a Firth penalty <span class="citation" data-cites="firthBiasReductionMaximum1993">(<a href="#ref-firthBiasReductionMaximum1993" role="doc-biblioref">Firth 1993</a>)</span>; the Firth fit is now benchmarked as its own method (<a href="01-2-population-inference.html#sec-firth">Firth</a>). With <span class="math inline">N=1</span>, the honest frequentist statement for a rare type is still the restricted LRT / parametric bootstrap of the MLE article, not a Wald ellipse from <code><a href="../reference/vcov_ilr_delta.html">vcov_ilr_delta()</a></code>.</p>
@@ -720,6 +719,10 @@ Table 7: Plot books of the covariance-driven scenario.
 </h3>
 <ul>
 <li>Bivariate toy: <a href="R1-bivariate-toy.html">§2.2</a>
+</li>
+<li>Bivariate toy on the single-cell model: <a href="R3-bivariate-single-cell.html">§2.4</a>
+</li>
+<li>Single-cell, two lineages: <a href="R4-single-cell-hierarchical.html">§2.5</a>
 </li>
 <li>Moment generator: <a href="04-1-synthetic-scenarios.html">How to build synthetic scenarios</a>
 </li>

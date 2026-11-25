@@ -1039,16 +1039,19 @@ overlap scores that describe them.
 
 ### Simulation study (article §2)
 
-The three simulation scenarios of the DeCovarT article. **§2.2**
+The four simulation scenarios of the DeCovarT article. **§2.2**
 Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation,
 mean distance, and composition. **§2.3** Covariance-driven hybrid (J =
 3, G = 20): fixed Gram (cosines 0.9 / 0.1), 2^2 scale-free / cluster-SBM
 assignments on the mean-collinear types \times three target MixSim
 average overlaps (precision zeros kept), Shannon H^{\star} compositions.
-**§2.4** Single-cell reference, two lineages (J = 4): sibling cosine
-0.8, lineage stochastic block models with scale-free or hub children,
-2^6 = 64 crossed scenarios (composition, sibling overlap, cells per
-bulk, cell sizes, genes, platform scale 1 or 5).
+**§2.4** Bivariate toy on the single-cell model (J = 2, G = 2): known
+technical scales (oracle or nominal cell count), three cell counts per
+bulk, the same correlation sweep, three optimisers. **§2.5** Single-cell
+reference, two lineages (J = 4): sibling cosine 0.8, lineage stochastic
+block models with scale-free or hub children, 2^6 = 64 crossed scenarios
+(composition, sibling overlap, cells per bulk, cell sizes, genes,
+platform scale 1 or 5).
 
 - [§2.2 Bivariate toy model (G = 2 genes, J = 2 cell
   types)](https://bastienchassagnol.github.io/DeCovarT/articles/R1-bivariate-toy.md):
@@ -1060,9 +1063,15 @@ bulk, cell sizes, genes, platform scale 1 or 5).
 
   A twenty-gene simulation driven by covariance, not only the mean.
 
-- [§2.4 Single-cell scenario: four cell types in two lineages (G = 20 or
+- [§2.4 Bivariate toy, single-cell model (G = 2, J =
+  2)](https://bastienchassagnol.github.io/DeCovarT/articles/R3-bivariate-single-cell.md):
+
+  The two-gene, two-type toy of §2.2 rebuilt on the single-cell model,
+  with known technical scales.
+
+- [§2.5 Single-cell scenario: four cell types in two lineages (G = 20 or
   200, J =
-  4)](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.md):
+  4)](https://bastienchassagnol.github.io/DeCovarT/articles/R4-single-cell-hierarchical.md):
 
   A four-type simulation with two lineages of single cells.
 

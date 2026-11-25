@@ -18,7 +18,9 @@ lrt_single_cell(
   n_boundary = NULL,
   boundary_tol = 1e-06,
   epsilon = 1e-08,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 ```
 
@@ -53,6 +55,11 @@ lrt_single_cell(
 - itmax:
 
   Maximum number of iterations.
+
+- mean_scale, variance_scale:
+
+  Optional known scales, held under both hypotheses (see
+  [`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)).
 
 ## Value
 

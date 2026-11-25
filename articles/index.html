@@ -44,7 +44,8 @@
     <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
     <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-bivariate-single-cell.html"><span class="fa fa-chart-column"></span> §2.4 · Bivariate toy, single-cell model (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R4-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.5 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
@@ -139,13 +140,15 @@
       </dd></dl></div>
     <div class="section ">
       <h3>Simulation study (article §2)</h3>
-      <div class="section-desc"><p>The three simulation scenarios of the DeCovarT article. <strong>§2.2</strong> Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation, mean distance, and composition. <strong>§2.3</strong> Covariance-driven hybrid (J = 3, G = 20): fixed Gram (cosines 0.9 / 0.1), <span class="math inline">2^2</span> scale-free / cluster-SBM assignments on the mean-collinear types <span class="math inline">\times</span> three target MixSim average overlaps (precision zeros kept), Shannon <span class="math inline">H^{\star}</span> compositions. <strong>§2.4</strong> Single-cell reference, two lineages (J = 4): sibling cosine 0.8, lineage stochastic block models with scale-free or hub children, <span class="math inline">2^6 = 64</span> crossed scenarios (composition, sibling overlap, cells per bulk, cell sizes, genes, platform scale 1 or 5).</p></div>
+      <div class="section-desc"><p>The four simulation scenarios of the DeCovarT article. <strong>§2.2</strong> Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation, mean distance, and composition. <strong>§2.3</strong> Covariance-driven hybrid (J = 3, G = 20): fixed Gram (cosines 0.9 / 0.1), <span class="math inline">2^2</span> scale-free / cluster-SBM assignments on the mean-collinear types <span class="math inline">\times</span> three target MixSim average overlaps (precision zeros kept), Shannon <span class="math inline">H^{\star}</span> compositions. <strong>§2.4</strong> Bivariate toy on the single-cell model (J = 2, G = 2): known technical scales (oracle or nominal cell count), three cell counts per bulk, the same correlation sweep, three optimisers. <strong>§2.5</strong> Single-cell reference, two lineages (J = 4): sibling cosine 0.8, lineage stochastic block models with scale-free or hub children, <span class="math inline">2^6 = 64</span> crossed scenarios (composition, sibling overlap, cells per bulk, cell sizes, genes, platform scale 1 or 5).</p></div>
 
       <dl><dt><a href="R1-bivariate-toy.html">§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)</a></dt>
         <dd><p>A two-gene, two-type simulation used as a toy benchmark.</p>
         </dd><dt><a href="R2-covariance-driven.html">§2.3 Covariance-driven scenario (G = 20, J = 3)</a></dt>
         <dd><p>A twenty-gene simulation driven by covariance, not only the mean.</p>
-        </dd><dt><a href="R3-single-cell-hierarchical.html">§2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)</a></dt>
+        </dd><dt><a href="R3-bivariate-single-cell.html">§2.4 Bivariate toy, single-cell model (G = 2, J = 2)</a></dt>
+        <dd><p>The two-gene, two-type toy of §2.2 rebuilt on the single-cell model, with known technical scales.</p>
+        </dd><dt><a href="R4-single-cell-hierarchical.html">§2.5 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)</a></dt>
         <dd><p>A four-type simulation with two lineages of single cells.</p>
       </dd></dl></div>
     <div class="section ">
