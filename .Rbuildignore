@@ -30,7 +30,6 @@
 ^vignettes/.*_files$
 ^vignettes/.*\.html$
 ^vignettes/.*\.R$
-^vignettes/scripts$
 # CRAN tarball ships one Quarto vignette: the bivariate toy (R1).
 # R installs vignette products only when the basename starts with a letter,
 # so the numbered articles (including 01-1 and 03-3) stay on the pkgdown
@@ -51,20 +50,26 @@
 ^vignettes/05-3-extensions-roadmap\.qmd$
 ^vignettes/05-4-mixture-experiments\.qmd$
 ^vignettes/R2-covariance-driven\.qmd$
-^vignettes/R3-single-cell-hierarchical\.qmd$
+^vignettes/R3-bivariate-single-cell\.qmd$
+^vignettes/R4-single-cell-hierarchical\.qmd$
 ^vignettes/S1-identifiability\.qmd$
 ^vignettes/S2-covariance-inversion\.qmd$
 ^vignettes/S3-scaling\.qmd$
 ^vignettes/S4-covariance-modeling\.qmd$
 ^vignettes/S5-misspecification\.qmd$
 ^vignettes/S6-feature-screening-scenario\.qmd$
-# Quarto extensions used only by pkgdown-only articles. pandoc-ext/diagram
-# is kept: vignettes/_quarto.yml loads it for every article, and the
-# committed vignettes/_diagram-cache/ lets it render without TeX.
+# Quarto extensions used only by pkgdown-only articles.
 # sun123zxy/callouty-theorem is kept: pkgdown articles load that filter.
 # notation.qmd is the shared symbol article (pkgdown only).
 # _notation.qmd was the old include fragment.
 ^vignettes/_extensions/jmgirard/
+# TikZ build inputs and the SVGs of pkgdown-only articles; only R1 (CRAN)
+# ships its diagram, vignettes/figures/tikz/fig-bivariate-design.svg.
+^vignettes/figures/tikz/preamble\.tex$
+^vignettes/figures/tikz/.*\.sha1$
+^vignettes/figures/tikz/(fig-[^b]|fig-b[^i]|fig-bi[^v]).*\.svg$
+^vignettes/figures/tikz/fig-bivariate-single-cell-design\.svg$
+^vignettes/figures/fig05$
 ^vignettes/_environment\.local$
 ^vignettes/_notation\.qmd$
 ^vignettes/notation\.qmd$
@@ -74,7 +79,6 @@
 ^vignettes/figures/condition_number_poor_performance_correlated_cell_types\.png$
 ^vignettes/figures/fig_03_1_dea_design\.(svg|png)$
 ^vignettes/figures/decovart_leakage_free_validation\.png$
-^vignettes/figures/fig_mean_signature_shared_private\.png$
 ^vignettes/figures/cholesky_vs_spectral_decomposition\.svg$
 ^vignettes/figures/fig_network_topologies_six\.png$
 ^vignettes/figures/fig_03_1_gini\.(svg|png)$
@@ -168,3 +172,4 @@
 ^vignettes/figures/src$
 ^dev$
 ^review-decovart-bastien-elias-marielle-anais$
+^\.codegraph$

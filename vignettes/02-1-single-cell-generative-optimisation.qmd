@@ -171,11 +171,9 @@ this vignette derives it and its relaxations.
 : Where each element of the article's single-cell model is derived. {#tbl-article-map}
 :::
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-four-strategies
-%%| fig-cap: Four strategies to align a single-cell reference with a bulk sample. Strategies 1--3 differ by the scale on which the bulk is observed and estimate the scales jointly with the composition; Strategy 4 estimates the technical and biological scales first and plugs them into the regression or likelihood. Italic lines name the reviewed methods that already sit on each branch.
 %%| filename: fig-four-strategies
-%%| alt: Flowchart. A single-cell reference leads to a question about the bulk scale and where scales are estimated. Four boxes follow: cell-count convolution targeting integer counts; averaged mixture targeting proportions on the simplex with the number of cells as a nuisance; compositional bulk targeting RNA fractions; plug-in scales estimated beforehand. Each box lists its covariance and the methods that use it, and ends in a note: proportions by division; the purified-profile convolution as a limit; RNA fractions differ from cell fractions unless cell sizes are equal; plug-in uncertainty must be propagated.
 \begin{tikzpicture}[every node/.append style={}]
 \node[keybox, text width=9cm] (ref) at (0,0) {Single-cell reference: $\tilde{\boldsymbol{\mu}}_{\cdot j}$ and $\boldsymbol{\Sigma}_{W,j}$ from $R=1$;\ $\boldsymbol{\Sigma}_{B,j}$ needs $R\ge 2$};
 \node[choice] (q) at (0,-1.8) {Bulk scale, and where\\ are the scales estimated?};
@@ -195,6 +193,9 @@ this vignette derives it and its relaxations.
 \foreach \k in {1,2,3,4} \draw[edge] (s\k.south) -- (o\k.north);
 \end{tikzpicture}
 ```
+:::
+
+![Four strategies to align a single-cell reference with a bulk sample. Strategies 1--3 differ by the scale on which the bulk is observed and estimate the scales jointly with the composition; Strategy 4 estimates the technical and biological scales first and plugs them into the regression or likelihood. Italic lines name the reviewed methods that already sit on each branch.](figures/tikz/fig-four-strategies.svg){#fig-four-strategies fig-alt="Flowchart. A single-cell reference leads to a question about the bulk scale and where scales are estimated. Four boxes follow: cell-count convolution targeting integer counts; averaged mixture targeting proportions on the simplex with the number of cells as a nuisance; compositional bulk targeting RNA fractions; plug-in scales estimated beforehand. Each box lists its covariance and the methods that use it, and ends in a note: proportions by division; the purified-profile convolution as a limit; RNA fractions differ from cell fractions unless cell sizes are equal; plug-in uncertainty must be propagated."}
 
 # From cells to reference moments {#sec-reference}
 
@@ -330,11 +331,9 @@ $$ {#eq-three-layer}
 
 $\boldsymbol{\Sigma}_{\mathrm{obs},i}$ is diagonal. Gene–gene correlation is already inside $\boldsymbol{\Sigma}_{B,j}$ and $\boldsymbol{\Sigma}_{W,j}$. Heteroscedastic diagonal entries are allowed. Off-diagonal residual correlation would double-count the network.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-three-regimes
-%%| fig-cap: Which covariance terms the reference design identifies. FACS profiles supply only the quadratic layer. One single-cell replicate supplies only the linear layer. $R\ge 2$ replicates separate both, plus a diagonal bulk residual.
 %%| filename: fig-three-regimes
-%%| alt: Flowchart. The reference used to build mu_j and Sigma_j splits into FACS-sorted population profiles, a single-cell reference with one replicate, and a single-cell reference with at least two replicates. They lead respectively to a quadratic convolution in p squared Sigma B, a linear mixture p Sigma W divided by n_i, and both layers separated. All three add a diagonal bulk residual D_i.
 \begin{tikzpicture}
 \node[keybox] (ref) at (0,0) {Reference used to build $\boldsymbol{\mu}_{\cdot j}$ and $\boldsymbol{\Sigma}_j$};
 \node[box, text width=3.6cm] (facs) at (-4.4,-1.8) {FACS-sorted population profiles};
@@ -349,6 +348,9 @@ $\boldsymbol{\Sigma}_{\mathrm{obs},i}$ is diagonal. Gene–gene correlation is a
 \draw[edge] (q) -- (noise); \draw[edge] (lin) -- (noise); \draw[edge] (both) -- (noise);
 \end{tikzpicture}
 ```
+:::
+
+![Which covariance terms the reference design identifies. FACS profiles supply only the quadratic layer. One single-cell replicate supplies only the linear layer. $R\ge 2$ replicates separate both, plus a diagonal bulk residual.](figures/tikz/fig-three-regimes.svg){#fig-three-regimes fig-alt="Flowchart. The reference used to build mu_j and Sigma_j splits into FACS-sorted population profiles, a single-cell reference with one replicate, and a single-cell reference with at least two replicates. They lead respectively to a quadratic convolution in p squared Sigma B, a linear mixture p Sigma W divided by n_i, and both layers separated. All three add a diagonal bulk residual D_i."}
 
 ## Aligning reference profiles with bulk sample $i$ {#sec-alignment}
 
@@ -521,11 +523,9 @@ second choice: whether the cell type of each summand is random or
 given. @fig-dag-dependence lays out the four cases from no dependence
 to full dependence.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-dependence
-%%| fig-cap: Four generative stories for a bulk profile $\boldsymbol{y}$, ordered by the dependence between cells. (a) A mixture: each of $n$ cells draws its type label from $\mathrm{Cat}(\boldsymbol{p})$. (b) Independent cells with fixed counts $m_j$. (c) Equicorrelated cells sharing a type-level effect $\boldsymbol{B}_j$. (d) One population profile per type, scaled by $p_j$. The note under each $\boldsymbol{y}$ is its covariance; $\boldsymbol{\delta}_j=\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}\boldsymbol{p}$.
 %%| filename: fig-dag-dependence
-%%| alt: Four panels from left to right. Panel a: fixed p generates a latent label z_c, which with fixed means and covariances generates a latent cell X_c inside a plate over n cells; the bulk y is their sum, with covariance n times the sum of p_j Sigma_j plus n times the spread of the type means. Panel b: within a plate over types, fixed counts m_j and moments generate independent cells; covariance sum of m_j Sigma_j. Panel c: a latent type effect B_j is shared by the cells of type j; covariance sum of m_j times 1 plus m_j minus 1 times rho_j, times Sigma_j. Panel d: one latent profile Z_j per type, scaled by p_j; covariance sum of p_j squared Sigma_j.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west, align=left}}
 % (a) mixture: random labels
@@ -579,6 +579,9 @@ to full dependence.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![Four generative stories for a bulk profile $\boldsymbol{y}$, ordered by the dependence between cells. (a) A mixture: each of $n$ cells draws its type label from $\mathrm{Cat}(\boldsymbol{p})$. (b) Independent cells with fixed counts $m_j$. (c) Equicorrelated cells sharing a type-level effect $\boldsymbol{B}_j$. (d) One population profile per type, scaled by $p_j$. The note under each $\boldsymbol{y}$ is its covariance; $\boldsymbol{\delta}_j=\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}\boldsymbol{p}$.](figures/tikz/fig-dag-dependence.svg){#fig-dag-dependence fig-alt="Four panels from left to right. Panel a: fixed p generates a latent label z_c, which with fixed means and covariances generates a latent cell X_c inside a plate over n cells; the bulk y is their sum, with covariance n times the sum of p_j Sigma_j plus n times the spread of the type means. Panel b: within a plate over types, fixed counts m_j and moments generate independent cells; covariance sum of m_j Sigma_j. Panel c: a latent type effect B_j is shared by the cells of type j; covariance sum of m_j times 1 plus m_j minus 1 times rho_j, times Sigma_j. Panel d: one latent profile Z_j per type, scaled by p_j; covariance sum of p_j squared Sigma_j."}
 
 **Mixture of cells.** If the type label $z_c$ of each of $n$ cells is
 drawn from $\mathrm{Cat}(\boldsymbol{p})$, one cell follows the Gaussian
@@ -1454,11 +1457,9 @@ from auxiliary data, and holds them fixed in the regression or
 likelihood. It is the strategy that most published methods use in
 practice, usually without saying so.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-plugin
-%%| fig-cap: Joint versus plug-in estimation of nuisance scales $\boldsymbol{\eta}$ (size factors, cell sizes, platform, sample scale). (a) Strategies 1--3 maximise the bulk likelihood in $\boldsymbol{p}_{\cdot i}$ and $\boldsymbol{\eta}_i$ together. (b) Strategy 4 estimates $\hat{\boldsymbol{\eta}}$ from auxiliary data, then fits $\boldsymbol{p}_{\cdot i}$ with $\hat{\boldsymbol{\eta}}$ held fixed.
 %%| filename: fig-dag-plugin
-%%| alt: Two panels. Panel a: fixed type moments outside a bulk plate; inside, fixed p_i and nuisance eta_i generate the observed y_i, maximised jointly. Panel b: observed auxiliary data inside their own plate give the deterministic estimate eta hat in stage 1; inside the bulk plate, fixed p_i, the type moments and eta hat, through a dashed plug-in arrow, generate y_i in stage 2.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) joint
@@ -1489,6 +1490,9 @@ practice, usually without saying so.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![Joint versus plug-in estimation of nuisance scales $\boldsymbol{\eta}$ (size factors, cell sizes, platform, sample scale). (a) Strategies 1--3 maximise the bulk likelihood in $\boldsymbol{p}_{\cdot i}$ and $\boldsymbol{\eta}_i$ together. (b) Strategy 4 estimates $\hat{\boldsymbol{\eta}}$ from auxiliary data, then fits $\boldsymbol{p}_{\cdot i}$ with $\hat{\boldsymbol{\eta}}$ held fixed.](figures/tikz/fig-dag-plugin.svg){#fig-dag-plugin fig-alt="Two panels. Panel a: fixed type moments outside a bulk plate; inside, fixed p_i and nuisance eta_i generate the observed y_i, maximised jointly. Panel b: observed auxiliary data inside their own plate give the deterministic estimate eta hat in stage 1; inside the bulk plate, fixed p_i, the type moments and eta hat, through a dashed plug-in arrow, generate y_i in stage 2."}
 
 ### What is plugged in {#sec-plugin-targets}
 

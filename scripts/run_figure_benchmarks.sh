@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Run figure benchmarks at the same time, as independent R processes with
 # their own logs. Each script uses a third of half the cores (CORES at its
-# top), so three together stay within half the machine.
+# top), so three together stay within half the machine; all four together
+# use two thirds of it.
 #
 #   nohup bash scripts/run_figure_benchmarks.sh \
 #     > "logs/figures_$(date +%F).log" 2>&1 &
-#   # a subset: bash scripts/run_figure_benchmarks.sh fig02 fig05
+#   # a subset: bash scripts/run_figure_benchmarks.sh fig02 fig06
 #
 # OpenBLAS 0.3.20 (Ubuntu 22.04) selects a faulty kernel on the Intel Xeon
 # w9-3575X; the variables below must be set before R starts.
@@ -19,12 +20,14 @@ day=$(date +%F)
 declare -A scripts=(
   [fig02]=fig02_bivariate_toy
   [fig03]=fig03_variance_covariance_driven
-  [fig05]=fig05_single_cell_hierarchical
+  [fig05]=fig05_bivariate_single_cell
+  [fig06]=fig06_single_cell_hierarchical
 )
 declare -A labels=(
   [fig02]=bivariate_toy
   [fig03]=covariance_driven
-  [fig05]=single_cell
+  [fig05]=bivariate_single_cell
+  [fig06]=single_cell
 )
 
 run() {
@@ -39,11 +42,11 @@ run() {
 
 figures=("$@")
 if [ ${#figures[@]} -eq 0 ]; then
-  figures=(fig05 fig03 fig02)
+  figures=(fig06 fig05 fig03 fig02)
 fi
 for figure in "${figures[@]}"; do
   if [ -z "${scripts[$figure]+x}" ]; then
-    echo "Unknown figure ${figure}; expected fig02, fig03 or fig05." >&2
+    echo "Unknown figure ${figure}; expected fig02, fig03, fig05 or fig06." >&2
     exit 2
   fi
 done

@@ -39,6 +39,10 @@
 #' it is fitted by Newton-Raphson on the profile log-likelihood with the
 #' PORT trust region of [stats::nlminb()], as [restricted_mle_decovart()].
 #'
+#' With `mean_scale` and `variance_scale`, the scales are known and held
+#' at those values under both the full and the restricted fit, so the
+#' model needs only \eqn{G\ge J} genes.
+#'
 #' @inheritParams deconvolute_single_cell
 #' @param fixed Named ratios held fixed, as in [restricted_mle_decovart()].
 #'
@@ -60,9 +64,17 @@ restricted_mle_single_cell <- function(
   Sigma,
   fixed = NULL,
   epsilon = 1e-8,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 ) {
-  checked <- .check_single_cell_inputs(y, mean_signature_matrix, Sigma)
+  known <- !is.null(mean_scale) && !is.null(variance_scale)
+  checked <- .check_single_cell_inputs(
+    y,
+    mean_signature_matrix,
+    Sigma,
+    scales_known = known
+  )
   y <- checked$y
   mean_signature_matrix <- checked$mean
   nms <- colnames(mean_signature_matrix)
@@ -77,7 +89,9 @@ restricted_mle_single_cell <- function(
       Sigma,
       epsilon = epsilon,
       itmax = itmax,
-      profile = TRUE
+      profile = TRUE,
+      mean_scale = mean_scale,
+      variance_scale = variance_scale
     )
     return(list(
       coefficients = stats::setNames(fit$composition, nms),
@@ -89,6 +103,20 @@ restricted_mle_single_cell <- function(
         message = fit$message,
         rdm = NA_real_
       )
+    ))
+  }
+  if (known) {
+    fixed_args <- function(p) {
+      list(p, y, mean_signature_matrix, Sigma, mean_scale, variance_scale)
+    }
+    return(.fit_on_face(
+      nms,
+      fixed,
+      loglik = function(p) do.call(loglik_single_cell, fixed_args(p)),
+      score = function(p) do.call(gradient_loglik_single_cell, fixed_args(p)),
+      hessian = function(p) do.call(hessian_loglik_single_cell, fixed_args(p)),
+      epsilon = epsilon,
+      itmax = itmax
     ))
   }
   at_scales <- function(p, fun) {
@@ -213,13 +241,18 @@ restricted_mle_single_cell <- function(
   how,
   n_draws,
   seed,
-  calibration
+  calibration,
+  mean_scale = NULL,
+  variance_scale = NULL
 ) {
   uncertainty <- vcov_single_cell(
     composition,
     y,
     mean_signature_matrix,
     Sigma,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale,
+    scales_known = !is.null(mean_scale),
     warn = FALSE
   )
   uncertainty$vcov_rho <- uncertainty$vcov_rho * calibration$inflation
@@ -291,7 +324,11 @@ restricted_mle_single_cell <- function(
 #' @param variance `"ml"` (default) uses the \eqn{\chi^2_1} cut-off.
 #'   `"reml"` uses \eqn{G\log\{1+F_{1,\nu;1-\alpha}/\nu\}} with
 #'   \eqn{\nu=G-J}, the exact cut-off of the profile likelihood ratio
-#'   when a variance scale is profiled out of a linear model.
+#'   when a variance scale is profiled out of a linear model. Ignored
+#'   when the scales are known.
+#' @param mean_scale,variance_scale Optional known scales, as in
+#'   [restricted_mle_single_cell()]; the interval then inverts the
+#'   likelihood ratio at those scales with the \eqn{\chi^2_1} cut-off.
 #'
 #' @return A matrix with columns `estimate`, `lower` and `upper`.
 #'
@@ -312,10 +349,15 @@ confint_profile_single_cell <- function(
   celltypes = colnames(mean_signature_matrix),
   variance = c("ml", "reml"),
   epsilon = 1e-8,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 ) {
   level <- .check_level(level)
   variance <- match.arg(variance)
+  if (!is.null(mean_scale)) {
+    variance <- "ml"
+  }
   if (is.null(celltypes)) {
     stop("`mean_signature_matrix` needs column names.", call. = FALSE)
   }
@@ -324,7 +366,9 @@ confint_profile_single_cell <- function(
     mean_signature_matrix,
     Sigma,
     epsilon = epsilon,
-    itmax = itmax
+    itmax = itmax,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale
   )
   n_genes <- length(y)
   df <- n_genes - ncol(mean_signature_matrix)
@@ -346,7 +390,9 @@ confint_profile_single_cell <- function(
           Sigma,
           fixed = stats::setNames(value, celltype),
           epsilon = epsilon,
-          itmax = itmax
+          itmax = itmax,
+          mean_scale = mean_scale,
+          variance_scale = variance_scale
         )
         2 * (full$loglik - restricted$loglik) - cutoff
       }
@@ -374,6 +420,8 @@ confint_profile_single_cell <- function(
 #' @inheritParams restricted_mle_single_cell
 #' @param null_value Named hypothesised ratios.
 #' @param n_boundary,boundary_tol As in [lrt_decovart()].
+#' @param mean_scale,variance_scale Optional known scales, held under both
+#'   hypotheses (see [restricted_mle_single_cell()]).
 #'
 #' @return A one-row data frame, as for [lrt_decovart()].
 #'
@@ -394,14 +442,18 @@ lrt_single_cell <- function(
   n_boundary = NULL,
   boundary_tol = 1e-6,
   epsilon = 1e-8,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 ) {
   full <- restricted_mle_single_cell(
     y,
     mean_signature_matrix,
     Sigma,
     epsilon = epsilon,
-    itmax = itmax
+    itmax = itmax,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale
   )
   null <- restricted_mle_single_cell(
     y,
@@ -409,7 +461,9 @@ lrt_single_cell <- function(
     Sigma,
     fixed = null_value,
     epsilon = epsilon,
-    itmax = itmax
+    itmax = itmax,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale
   )
   loglik_full <- max(full$loglik, null$loglik)
   statistic <- 2 * (loglik_full - null$loglik)
@@ -448,16 +502,8 @@ lrt_single_cell <- function(
 # Firth penalty on the profile ---------------------------------------------
 
 #' @noRd
-.jeffreys_penalty_single_cell <- function(z, y, mean_signature_matrix, Sigma) {
-  h <- tryCatch(
-    hessian_profile_loglik_single_cell_ilr(
-      z,
-      y,
-      mean_signature_matrix,
-      Sigma
-    ),
-    error = function(e) NULL
-  )
+.jeffreys_penalty_single_cell <- function(z, hessian) {
+  h <- tryCatch(hessian(z), error = function(e) NULL)
   if (is.null(h)) {
     return(-Inf)
   }
@@ -475,6 +521,8 @@ lrt_single_cell <- function(
 #' of the observed profile information. The penalty uses the negative
 #' profile Hessian, not an expected Fisher matrix. Scales stay
 #' concentrated out, so the penalty does not add a third free scale.
+#' With `mean_scale` and `variance_scale` the scales are known instead:
+#' the log-likelihood and the penalty are those of the fixed-scale model.
 #'
 #' @inheritParams deconvolute_single_cell
 #'
@@ -495,27 +543,65 @@ fit_firth_single_cell <- function(
   mean_signature_matrix,
   Sigma,
   epsilon = 1e-8,
-  itmax = 80L
+  itmax = 80L,
+  mean_scale = NULL,
+  variance_scale = NULL
 ) {
+  known <- !is.null(mean_scale) && !is.null(variance_scale)
   start <- deconvolute_single_cell(
     y,
     mean_signature_matrix,
     Sigma,
     epsilon = epsilon,
     itmax = itmax,
-    profile = TRUE
+    profile = TRUE,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale
   )
   z0 <- isometric_log_ratio(start$composition)
-  penalty <- function(z) {
-    .jeffreys_penalty_single_cell(z, y, mean_signature_matrix, Sigma)
-  }
-  objective <- function(z) {
-    ll <- profile_loglik_single_cell_ilr(
-      z,
-      y,
-      mean_signature_matrix,
-      Sigma
+  ilr <- if (known) {
+    args <- list(
+      y = y,
+      mean_signature_matrix = mean_signature_matrix,
+      Sigma = Sigma,
+      mean_scale = mean_scale,
+      variance_scale = variance_scale
     )
+    list(
+      loglik = function(z) do.call(loglik_single_cell_ilr, c(list(z), args)),
+      gradient = function(z) {
+        do.call(gradient_loglik_single_cell_ilr, c(list(z), args))
+      },
+      hessian = function(z) {
+        do.call(hessian_loglik_single_cell_ilr, c(list(z), args))
+      }
+    )
+  } else {
+    list(
+      loglik = function(z) {
+        profile_loglik_single_cell_ilr(z, y, mean_signature_matrix, Sigma)
+      },
+      gradient = function(z) {
+        gradient_profile_loglik_single_cell_ilr(
+          z,
+          y,
+          mean_signature_matrix,
+          Sigma
+        )
+      },
+      hessian = function(z) {
+        hessian_profile_loglik_single_cell_ilr(
+          z,
+          y,
+          mean_signature_matrix,
+          Sigma
+        )
+      }
+    )
+  }
+  penalty <- function(z) .jeffreys_penalty_single_cell(z, ilr$hessian)
+  objective <- function(z) {
+    ll <- ilr$loglik(z)
     pen <- penalty(z)
     if (!is.finite(ll) || !is.finite(pen)) {
       return(-1e10)
@@ -523,17 +609,11 @@ fit_firth_single_cell <- function(
     ll + pen
   }
   gradient <- function(z) {
-    g_ll <- gradient_profile_loglik_single_cell_ilr(
-      z,
-      y,
-      mean_signature_matrix,
-      Sigma
-    )
     g_pen <- .central_gradient(penalty, z)
     if (any(!is.finite(g_pen))) {
       g_pen <- rep(0, length(z))
     }
-    g_ll + g_pen
+    ilr$gradient(z) + g_pen
   }
   fit <- stats::optim(
     par = z0,
@@ -548,7 +628,11 @@ fit_firth_single_cell <- function(
   )
   nms <- colnames(mean_signature_matrix)
   p_hat <- repair_simplex(isometric_logistic(fit$par), open = TRUE, nms = nms)
-  scales <- .single_cell_scales_at_p(y, mean_signature_matrix, Sigma, p_hat)
+  scales <- if (known) {
+    list(mean_scale = mean_scale, variance_scale = variance_scale)
+  } else {
+    .single_cell_scales_at_p(y, mean_signature_matrix, Sigma, p_hat)
+  }
   list(
     coefficients = p_hat,
     rho = stats::setNames(fit$par, paste0("rho", seq_along(fit$par))),
@@ -597,11 +681,21 @@ fit_firth_single_cell <- function(
 #' the composition and for the two scales. The reference moments stay
 #' fixed.
 #'
+#' With `mean_scale` and `variance_scale`, the scales are known: every
+#' replicate is drawn at those scales and refitted with them held fixed.
+#' `n_cells_sdlog > 0` then propagates an uncertain cell count: each
+#' replicate multiplies both scales (\eqn{c=an} and \eqn{\phi=a^2n} are
+#' linear in \eqn{n}) by a log-normal factor of mean one and that
+#' log-scale standard deviation before drawing, and still refits at the
+#' supplied scales.
+#'
 #' @inheritParams deconvolute_single_cell
 #' @param n_boot Number of replicates.
 #' @param level Confidence level.
 #' @param optimiser Passed to [deconvolute_single_cell()] for the fit and
 #'   every refit, so the bootstrap matches the estimator being assessed.
+#' @param n_cells_sdlog Log-scale standard deviation of the cell count,
+#'   used with known scales only.
 #'
 #' @return A list with `estimates`, `interval`, `n_failed` (refits that
 #'   errored, left as `NA` columns), `scales`, `scale_interval` and `fit`.
@@ -627,7 +721,10 @@ bootstrap_single_cell <- function(
   level = 0.95,
   epsilon = 1e-6,
   itmax = 40L,
-  optimiser = c("newton", "lbfgsb")
+  optimiser = c("newton", "lbfgsb", "marquardt"),
+  mean_scale = NULL,
+  variance_scale = NULL,
+  n_cells_sdlog = 0
 ) {
   optimiser <- match.arg(optimiser)
   level <- .check_level(level)
@@ -642,8 +739,16 @@ bootstrap_single_cell <- function(
     epsilon = epsilon,
     itmax = itmax,
     profile = TRUE,
-    optimiser = optimiser
+    optimiser = optimiser,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale
   )
+  draw_factor <- function() {
+    if (is.null(mean_scale) || n_cells_sdlog <= 0) {
+      return(1)
+    }
+    exp(stats::rnorm(1L, -n_cells_sdlog^2 / 2, n_cells_sdlog))
+  }
   nms <- names(fit$composition)
   estimates <- matrix(
     NA_real_,
@@ -658,12 +763,13 @@ bootstrap_single_cell <- function(
     dimnames = list(c("mean_scale", "variance_scale"), NULL)
   )
   for (b in seq_len(n_boot)) {
+    factor_b <- draw_factor()
     y_b <- .simulate_single_cell_bulk(
       fit$composition,
       mean_signature_matrix,
       Sigma,
-      fit$mean_scale,
-      fit$variance_scale
+      factor_b * fit$mean_scale,
+      factor_b * fit$variance_scale
     )
     fit_b <- tryCatch(
       deconvolute_single_cell(
@@ -673,7 +779,9 @@ bootstrap_single_cell <- function(
         epsilon = epsilon,
         itmax = itmax,
         profile = TRUE,
-        optimiser = optimiser
+        optimiser = optimiser,
+        mean_scale = mean_scale,
+        variance_scale = variance_scale
       ),
       error = function(e) NULL
     )

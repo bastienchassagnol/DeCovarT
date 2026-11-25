@@ -110,6 +110,72 @@
   )
 }
 
+#' Marquardt-Levenberg ascent in ILR coordinates
+#'
+#' [marqLevAlg::marqLevAlg()] with its relative distance to the maximum
+#' (RDM) stopping rule of Commenges et al. (2006). `marqLevAlg()` negates
+#' `fn` and `gr` itself when `minimize = FALSE`, but passes `hess` through
+#' unchanged: its Cholesky step and RDM routines (dsinv/dchole) assume a
+#' positive-definite matrix at the optimum, so the Hessian of the
+#' log-likelihood is negated here. Without that, dsinv() fails on every
+#' iteration, the RDM never leaves its sentinel and the run always
+#' exhausts `itmax`.
+#'
+#' @inheritParams .newton_ilr
+#'
+#' @return List with `par`, `loglik`, `convergence` (0 when the three
+#'   criteria are met, otherwise `istop`), `istop`, `iterations`, `rdm` and
+#'   `message`. Without a usable estimate, `par` is the start.
+#'
+#' @noRd
+.marquardt_ilr <- function(z0, objective, gradient, hessian, epsilon, itmax) {
+  # Send the console output of marqLevAlg to the null device.
+  fit <- withr::with_output_sink(
+    nullfile(),
+    marqLevAlg::marqLevAlg(
+      b = z0,
+      fn = objective,
+      gr = gradient,
+      hess = function(z) -hessian(z),
+      epsa = epsilon,
+      epsb = epsilon,
+      epsd = epsilon,
+      minimize = FALSE,
+      multipleTry = 1,
+      maxiter = itmax
+    )
+  )
+  usable <- !anyNA(fit$b)
+  if (!usable) {
+    warning(
+      "marqLevAlg::marqLevAlg() returned no usable estimate (istop = ",
+      fit$istop,
+      "); falling back to the equi-balanced initial guess.",
+      call. = FALSE
+    )
+  } else if (fit$istop != 1) {
+    warning(
+      "marqLevAlg::marqLevAlg() stopped without jointly satisfying the ",
+      "three Commenges et al. (2006) convergence criteria (istop = ",
+      fit$istop,
+      ", rdm = ",
+      signif(fit$rdm, 3),
+      "); returning the last iterate.",
+      call. = FALSE
+    )
+  }
+  par <- if (usable) fit$b else z0
+  list(
+    par = par,
+    loglik = objective(par),
+    convergence = if (usable && fit$istop == 1) 0L else as.integer(fit$istop),
+    istop = fit$istop,
+    iterations = as.integer(fit$ni),
+    rdm = fit$rdm,
+    message = paste0("istop = ", fit$istop)
+  )
+}
+
 #' L-BFGS-B on the closure of the non-negative orthant
 #'
 #' Maximises \eqn{\ell(\boldsymbol{p})} over the closed simplex through

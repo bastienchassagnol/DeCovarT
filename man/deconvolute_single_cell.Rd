@@ -16,7 +16,7 @@ deconvolute_single_cell(
   variance_scale = NULL,
   estimand = c("cellular", "transcript"),
   cell_size = NULL,
-  optimiser = c("newton", "lbfgsb")
+  optimiser = c("newton", "lbfgsb", "marquardt")
 )
 }
 \arguments{
@@ -50,8 +50,9 @@ cell fraction.}
 the mean, which equal the cell sizes for a \code{cellular_raw}
 reference.}
 
-\item{optimiser}{\code{"newton"} (trust-region Newton in ILR coordinates) or
-\code{"lbfgsb"} (L-BFGS-B on the closed simplex).}
+\item{optimiser}{\code{"newton"} (trust-region Newton in ILR coordinates),
+\code{"lbfgsb"} (L-BFGS-B on the closed simplex) or \code{"marquardt"}
+(Marquardt-Levenberg in ILR coordinates).}
 }
 \value{
 A list with \code{composition} (the fitted simplex coordinate),
@@ -82,7 +83,9 @@ limit is the joint maximum-likelihood estimate of
 
 With \code{profile = FALSE} the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
-\code{mean_scale} and \code{variance_scale} fixes them at those values.
+\code{mean_scale} and \code{variance_scale} fixes them at those values; only the
+\eqn{J-1} composition coordinates are then estimated, so \eqn{G=J}
+genes suffice (with profiled scales the fit needs \eqn{G>J}).
 
 With \code{optimiser = "newton"} (default) every fit uses the analytic
 score and observed Hessian with the PORT trust region of
@@ -93,8 +96,11 @@ increase; there is no line search and no fixed step length. With
 the closure \eqn{\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
 \boldsymbol{w}}, \eqn{\boldsymbol{w}\ge0}, as in
 \code{\link[=deconvolute_ratios_L_BFGS_B]{deconvolute_ratios_L_BFGS_B()}}; it can return exact zeros, where \code{rho}
-and the covariances are \code{NA}. The returned \code{vcov} is the delta-method
-image of the inverse negative profile Hessian; intervals are
+and the covariances are \code{NA}. With \code{optimiser = "marquardt"} it is
+maximised by \code{\link[marqLevAlg:marqLevAlg]{marqLevAlg::marqLevAlg()}} in ILR coordinates, as in
+\code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}: Levenberg damping and the
+relative-distance-to-maximum stopping rule. The returned \code{vcov} is the
+delta-method image of the inverse negative profile Hessian; intervals are
 \code{\link[=confint_single_cell]{confint_single_cell()}}.
 }
 \examples{

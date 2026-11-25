@@ -800,59 +800,21 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
-  # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
-  # is passed through unchanged regardless of `minimize`, because its
-  # Cholesky-type step-and-RDM routines (dsinv/dchole) always assume the
-  # "minimisation" convention (positive-definite at the optimum). Since we
-  # maximise the log-likelihood, hessian_loglik_constrained() is negative-
-  # definite at the optimum and must be negated by hand, or dsinv() fails
-  # (ier = -1) on every iteration: the relative-distance-to-minimum (RDM)
-  # criterion of Commenges et al. (2006) then never leaves its "unevaluated"
-  # sentinel (rdm = epsd + 1), so the algorithm always exhausts `maxiter`
-  # (istop = 2) rather than stopping once genuinely close to the maximum.
-  # Send the console output of marqLevAlg to the null device.
-  fit <- withr::with_output_sink(
-    nullfile(),
-    marqLevAlg::marqLevAlg(
-      b = initial_z,
-      fn = loglik_multivariate_constrained,
-      gr = gradient_loglik_constrained,
-      hess = function(z, y, mean_signature_matrix, Sigma) {
-        -hessian_loglik_constrained(z, y, mean_signature_matrix, Sigma)
-      },
-      epsa = epsilon,
-      epsb = epsilon,
-      epsd = epsilon,
-      minimize = FALSE,
-      multipleTry = 1,
-      y = y,
-      mean_signature_matrix = mean_signature_matrix,
-      Sigma = Sigma,
-      maxiter = itmax
-    )
+  fit <- .marquardt_ilr(
+    initial_z,
+    objective = function(z) {
+      loglik_multivariate_constrained(z, y, mean_signature_matrix, Sigma)
+    },
+    gradient = function(z) {
+      gradient_loglik_constrained(z, y, mean_signature_matrix, Sigma)
+    },
+    hessian = function(z) {
+      hessian_loglik_constrained(z, y, mean_signature_matrix, Sigma)
+    },
+    epsilon = epsilon,
+    itmax = itmax
   )
-  if (anyNA(fit$b)) {
-    warning(
-      "marqLevAlg::marqLevAlg() returned no usable estimate (istop = ",
-      fit$istop,
-      "); falling back to the equi-balanced initial guess.",
-      call. = FALSE
-    )
-    estimated_z <- initial_z
-  } else {
-    if (fit$istop != 1) {
-      warning(
-        "marqLevAlg::marqLevAlg() stopped without jointly satisfying the ",
-        "three Commenges et al. (2006) convergence criteria (istop = ",
-        fit$istop,
-        ", rdm = ",
-        signif(fit$rdm, 3),
-        "); returning the last iterate.",
-        call. = FALSE
-      )
-    }
-    estimated_z <- fit$b
-  }
+  estimated_z <- fit$par
   .solver_result(
     isometric_logistic(estimated_z),
     estimated_z,
@@ -861,7 +823,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     Sigma,
     return_model,
     code = fit$istop,
-    iterations = fit$ni,
+    iterations = fit$iterations,
     rdm = fit$rdm
   )
 }

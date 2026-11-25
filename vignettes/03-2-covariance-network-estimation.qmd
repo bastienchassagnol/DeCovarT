@@ -1106,11 +1106,9 @@ the Poisson term, is exported is the bracket of
 what @sec-cov-cv scores; the scale must match the one used for the
 mean signature.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-grn-pln
-%%| fig-cap: Poisson–lognormal model for one cell type. The latent log-expression $\boldsymbol{z}_{\cdot c}$ carries the covariance $\boldsymbol{\Sigma}_{z}$ and its precision; the counts add independent Poisson noise given $\boldsymbol{z}_{\cdot c}$ and the size factor $s_c$. Covariances between genes come only from $\boldsymbol{z}_{\cdot c}$ (and from the spread of $s_c$); the Poisson term adds to the diagonal only.
 %%| filename: fig-cov-pln
-%%| alt: Directed acyclic graph. Fixed parameters mu z and Sigma z point to the latent log-expression z c, which points to the observed counts x c. A fixed size factor s c also points to x c. Notes give z c as Gaussian with mean mu z and covariance Sigma z, and x g c as Poisson with mean s c times exp z g c. Cells c sit in an inner plate inside an outer plate over cell types j.
 \begin{tikzpicture}
 \node[fixed] (mu) at (0,1.2) {$\boldsymbol{\mu}_{z}$};
 \node[fixed] (sg) at (0,-1.2) {$\boldsymbol{\Sigma}_{z}$};
@@ -1127,6 +1125,9 @@ mean signature.
 \plate{types}{(mu)(sg)(cells)(cells-caption)}{$j = 1,\ldots,J$}
 \end{tikzpicture}
 ```
+:::
+
+![Poisson–lognormal model for one cell type. The latent log-expression $\boldsymbol{z}_{\cdot c}$ carries the covariance $\boldsymbol{\Sigma}_{z}$ and its precision; the counts add independent Poisson noise given $\boldsymbol{z}_{\cdot c}$ and the size factor $s_c$. Covariances between genes come only from $\boldsymbol{z}_{\cdot c}$ (and from the spread of $s_c$); the Poisson term adds to the diagonal only.](figures/tikz/fig-cov-pln.svg){#fig-grn-pln fig-alt="Directed acyclic graph. Fixed parameters mu z and Sigma z point to the latent log-expression z c, which points to the observed counts x c. A fixed size factor s c also points to x c. Notes give z c as Gaussian with mean mu z and covariance Sigma z, and x g c as Poisson with mean s c times exp z g c. Cells c sit in an inner plate inside an outer plate over cell types j."}
 
 # Hyper-parameter tuning {#sec-cov-tuning}
 
@@ -1723,11 +1724,9 @@ conditioning on the collision node (or on one of its descendants). On
 an undirected graph, **$u$-separation** ignores direction: a path is
 blocked when it meets the conditioning set. @fig-separation draws both.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-separation
-%%| fig-cap: Directed $d$-separation (chain blocked, collider opened), undirected $u$-separation on a minimal I-map, and the nesting of a Markov boundary inside a Markov blanket.
 %%| filename: fig-cov-separation
-%%| alt: Three panels. A is a chain A to B to C with B conditioned, so the path is blocked. B is a collider A and C both pointing at conditioned B, so the path is opened. C is an undirected graph on X: neighbours N1 and N2 form the Markov boundary, and a larger plate adds a non-neighbour E as a Markov blanket. O lies outside the blanket.
 \begin{tikzpicture}[node distance=8mm and 11mm]
   \node[obs] (a) {$A$};
   \node[obs, right=11mm of a] (b) {$B$};
@@ -1759,6 +1758,9 @@ blocked when it meets the conditioning set. @fig-separation draws both.
   \node[elabel, above=2mm of e] {C. Undirected};
 \end{tikzpicture}
 ```
+:::
+
+![Directed $d$-separation (chain blocked, collider opened), undirected $u$-separation on a minimal I-map, and the nesting of a Markov boundary inside a Markov blanket.](figures/tikz/fig-cov-separation.svg){#fig-separation fig-alt="Three panels. A is a chain A to B to C with B conditioned, so the path is blocked. B is a collider A and C both pointing at conditioned B, so the path is opened. C is an undirected graph on X: neighbours N1 and N2 form the Markov boundary, and a larger plate adds a non-neighbour E as a Markov blanket. O lies outside the blanket."}
 ---
 
 ## Blanket versus boundary

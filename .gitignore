@@ -5,13 +5,16 @@
 *.gz
 /build/
 simulations/*
-# Script simulation outputs: track PDF / PNG figures; ignore RDS and other
+# Script simulation outputs: track PDF / PNG / SVG figures; ignore RDS and other
 # bulky artefacts. Directories must be un-ignored first or Git will not
 # see the files inside `output/`.
 output/**
 !output/**/
 !output/**/*.pdf
 !output/**/*.png
+!output/**/*.svg
+# The fig05 dry run (FIG05_DRY_RUN=1) is a pipeline test, not a result.
+output/fig05_dry/
 # Generated RDS artefacts from simulation scripts
 data/synthetic_networks/*.rds
 
@@ -116,7 +119,7 @@ output/random_markov_network/
 /temp_*/
 /temp_prompt*
 
-# Machine-specific Quarto environment (TIKZ_BIN for scripts/tikz-lualatex.sh)
+# Machine-specific Quarto environment (TIKZ_BIN for scripts/dev/tikz-lualatex.sh)
 vignettes/_environment.local
 
 # Local reference PDF (about 3 MB). Kept out of Git; the pre-commit

@@ -400,11 +400,9 @@ Algorithm 1 (p. 34) draws each purified profile in three steps
    no copula.
 3. **Poisson sampling.** $x_{gj,i}\mid\theta_{gj,i}\sim\mathrm{Poisson}(s\,\theta_{gj,i})$.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-s5-csnet
-%%| fig-cap: Algorithm 1 of `CSNet` (supplement A1) as a generative model, in DeCovarT's notation. Step 1 shares $T_{gg'}$ unit-exponential shocks between genes $g$ and $g'$; step 2 sums $T$ shocks per gene into a gamma rate $\theta_{gj,i}$ with scale $\phi_j$ set by the target variance; step 3 samples counts at depth $s$. The bulk is the proportion-weighted sum of the purified profiles. Unshaded circle: latent; grey circle: observed; diamond: deterministic; square: fixed.
 %%| filename: fig-s5-csnet
-%%| alt: Plate diagram. Fixed T and the target correlation R_j give the deterministic shared counts T_gg' in a plate over gene pairs, which generate shared unit-exponential shocks. In a gene plate, private shocks and the shared shocks, scaled by the deterministic phi_j computed from sigma_j squared, T and the depth s, give the deterministic gamma rate theta, which with s generates the latent count x. Inside a sample plate, a Dirichlet proportion vector and the counts of every type give the observed bulk y.
 \begin{tikzpicture}
 % fixed inputs (outside every plate)
 \node[fixed] (T) at (0.2,0) {$T$};
@@ -444,6 +442,9 @@ Algorithm 1 (p. 34) draws each purified profile in three steps
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![Algorithm 1 of `CSNet` (supplement A1) as a generative model, in DeCovarT's notation. Step 1 shares $T_{gg'}$ unit-exponential shocks between genes $g$ and $g'$; step 2 sums $T$ shocks per gene into a gamma rate $\theta_{gj,i}$ with scale $\phi_j$ set by the target variance; step 3 samples counts at depth $s$. The bulk is the proportion-weighted sum of the purified profiles. Unshaded circle: latent; grey circle: observed; diamond: deterministic; square: fixed.](figures/tikz/fig-s5-csnet.svg){#fig-s5-csnet fig-alt="Plate diagram. Fixed T and the target correlation R_j give the deterministic shared counts T_gg' in a plate over gene pairs, which generate shared unit-exponential shocks. In a gene plate, private shocks and the shared shocks, scaled by the deterministic phi_j computed from sigma_j squared, T and the depth s, give the deterministic gamma rate theta, which with s generates the latent count x. Inside a sample plate, a Dirichlet proportion vector and the counts of every type give the observed bulk y."}
 
 The count moments follow from the law of total covariance (our
 derivation; the paper states only the variance and the correlation):

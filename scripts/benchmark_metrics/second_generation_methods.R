@@ -1,4 +1,4 @@
-# Second-generation competitors for the fig03 and fig05 benchmarks.
+# Second-generation competitors for the fig03 and fig06 benchmarks.
 #
 # Every method runs from its authors' code, with gene selection and
 # preprocessing filters switched off (the scenarios are fully synthetic) and

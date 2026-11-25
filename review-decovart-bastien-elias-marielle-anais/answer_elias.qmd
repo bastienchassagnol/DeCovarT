@@ -1055,7 +1055,7 @@ les résultats seront optimistes pour toutes les méthodes.
 
 ::: {.accord}
 D'accord sur le diagnostic. Voici ce que couvre déjà le scénario single-cell
-[R3](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.html#sec-sc-generative)
+[R3](https://bastienchassagnol.github.io/DeCovarT/articles/R4-single-cell-hierarchical.html#sec-sc-generative)
 ($2^6=64$ scénarios, $N=200$ bulks chacun, dix méthodes) :
 
 | Élément proposé par Elias | Dans R3 ? |
@@ -1066,7 +1066,7 @@ D'accord sur le diagnostic. Voici ce que couvre déjà le scénario single-cell
 | correction Fang–Pachter avant agrégation | non (figure `\ref{fig-fang}`{=latex}) |
 | couche de comptage, erreur d'estimation de la référence | non ; en perspective (@sec-annexe-sensibilite) |
 
-: Couverture du scénario R3 ([limites listées dans la vignette](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.html#sec-fig05-caveats)). {#tbl-r3}
+: Couverture du scénario R3 ([limites listées dans la vignette](https://bastienchassagnol.github.io/DeCovarT/articles/R4-single-cell-hierarchical.html#sec-fig06-caveats)). {#tbl-r3}
 :::
 
 ::: {.nuance}
@@ -1232,7 +1232,7 @@ publié (96 gastruloïdes par échantillon, cellules par gastruloïde non
 rapportées ;
 [livre](https://bastienchassagnol.github.io/DeCovarT_reproducibility/04-deconvolution-pipeline.html#sec-deconv-scale-models)).
 Le scénario single-cell
-([R3](https://bastienchassagnol.github.io/DeCovarT/articles/R3-single-cell-hierarchical.html#sec-fig05-intervals))
+([R3](https://bastienchassagnol.github.io/DeCovarT/articles/R4-single-cell-hierarchical.html#sec-fig06-intervals))
 connaît $n_i\in\{10^3,10^5\}$ et donne des intervalles pour $c_i$, $\phi_i$,
 $a_i$ et $n_i$. En général, on n'aura au mieux qu'un ordre de grandeur,
 d'après la littérature.

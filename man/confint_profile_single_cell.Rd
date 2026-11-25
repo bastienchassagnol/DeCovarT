@@ -12,7 +12,9 @@ confint_profile_single_cell(
   celltypes = colnames(mean_signature_matrix),
   variance = c("ml", "reml"),
   epsilon = 1e-08,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 }
 \arguments{
@@ -29,12 +31,17 @@ confint_profile_single_cell(
 \item{variance}{\code{"ml"} (default) uses the \eqn{\chi^2_1} cut-off.
 \code{"reml"} uses \eqn{G\log\{1+F_{1,\nu;1-\alpha}/\nu\}} with
 \eqn{\nu=G-J}, the exact cut-off of the profile likelihood ratio
-when a variance scale is profiled out of a linear model.}
+when a variance scale is profiled out of a linear model. Ignored
+when the scales are known.}
 
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
 \item{itmax}{Maximum number of iterations.}
+
+\item{mean_scale, variance_scale}{Optional known scales, as in
+\code{\link[=restricted_mle_single_cell]{restricted_mle_single_cell()}}; the interval then inverts the
+likelihood ratio at those scales with the \eqn{\chi^2_1} cut-off.}
 }
 \value{
 A matrix with columns \code{estimate}, \code{lower} and \code{upper}.

@@ -200,7 +200,14 @@ test_that("a scenario run alone with its seed reproduces the full run", {
     simulate(mean, Sigma, theta, n)
   }
   run <- function(...) {
-    run_simulation_benchmark(config, fns, n = 4, likelihood = lik, seed = 7L, ...)
+    run_simulation_benchmark(
+      config,
+      fns,
+      n = 4,
+      likelihood = lik,
+      seed = 7L,
+      ...
+    )
   }
   full <- run()
 
@@ -212,7 +219,9 @@ test_that("a scenario run alone with its seed reproduces the full run", {
   })
 
   # Elapsed time and memory are measurements of the process, not results.
-  results_only <- function(x) x[setdiff(names(x), c("elapsed_sec", "memory_bytes"))]
+  results_only <- function(x) {
+    x[setdiff(names(x), c("elapsed_sec", "memory_bytes"))]
+  }
   alone <- run(scenarios = 2L)
   expect_equal(
     results_only(alone$optimisation),
@@ -220,4 +229,67 @@ test_that("a scenario run alone with its seed reproduces the full run", {
     ignore_attr = TRUE
   )
   expect_error(run(scenarios = 3L), "row indices")
+})
+
+test_that("plug-in scales reach the fit: true per bulk, nominal per scenario", {
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    nrow = 2,
+    dimnames = list(c("g1", "g2"), c("ct1", "ct2"))
+  )
+  sigma <- array(
+    rep(500 * diag(2), 2),
+    dim = c(2, 2, 2),
+    dimnames = list(c("g1", "g2"), c("g1", "g2"), c("ct1", "ct2"))
+  )
+  config <- tibble::tibble(
+    ID = "SB1",
+    true_theta = list(list(
+      p = c(0.5, 0.5),
+      mu = mu,
+      sigma = sigma,
+      n_cells = 1000,
+      n_cells_cv = 0.3,
+      platform_scale = 1
+    ))
+  )
+  fixed <- function(scales) {
+    list(
+      FUN = deconvolute_single_cell,
+      scales = scales,
+      ci = list(methods = c("wald", "ilr"), n_draws = 50L)
+    )
+  }
+  out <- withr::with_seed(
+    6,
+    run_simulation_benchmark(
+      config,
+      list(
+        oracle = fixed("true"),
+        nominal = fixed("nominal"),
+        diagonal = c(
+          fixed("true"),
+          working_sigma = function(S) {
+            for (j in seq_len(dim(S)[3L])) {
+              S[,, j] <- diag(diag(S[,, j]))
+            }
+            S
+          }
+        )
+      ),
+      n = 4,
+      likelihood = single_cell_likelihood(),
+      return_data = TRUE
+    )
+  )
+  n_true <- out$data[[1]]$nuisance["mean_scale", ]
+  expect_gt(stats::sd(n_true), 0)
+  scales <- split(out$optimisation$mean_scale, out$optimisation$algorithm)
+  expect_equal(unname(scales$oracle), unname(n_true))
+  expect_equal(unname(scales$nominal), rep(1000, 4))
+  # Diagonal Sigma is the true one here, so the diagonal fit equals the oracle.
+  estimates <- split(out$optimisation$ct1, out$optimisation$algorithm)
+  expect_equal(estimates$diagonal, estimates$oracle, tolerance = 1e-8)
+  composition <- dplyr::filter(out$intervals, parameter == "ct1")
+  expect_true(all(c("wald", "ilr") %in% composition$ci_method))
 })

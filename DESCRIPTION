@@ -37,6 +37,7 @@ Suggests:
     ComplexHeatmap,
     compositions,
     cowplot,
+    DWLS,
     e1071,
     EMMIXmfa,
     flextable,
@@ -75,6 +76,7 @@ Suggests:
     rmarkdown,
     spelling,
     stringr,
+    svglite,
     testthat (>= 3.0.0),
     tinytable (>= 0.15.0),
     viridis

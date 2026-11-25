@@ -36,55 +36,9 @@ format:
 
 filters:
   - highlight-text
-  # pre-ast so Quarto's cross-referencing sees the #fig- labels.
-  - at: pre-ast
-    path: _extensions/pandoc-ext/diagram/diagram.lua
   # pkgdown's minimal HTML turns callouts into blockquotes; keep their type.
   # Same file twice: it tags callouts before rendering, wraps them after.
   - at: pre-render
     path: pkgdown-callouts.lua
   - at: post-render
     path: pkgdown-callouts.lua
-
-# TikZ graphical models (pandoc-ext/diagram), RevBayes symbol convention.
-# No `%` comments inside header-includes: the filter re-wraps that block.
-# Flowchart styles (box, keybox, dimbox, choice) reuse the same palette.
-# Graphical models use the TikZ bayesnet library: latent circle, obs grey
-# circle, det diamond, const or fixed (framed) square, native \plate.
-# note = equation beside a node, dependency = arrow between nodes.
-# The SVG cache is committed, so CI renders without TeX. To compile new
-# diagrams, set TIKZ_BIN in vignettes/_environment.local to the absolute
-# path of scripts/tikz-lualatex.sh (LuaLaTeX, then Ghostscript outlines).
-# Delete _diagram-cache/ after changing the styles below: the cache key is
-# the diagram source only.
-diagram:
-  cache: true
-  cache-dir: _diagram-cache
-  engine:
-    tikz:
-      header-includes: |
-        \usepackage{amsmath}
-        \usepackage{amssymb}
-        \usepackage{amsfonts}
-        \usepackage{bm}
-        \usetikzlibrary{bayesnet,arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
-        \definecolor{ink}{HTML}{1F2937}
-        \definecolor{latfill}{HTML}{DAE9FB}
-        \definecolor{latdraw}{HTML}{4477B5}
-        \definecolor{obsfill}{HTML}{C9CDD3}
-        \definecolor{obsdraw}{HTML}{747B86}
-        \tikzset{
-          every node/.style={text=ink},
-          fixed/.style={const, draw, minimum size=7mm, inner sep=2pt},
-          note/.style={font=\footnotesize, align=left},
-          dependency/.style={-{Stealth[length=2mm]}, semithick},
-          edge/.style={-{Stealth[length=2.6mm]}, line width=0.8pt, draw=ink}
-        }
-        \tikzset{
-          box/.style={rectangle, rounded corners=3pt, draw=ink, fill=white, line width=0.8pt, align=flush center, inner sep=2.2mm, font=\small},
-          keybox/.style={box, draw=latdraw, fill=latfill},
-          dimbox/.style={box, draw=obsdraw, fill=obsfill!45},
-          choice/.style={diamond, aspect=2.4, draw=ink, fill=obsfill!35, line width=0.8pt, align=flush center, inner sep=0.6mm, font=\small},
-          elabel/.style={font=\footnotesize\itshape, text=ink!85, fill=white, inner sep=1.2pt, align=center},
-          dashededge/.style={edge, densely dashed}
-        }

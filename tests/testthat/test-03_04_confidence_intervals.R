@@ -190,7 +190,9 @@ test_that("single-cell Firth and bootstrap intervals have the right shape", {
   setup <- .single_cell_interval_setup()
   start <- deconvolute_single_cell(setup$y, setup$mu, setup$sigma)
   base <- start$loglik +
-    .jeffreys_penalty_single_cell(start$rho, setup$y, setup$mu, setup$sigma)
+    .jeffreys_penalty_single_cell(start$rho, function(z) {
+      hessian_profile_loglik_single_cell_ilr(z, setup$y, setup$mu, setup$sigma)
+    })
   fit <- fit_firth_single_cell(setup$y, setup$mu, setup$sigma, itmax = 30L)
   expect_gte(fit$penalised_loglik + 1e-3, base)
   expect_equal(sum(fit$coefficients), 1)
@@ -492,4 +494,64 @@ test_that("platform scale and cell count intervals are positive and consistent",
       nuisance$estimate[["cell_count_n"]],
     nuisance$estimate[["mean_scale"]]
   )
+})
+
+test_that("known scales give G = J = 2 Firth, profile, LRT and bootstrap", {
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    nrow = 2,
+    dimnames = list(c("g1", "g2"), c("ct1", "ct2"))
+  )
+  sigma <- array(
+    c(500, 400, 400, 500, 500, -400, -400, 500),
+    dim = c(2, 2, 2),
+    dimnames = list(c("g1", "g2"), c("g1", "g2"), c("ct1", "ct2"))
+  )
+  n <- 1000
+  y <- withr::with_seed(
+    4,
+    simulate_bulk_from_cells(mu, sigma, p = c(0.6, 0.4), n_cells = n)$Y[, 1]
+  )
+  firth <- fit_firth_single_cell(
+    y,
+    mu,
+    sigma,
+    mean_scale = n,
+    variance_scale = n
+  )
+  expect_identical(firth$mean_scale, n)
+  expect_true(all(firth$coefficients > 0))
+  profile <- confint_profile_single_cell(
+    y,
+    mu,
+    sigma,
+    mean_scale = n,
+    variance_scale = n
+  )
+  expect_true(all(profile[, "lower"] <= profile[, "estimate"]))
+  expect_true(all(profile[, "upper"] >= profile[, "estimate"]))
+  lrt <- lrt_single_cell(
+    y,
+    mu,
+    sigma,
+    null_value = c(ct2 = 0),
+    mean_scale = n,
+    variance_scale = n
+  )
+  expect_identical(lrt$n_boundary, 1L)
+  expect_gte(lrt$statistic, 0)
+  boot <- withr::with_seed(
+    5,
+    bootstrap_single_cell(
+      y,
+      mu,
+      sigma,
+      n_boot = 20,
+      mean_scale = n,
+      variance_scale = n,
+      n_cells_sdlog = 0.3
+    )
+  )
+  expect_identical(boot$n_failed, 0L)
+  expect_true(all(boot$interval[, 1] <= boot$interval[, 2]))
 })

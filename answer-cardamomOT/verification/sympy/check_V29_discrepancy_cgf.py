@@ -78,7 +78,7 @@ def K_nb(arg, mu):
     return -psi * sp.log(1 - mu / psi * (sp.exp(arg) - 1))
 
 
-# script parameters (scripts/figures/fig_03_1_tail_bounds.R)
+# script parameters (scripts/theory_illustrations/fig_03_1_tail_bounds.R)
 P_SCRIPT = (0.6, 0.3, 0.1)
 N_SCRIPT = 10_000
 C_SCRIPT = (2000, 300, 30)

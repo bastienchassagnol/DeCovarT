@@ -10,7 +10,9 @@ restricted_mle_single_cell(
   Sigma,
   fixed = NULL,
   epsilon = 1e-08,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 }
 \arguments{
@@ -26,6 +28,9 @@ restricted_mle_single_cell(
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
 \item{itmax}{Maximum number of iterations.}
+
+\item{mean_scale, variance_scale}{Optional fixed scales. Supply both
+or neither.}
 }
 \value{
 A list with \code{coefficients} (the fitted composition), \code{loglik},
@@ -37,6 +42,10 @@ Profiles the two technical scales out. Without \code{fixed}, this is
 chart of the remaining face, so a coordinate can be held at zero, and
 it is fitted by Newton-Raphson on the profile log-likelihood with the
 PORT trust region of \code{\link[stats:nlminb]{stats::nlminb()}}, as \code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}.
+
+With \code{mean_scale} and \code{variance_scale}, the scales are known and held
+at those values under both the full and the restricted fit, so the
+model needs only \eqn{G\ge J} genes.
 }
 \examples{
 mu <- matrix(c(2, 0.2, 0.2, 2, 0.2, 3, 0.2, 3), nrow = 4)

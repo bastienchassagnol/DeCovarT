@@ -12,7 +12,9 @@ lrt_single_cell(
   n_boundary = NULL,
   boundary_tol = 1e-06,
   epsilon = 1e-08,
-  itmax = 100L
+  itmax = 100L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 }
 \arguments{
@@ -30,6 +32,9 @@ lrt_single_cell(
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
 \item{itmax}{Maximum number of iterations.}
+
+\item{mean_scale, variance_scale}{Optional known scales, held under both
+hypotheses (see \code{\link[=restricted_mle_single_cell]{restricted_mle_single_cell()}}).}
 }
 \value{
 A one-row data frame, as for \code{\link[=lrt_decovart]{lrt_decovart()}}.

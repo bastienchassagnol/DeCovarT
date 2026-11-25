@@ -12,7 +12,10 @@ bootstrap_single_cell(
   level = 0.95,
   epsilon = 1e-06,
   itmax = 40L,
-  optimiser = c("newton", "lbfgsb")
+  optimiser = c("newton", "lbfgsb", "marquardt"),
+  mean_scale = NULL,
+  variance_scale = NULL,
+  n_cells_sdlog = 0
 )
 }
 \arguments{
@@ -33,6 +36,12 @@ bootstrap_single_cell(
 
 \item{optimiser}{Passed to \code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}} for the fit and
 every refit, so the bootstrap matches the estimator being assessed.}
+
+\item{mean_scale, variance_scale}{Optional fixed scales. Supply both
+or neither.}
+
+\item{n_cells_sdlog}{Log-scale standard deviation of the cell count,
+used with known scales only.}
 }
 \value{
 A list with \code{estimates}, \code{interval}, \code{n_failed} (refits that
@@ -48,6 +57,14 @@ Draws
 and refits the profile model. Percentile intervals are returned for
 the composition and for the two scales. The reference moments stay
 fixed.
+
+With \code{mean_scale} and \code{variance_scale}, the scales are known: every
+replicate is drawn at those scales and refitted with them held fixed.
+\code{n_cells_sdlog > 0} then propagates an uncertain cell count: each
+replicate multiplies both scales (\eqn{c=an} and \eqn{\phi=a^2n} are
+linear in \eqn{n}) by a log-normal factor of mean one and that
+log-scale standard deviation before drawing, and still refits at the
+supplied scales.
 }
 \examples{
 mu <- matrix(c(2, 0.2, 0.2, 2, 0.2, 3, 0.2, 3), nrow = 4)

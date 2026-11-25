@@ -932,7 +932,7 @@ $\boldsymbol{a}_{1}$ into $\boldsymbol{v}_{1}$, removes from
 $\boldsymbol{a}_{2}$ its projection on $\boldsymbol{v}_{1}$ (orange), and
 normalises the residual into $\boldsymbol{v}_{2}$: the two Helmert columns
 of @eq-helmert-columns. Dashed lines are the CLR images of the canonical
-vectors. Script: `vignettes/scripts/generate_ilr_isometry_figure.R`.](figures/ilr_isometry_gram_schmidt.png){#fig-ilr-isometry width=100%}
+vectors. Script: `scripts/theory_illustrations/fig_01_1_ilr_isometry.R`.](figures/ilr_isometry_gram_schmidt.png){#fig-ilr-isometry width=100%}
 
 @fig-ilr-isometry summarises the construction. Gram--Schmidt applied to
 the successive differences $\boldsymbol{e}_{k}-\boldsymbol{e}_{k+1}$,
@@ -1473,11 +1473,10 @@ Gaussian bulk likelihood then combines with standard tools
   scale, $\boldsymbol{\rho}_{i}=\mathbf{B}\boldsymbol{z}_{i}+\boldsymbol{u}_{i}$,
   which is the compositional analogue of a multinomial-logit model and
   gives the marginal effect of a covariate on the composition.
-- The experimental MAP `CTS` path
-  (`scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`,
-  derived in the
+- The MAP `CTS` update derived in the
   [perspectives](05-2-bayesian-wiener.html#sec-map-blup)
-  vignette) is one starting point.
+  vignette is one starting point (its experimental script was removed;
+  the last version is linked there).
 
 **Estimates on the boundary.** Several routes go beyond the active-set
 approach; none is implemented.
@@ -1943,11 +1942,9 @@ conditional independence.
 $\boldsymbol{\Sigma}_j$; only structure that survives in
 $\boldsymbol{\Sigma}(\boldsymbol{p})$ itself accelerates the likelihood.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-backend-decision
-%%| fig-cap: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.
 %%| filename: fig-backend-decision
-%%| alt: Decision tree. The covariance Sigma(p), the sum over j of p_j squared Sigma_j, leads to a question about its declared structure. Five branches: no structure gives dense Cholesky at cost G cubed; disconnected modules give block Cholesky; ordered local dependence gives banded Cholesky; a fixed sparse pattern gives sparse Cholesky with a symbolic ordering computed once; shared programmes or hub genes give a Woodbury or Schur update at cost G r squared.
 \begin{tikzpicture}[node distance=7mm]
 \node[keybox] (A) {$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j} p_j^{2}\,\boldsymbol{\Sigma}_j$};
 \node[choice, below=of A] (B) {Declared covariance\\ structure?};
@@ -1960,6 +1957,9 @@ $\boldsymbol{\Sigma}(\boldsymbol{p})$ itself accelerates the likelihood.
 \foreach \n in {D,E,F,G,H} \draw[edge] (B.south) -- (\n.north);
 \end{tikzpicture}
 ```
+:::
+
+![Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.](figures/tikz/fig-backend-decision.svg){#fig-backend-decision fig-alt="Decision tree. The covariance Sigma(p), the sum over j of p_j squared Sigma_j, leads to a question about its declared structure. Five branches: no structure gives dense Cholesky at cost G cubed; disconnected modules give block Cholesky; ordered local dependence gives banded Cholesky; a fixed sparse pattern gives sparse Cholesky with a symbolic ordering computed once; shared programmes or hub genes give a Woodbury or Schur update at cost G r squared."}
 
 Each refinement is exact, not approximate:
 

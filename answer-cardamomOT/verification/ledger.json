@@ -1,9 +1,9 @@
 {
   "meta": {
-    "date": "2026-11-22",
+    "date": "2026-11-25",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
-    "python": "3.14.3"
+    "python": "3.13.12"
   },
   "records": [
     {
@@ -126,7 +126,7 @@
       "tex_line": "266, 1060",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2162"
+        "03-1:2163"
       ]
     },
     {
@@ -149,7 +149,7 @@
       "tex_line": "268",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2347"
+        "03-1:2348"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "tex_line": "640, 1062",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2162"
+        "03-1:2163"
       ]
     },
     {
@@ -175,7 +175,7 @@
       "tex_line": "1064",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2162"
+        "03-1:2163"
       ]
     },
     {
@@ -373,12 +373,12 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{14600041}{2304}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 14600041/2304; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{137334961}{82944}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 137334961/82944; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:521",
+        "03-1:522",
         "03-2:584",
         "03-2:627",
         "summary_side_comparison:263"
@@ -408,7 +408,7 @@
       "tex_line": "303, 319",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:521",
+        "03-1:522",
         "03-2:584",
         "03-2:627"
       ]
@@ -553,7 +553,7 @@
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
         "03-2:377",
-        "05-1:343"
+        "05-1:344"
       ]
     },
     {
@@ -567,7 +567,7 @@
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
         "03-2:377",
-        "05-1:343"
+        "05-1:344"
       ]
     },
     {
@@ -581,7 +581,7 @@
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
         "03-2:377",
-        "05-1:343"
+        "05-1:344"
       ]
     },
     {
@@ -595,7 +595,7 @@
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
         "03-2:495",
-        "05-1:351"
+        "05-1:352"
       ]
     },
     {
@@ -609,7 +609,7 @@
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
         "03-2:377",
-        "05-1:343"
+        "05-1:344"
       ]
     },
     {
@@ -622,7 +622,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V15_bures_map.py",
       "qmd_lines": [
-        "05-1:1258"
+        "05-1:1264"
       ]
     },
     {
@@ -635,7 +635,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V15_bures_map.py",
       "qmd_lines": [
-        "05-1:1258"
+        "05-1:1264"
       ]
     },
     {
@@ -648,7 +648,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V15_bures_map.py",
       "qmd_lines": [
-        "05-1:1262"
+        "05-1:1268"
       ]
     },
     {
@@ -702,7 +702,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:505"
+        "03-1:506"
       ]
     },
     {
@@ -715,7 +715,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:505"
+        "03-1:506"
       ]
     },
     {
@@ -728,7 +728,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:521"
+        "03-1:522"
       ]
     },
     {
@@ -741,7 +741,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2401"
+        "03-1:2402"
       ]
     },
     {
@@ -754,7 +754,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2401"
+        "03-1:2402"
       ]
     },
     {
@@ -767,7 +767,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2381"
+        "03-1:2382"
       ]
     },
     {
@@ -780,7 +780,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2410"
+        "03-1:2411"
       ]
     },
     {
@@ -793,7 +793,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1150"
+        "03-1:1151"
       ]
     },
     {
@@ -806,7 +806,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1150"
+        "03-1:1151"
       ]
     },
     {
@@ -819,7 +819,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1150"
+        "03-1:1151"
       ]
     },
     {
@@ -832,7 +832,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1109"
+        "03-1:1110"
       ]
     },
     {
@@ -845,7 +845,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1077"
+        "03-1:1078"
       ]
     },
     {
@@ -854,14 +854,14 @@
       "kind": "numeric",
       "status": "pass",
       "detail": "Stationary point and closed form symbolic; MC seed 20261101: mean of $n=50$ NB($\\mu=3,r=2$), $2\\times10^5$ replicates, at $u=1$ tail 0.0080 vs bound 0.0584; range filter $K=3$, $\\mu_k=(1,3,6)$, $r=2$, $\\bm\\alpha=(0.98,0.01,0.01)$, $n=c_k=100$, $2\\times10^4$ replicates; first bound below 1 at $t=1.3$: 0.950 vs 0.0000",
-      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.679298686113857), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254736), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.0993283428761904), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.310608812975563), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
+      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.6792986861138575), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254735), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.099328342876186), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.3106088129755633), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1197",
-        "03-1:1222",
-        "03-1:1232",
-        "03-1:1248"
+        "03-1:1198",
+        "03-1:1223",
+        "03-1:1233",
+        "03-1:1249"
       ]
     },
     {
@@ -874,7 +874,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "05-1:2144"
+        "05-1:2157"
       ]
     },
     {
@@ -887,8 +887,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "03-1:2254",
-        "03-1:2278"
+        "03-1:2255",
+        "03-1:2279"
       ]
     },
     {
@@ -901,7 +901,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V22_csnet_factor.py",
       "qmd_lines": [
-        "S5-misspecification:463"
+        "S5-misspecification:464"
       ]
     },
     {
@@ -914,8 +914,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V22_csnet_factor.py",
       "qmd_lines": [
-        "S5-misspecification:463",
-        "S5-misspecification:499"
+        "S5-misspecification:464",
+        "S5-misspecification:500"
       ]
     },
     {
@@ -928,7 +928,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V22_csnet_factor.py",
       "qmd_lines": [
-        "S5-misspecification:688"
+        "S5-misspecification:689"
       ]
     },
     {
@@ -942,7 +942,7 @@
       "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
       "qmd_lines": [
         "summary_side_comparison:241",
-        "answer_elias:832"
+        "answer_elias:952"
       ]
     },
     {
@@ -1028,7 +1028,7 @@
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
         "summary_side_comparison:149",
-        "answer_elias:879"
+        "answer_elias:999"
       ]
     },
     {
@@ -1113,7 +1113,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V27_gini.py",
       "qmd_lines": [
-        "03-1:272"
+        "03-1:273"
       ]
     },
     {
@@ -1126,7 +1126,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V27_gini.py",
       "qmd_lines": [
-        "03-1:289"
+        "03-1:290"
       ]
     },
     {
@@ -1139,7 +1139,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:958"
+        "03-1:959"
       ]
     },
     {
@@ -1152,7 +1152,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:958"
+        "03-1:959"
       ]
     },
     {
@@ -1165,7 +1165,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:988"
+        "03-1:989"
       ]
     },
     {
@@ -1178,7 +1178,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1299"
+        "03-1:1300"
       ]
     },
     {
@@ -1191,7 +1191,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1312"
+        "03-1:1313"
       ]
     },
     {
@@ -1204,7 +1204,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1449"
+        "03-1:1450"
       ]
     },
     {
@@ -1217,7 +1217,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1461"
+        "03-1:1462"
       ]
     },
     {
@@ -1230,7 +1230,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1513"
+        "03-1:1514"
       ]
     },
     {
@@ -1243,7 +1243,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1501"
+        "03-1:1502"
       ]
     },
     {
@@ -1256,7 +1256,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1288"
+        "03-1:1289"
       ]
     },
     {
@@ -1269,7 +1269,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1343"
+        "03-1:1344"
       ]
     },
     {
@@ -1412,7 +1412,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1687"
+        "03-1:1688"
       ]
     },
     {
@@ -1425,7 +1425,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1693"
+        "03-1:1694"
       ]
     },
     {
@@ -1438,7 +1438,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
-        "03-1:1713"
+        "03-1:1714"
       ]
     },
     {
@@ -1516,7 +1516,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V38_raw_decomposition.py",
       "qmd_lines": [
-        "03-2:1172"
+        "03-2:1173"
       ]
     },
     {
@@ -1555,7 +1555,7 @@
       "detail_full": "values 0.8244, 0.2805, 0.4785 (rounded to 2 decimals)",
       "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
       "qmd_lines": [
-        "03-2:1504"
+        "03-2:1505"
       ]
     },
     {
@@ -1620,7 +1620,7 @@
       "detail_full": "z^2(n) - z^2(a) n / a simplified to 0; the median scales with every z^2, root from sympy.solve",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1826"
+        "03-1:1827"
       ]
     },
     {
@@ -1633,7 +1633,7 @@
       "detail_full": "direct substitution",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1789"
+        "03-1:1790"
       ]
     },
     {
@@ -1646,7 +1646,7 @@
       "detail_full": "generic symmetric 3 x 3 W; Gaussianity of z_g follows from linearity, not checked here",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1878"
+        "03-1:1879"
       ]
     },
     {
@@ -1659,7 +1659,7 @@
       "detail_full": "generic symmetric 3 x 3 Sigma, gene 1 against genes 2 and 3",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1878"
+        "03-1:1879"
       ]
     },
     {
@@ -1672,7 +1672,7 @@
       "detail_full": "2 x 2: W_11 - 1/Sigma_11 = Sigma_12^2 / (Sigma_11 det Sigma) >= 0 (exact); 5 x 5: 25 random rational SPD matrices and their block-diagonal versions (rational-sampling)",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1920"
+        "03-1:1921"
       ]
     },
     {
@@ -1685,7 +1685,7 @@
       "detail_full": "generic symmetric 3 x 3 W, module {1, 2}; uses Var(W r) = W (V46c)",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1898"
+        "03-1:1899"
       ]
     },
     {
@@ -1698,7 +1698,7 @@
       "detail_full": "diagonal sum exact in rho; conditional forms at 25 rational rho in (0, 1) plus rho = 1/2 and 3/10",
       "script": "verification/sympy/check_V46_tail_scale.py",
       "qmd_lines": [
-        "03-1:1920"
+        "03-1:1921"
       ]
     },
     {
@@ -1711,8 +1711,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:733",
-        "answer_elias:832"
+        "answer_elias:853",
+        "answer_elias:952"
       ]
     },
     {
@@ -1725,8 +1725,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:733",
-        "answer_elias:832"
+        "answer_elias:853",
+        "answer_elias:952"
       ]
     },
     {
@@ -1739,7 +1739,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1175"
+        "answer_elias:1294"
       ]
     },
     {
@@ -1752,7 +1752,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:377"
+        "answer_elias:452"
       ]
     },
     {
@@ -1765,7 +1765,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:404"
+        "answer_elias:526"
       ]
     },
     {
@@ -1778,7 +1778,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:426"
+        "answer_elias:526"
       ]
     },
     {
@@ -1791,7 +1791,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:879"
+        "answer_elias:999"
       ]
     },
     {
@@ -1804,7 +1804,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:733"
+        "answer_elias:853"
       ]
     },
     {
@@ -1817,7 +1817,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:758"
+        "answer_elias:878"
       ]
     },
     {
@@ -1830,7 +1830,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1175"
+        "answer_elias:1294"
       ]
     },
     {
@@ -1843,8 +1843,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:650",
-        "answer_elias:1277"
+        "answer_elias:770",
+        "answer_elias:1396"
       ]
     },
     {
@@ -1857,7 +1857,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1277"
+        "answer_elias:1396"
       ]
     },
     {
@@ -1870,7 +1870,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:879"
+        "answer_elias:999"
       ]
     },
     {
@@ -1883,7 +1883,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1240"
+        "answer_elias:1359"
       ]
     },
     {
@@ -1896,7 +1896,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1020"
+        "answer_elias:1139"
       ]
     },
     {
@@ -1909,7 +1909,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1412"
+        "answer_elias:1572"
       ]
     },
     {
@@ -1922,8 +1922,48 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1412"
+        "answer_elias:1572"
       ]
+    },
+    {
+      "id": "V49a",
+      "claim": "With $\\boldsymbol\\Sigma_{W,j}=500\\,\\boldsymbol R_j$, $n=1000$ and $\\boldsymbol p=(1/2,1/2)$: $\\boldsymbol S_W(\\boldsymbol p)/n=\\sum_j p_j^2\\boldsymbol R_j$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "symbolic in $\\varrho_1,\\varrho_2$; residual $\\boldsymbol 0$",
+      "tex_line": "not cited",
+      "detail_full": "symbolic in $\\varrho_1,\\varrho_2$; residual $\\boldsymbol 0$",
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py"
+    },
+    {
+      "id": "V49b",
+      "claim": "$\\mathrm E_{\\boldsymbol p^\\star}\\ell(\\boldsymbol p)=-\\tfrac12\\{G\\log\\phi+\\log|\\boldsymbol S_W(\\boldsymbol p)|+\\mathrm{tr}(\\boldsymbol S_W(\\boldsymbol p)^{-1}\\boldsymbol S_W(\\boldsymbol p^\\star))+(c^2/\\phi)\\,\\boldsymbol g^\\top\\boldsymbol S_W(\\boldsymbol p)^{-1}\\boldsymbol g\\}$, $\\boldsymbol g=\\tilde{\\boldsymbol\\mu}(\\boldsymbol p^\\star-\\boldsymbol p)$, up to $-\\tfrac G2\\log2\\pi$",
+      "kind": "rational-sampling",
+      "status": "pass",
+      "detail": "25 random rational $2\\times2$ models, $c=\\phi=n$; largest residual $2.07 \\cdot 10^{-171}$ (mpmath, 40 digits)",
+      "tex_line": "not cited",
+      "detail_full": "25 random rational $2\\times2$ models, $c=\\phi=n$; largest residual $2.07 \\cdot 10^{-171}$ (mpmath, 40 digits)",
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py"
+    },
+    {
+      "id": "V49c",
+      "claim": "$I(p_1^\\star)=n\\,\\boldsymbol d^\\top\\boldsymbol S_W^{-1}\\boldsymbol d+\\tfrac12\\mathrm{tr}[\\{\\boldsymbol S_W^{-1}(\\boldsymbol\\Sigma_{W,1}-\\boldsymbol\\Sigma_{W,2})\\}^2]$ at known scales $c=\\phi=n$",
+      "kind": "rational-sampling",
+      "status": "pass",
+      "detail": "minus the second derivative of V49b at $p_1=p_1^\\star$; 25 random rational models; largest residual $0$",
+      "tex_line": "not cited",
+      "detail_full": "minus the second derivative of V49b at $p_1=p_1^\\star$; 25 random rational models; largest residual $0$",
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py"
+    },
+    {
+      "id": "V49d",
+      "claim": "The expected log-likelihood of V49b is stationary at $\\boldsymbol p=\\boldsymbol p^\\star$",
+      "kind": "rational-sampling",
+      "status": "pass",
+      "detail": "first derivative in $p_1$ at $p_1^\\star$; 25 random rational models; largest value $0$",
+      "tex_line": "not cited",
+      "detail_full": "first derivative in $p_1$ at $p_1^\\star$; 25 random rational models; largest value $0$",
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py"
     }
   ]
 }
