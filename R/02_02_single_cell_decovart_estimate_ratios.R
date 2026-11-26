@@ -6,12 +6,18 @@
 # whose covariance uses p_j^2 and is not called here.
 
 #' @noRd
-.check_single_cell_inputs <- function(y, mean_signature_matrix, Sigma) {
+.check_single_cell_inputs <- function(
+  y,
+  mean_signature_matrix,
+  Sigma,
+  scales_known = FALSE
+) {
   y <- as.numeric(y)
   mean_signature_matrix <- as.matrix(mean_signature_matrix)
   n_genes <- nrow(mean_signature_matrix)
   n_types <- ncol(mean_signature_matrix)
-  if (n_genes <= n_types) {
+  # Known scales leave J - 1 free parameters, so G = J genes are enough.
+  if (!isTRUE(scales_known) && n_genes <= n_types) {
     stop(
       "The two technical scales need more genes than cell types ",
       "(G > J); got G = ",
@@ -734,7 +740,14 @@ vcov_single_cell <- function(
   scales_known = FALSE,
   warn = TRUE
 ) {
-  checked <- .check_single_cell_inputs(y, mean_signature_matrix, Sigma)
+  checked <- .check_single_cell_inputs(
+    y,
+    mean_signature_matrix,
+    Sigma,
+    scales_known = isTRUE(scales_known) &&
+      !is.null(mean_scale) &&
+      !is.null(variance_scale)
+  )
   y <- checked$y
   mean_signature_matrix <- checked$mean
   nms <- colnames(mean_signature_matrix)
@@ -792,35 +805,37 @@ vcov_single_cell <- function(
     vcov_p <- jac %*% vcov_rho %*% t(jac)
     dimnames(vcov_p) <- list(nms, nms)
   }
-  blocks <- .single_cell_hessian_blocks(
-    p,
-    y,
-    mean_signature_matrix,
-    Sigma,
-    mean_scale,
-    variance_scale
-  )
-  h_cross <- crossprod(jac, blocks$h_peta)
-  vcov_eta <- tryCatch(
-    {
-      schur <- .symmetrise(
-        blocks$h_etaeta - t(h_cross) %*% solve(h_rho, h_cross)
-      )
-      solved <- .invert_pd(-schur, warn = warn, what = "nuisance")
-      if (is.null(solved)) na_eta else solved
-    },
-    error = function(e) {
-      if (isTRUE(warn)) {
-        warning(
-          "Nuisance information could not be inverted.",
-          call. = FALSE
+  # Known scales have no nuisance block (and at G = J it is singular).
+  vcov_eta <- if (isTRUE(scales_known)) {
+    na_eta
+  } else {
+    blocks <- .single_cell_hessian_blocks(
+      p,
+      y,
+      mean_signature_matrix,
+      Sigma,
+      mean_scale,
+      variance_scale
+    )
+    h_cross <- crossprod(jac, blocks$h_peta)
+    tryCatch(
+      {
+        schur <- .symmetrise(
+          blocks$h_etaeta - t(h_cross) %*% solve(h_rho, h_cross)
         )
+        solved <- .invert_pd(-schur, warn = warn, what = "nuisance")
+        if (is.null(solved)) na_eta else solved
+      },
+      error = function(e) {
+        if (isTRUE(warn)) {
+          warning(
+            "Nuisance information could not be inverted.",
+            call. = FALSE
+          )
+        }
+        na_eta
       }
-      na_eta
-    }
-  )
-  if (isTRUE(scales_known)) {
-    vcov_eta <- na_eta
+    )
   }
   dimnames(vcov_eta) <- dimnames(na_eta)
   list(
@@ -872,7 +887,9 @@ vcov_single_cell <- function(
 #'
 #' With `profile = FALSE` the scales stay at their start values (a
 #' two-stage plug-in fit), which is not the joint maximum. Supplying both
-#' `mean_scale` and `variance_scale` fixes them at those values.
+#' `mean_scale` and `variance_scale` fixes them at those values; only the
+#' \eqn{J-1} composition coordinates are then estimated, so \eqn{G=J}
+#' genes suffice (with profiled scales the fit needs \eqn{G>J}).
 #'
 #' With `optimiser = "newton"` (default) every fit uses the analytic
 #' score and observed Hessian with the PORT trust region of
@@ -883,16 +900,20 @@ vcov_single_cell <- function(
 #' the closure \eqn{\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
 #' \boldsymbol{w}}, \eqn{\boldsymbol{w}\ge0}, as in
 #' [deconvolute_ratios_L_BFGS_B()]; it can return exact zeros, where `rho`
-#' and the covariances are `NA`. The returned `vcov` is the delta-method
-#' image of the inverse negative profile Hessian; intervals are
+#' and the covariances are `NA`. With `optimiser = "marquardt"` it is
+#' maximised by [marqLevAlg::marqLevAlg()] in ILR coordinates, as in
+#' [deconvolute_ratios_Marquardt_Levenberg()]: Levenberg damping and the
+#' relative-distance-to-maximum stopping rule. The returned `vcov` is the
+#' delta-method image of the inverse negative profile Hessian; intervals are
 #' [confint_single_cell()].
 #'
 #' @inheritParams loglik_single_cell
 #' @param epsilon Relative function and step tolerances passed to
 #'   [stats::nlminb()].
 #' @param itmax Maximum number of iterations.
-#' @param optimiser `"newton"` (trust-region Newton in ILR coordinates) or
-#'   `"lbfgsb"` (L-BFGS-B on the closed simplex).
+#' @param optimiser `"newton"` (trust-region Newton in ILR coordinates),
+#'   `"lbfgsb"` (L-BFGS-B on the closed simplex) or `"marquardt"`
+#'   (Marquardt-Levenberg in ILR coordinates).
 #' @param profile If `TRUE`, profile the two scales out; if `FALSE`, keep
 #'   them at their start values.
 #' @param initial_p Optional open-simplex start. `NULL` uses the free-scale
@@ -955,14 +976,10 @@ deconvolute_single_cell <- function(
   variance_scale = NULL,
   estimand = c("cellular", "transcript"),
   cell_size = NULL,
-  optimiser = c("newton", "lbfgsb")
+  optimiser = c("newton", "lbfgsb", "marquardt")
 ) {
   estimand <- match.arg(estimand)
   optimiser <- match.arg(optimiser)
-  checked <- .check_single_cell_inputs(y, mean_signature_matrix, Sigma)
-  y <- checked$y
-  mean_signature_matrix <- checked$mean
-  nms <- colnames(mean_signature_matrix)
   fixed <- !is.null(mean_scale) || !is.null(variance_scale)
   if (fixed && (is.null(mean_scale) || is.null(variance_scale))) {
     stop(
@@ -970,8 +987,22 @@ deconvolute_single_cell <- function(
       call. = FALSE
     )
   }
+  checked <- .check_single_cell_inputs(
+    y,
+    mean_signature_matrix,
+    Sigma,
+    scales_known = fixed
+  )
+  y <- checked$y
+  mean_signature_matrix <- checked$mean
+  nms <- colnames(mean_signature_matrix)
   ols_scale <- NA_real_
-  if (is.null(initial_p)) {
+  if (is.null(initial_p) && fixed) {
+    # The scales are known: only the free-scale start of p is needed.
+    start <- .nnls_free_scale(mean_signature_matrix, y)
+    p_start <- repair_simplex(start$p, open = TRUE, nms = nms)
+    ols_scale <- start$ols_scale
+  } else if (is.null(initial_p)) {
     start <- single_cell_nuisance_scales(y, mean_signature_matrix, Sigma)
     p_start <- start$p
     ols_scale <- start$ols_scale
@@ -1044,48 +1075,59 @@ deconvolute_single_cell <- function(
       epsilon = epsilon,
       itmax = as.integer(itmax)
     )
-  } else if (identical(fit_type, "profile")) {
-    fit <- .newton_ilr(
-      z_start,
-      objective = function(z) {
-        profile_loglik_single_cell_ilr(z, y, mean_signature_matrix, Sigma)
-      },
-      gradient = function(z) {
-        gradient_profile_loglik_single_cell_ilr(
-          z,
-          y,
-          mean_signature_matrix,
-          Sigma
-        )
-      },
-      hessian = function(z) {
-        hessian_profile_loglik_single_cell_ilr(
-          z,
-          y,
-          mean_signature_matrix,
-          Sigma
-        )
-      },
-      epsilon = epsilon,
-      itmax = as.integer(itmax)
-    )
   } else {
-    args <- list(
-      y = y,
-      mean_signature_matrix = mean_signature_matrix,
-      Sigma = Sigma,
-      mean_scale = mean_scale,
-      variance_scale = variance_scale
-    )
-    fit <- .newton_ilr(
+    ilr <- if (identical(fit_type, "profile")) {
+      list(
+        objective = function(z) {
+          profile_loglik_single_cell_ilr(z, y, mean_signature_matrix, Sigma)
+        },
+        gradient = function(z) {
+          gradient_profile_loglik_single_cell_ilr(
+            z,
+            y,
+            mean_signature_matrix,
+            Sigma
+          )
+        },
+        hessian = function(z) {
+          hessian_profile_loglik_single_cell_ilr(
+            z,
+            y,
+            mean_signature_matrix,
+            Sigma
+          )
+        }
+      )
+    } else {
+      args <- list(
+        y = y,
+        mean_signature_matrix = mean_signature_matrix,
+        Sigma = Sigma,
+        mean_scale = mean_scale,
+        variance_scale = variance_scale
+      )
+      list(
+        objective = function(z) {
+          do.call(loglik_single_cell_ilr, c(list(z), args))
+        },
+        gradient = function(z) {
+          do.call(gradient_loglik_single_cell_ilr, c(list(z), args))
+        },
+        hessian = function(z) {
+          do.call(hessian_loglik_single_cell_ilr, c(list(z), args))
+        }
+      )
+    }
+    driver <- if (identical(optimiser, "marquardt")) {
+      .marquardt_ilr
+    } else {
+      .newton_ilr
+    }
+    fit <- driver(
       z_start,
-      objective = function(z) do.call(loglik_single_cell_ilr, c(list(z), args)),
-      gradient = function(z) {
-        do.call(gradient_loglik_single_cell_ilr, c(list(z), args))
-      },
-      hessian = function(z) {
-        do.call(hessian_loglik_single_cell_ilr, c(list(z), args))
-      },
+      objective = ilr$objective,
+      gradient = ilr$gradient,
+      hessian = ilr$hessian,
       epsilon = epsilon,
       itmax = as.integer(itmax)
     )

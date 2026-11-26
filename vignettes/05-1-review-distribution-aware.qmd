@@ -122,11 +122,9 @@ technical term [@fangExtrinsicBiologicalStochasticity2025]. Both papers
 index genes by $j$ and cells by $i$; below, gene is $g$ and cell is
 $c$, so that $j$ remains the cell type.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-measurement
-%%| fig-cap: Measurement and expression model of a single-cell reference, in the notation of this vignette. Inside cell type $j$, the size-free expression $\boldsymbol{\lambda}_{\cdot c}$ follows an expression model $F_j$ with mean $\tilde{\boldsymbol{\mu}}_{\cdot j}$ and covariance $\boldsymbol{\Sigma}^{\lambda}_j$; the biological size factor turns it into a molecule content; the technical size factor and the gene capture efficiency $\boldsymbol{b}$ act through a Poisson measurement.
 %%| filename: fig-dag-measurement
-%%| alt: Plate diagram. Inside a plate over cell types j, fixed mu_j and Sigma lambda_j generate the latent expression lambda_c. Inside a nested plate over cells, the latent biological size factor s bio multiplies lambda_c to give the deterministic molecule content m_c, and the latent technical size factor s tech together with the fixed gene capture vector b outside the plates generate the observed counts x_c through a Poisson law.
 \begin{tikzpicture}[node distance=10mm and 12mm]
 \node[latent] (lam) {$\boldsymbol{\lambda}_{\cdot c}$};
 \node[latent, left=12mm of lam] (sbio) {$s^{\mathrm{bio}}_c$};
@@ -150,6 +148,9 @@ $c$, so that $j$ remains the cell type.
 \draw[dependency] (b) -- (x);
 \end{tikzpicture}
 ```
+:::
+
+![Measurement and expression model of a single-cell reference, in the notation of this vignette. Inside cell type $j$, the size-free expression $\boldsymbol{\lambda}_{\cdot c}$ follows an expression model $F_j$ with mean $\tilde{\boldsymbol{\mu}}_{\cdot j}$ and covariance $\boldsymbol{\Sigma}^{\lambda}_j$; the biological size factor turns it into a molecule content; the technical size factor and the gene capture efficiency $\boldsymbol{b}$ act through a Poisson measurement.](figures/tikz/fig-dag-measurement.svg){#fig-dag-measurement fig-alt="Plate diagram. Inside a plate over cell types j, fixed mu_j and Sigma lambda_j generate the latent expression lambda_c. Inside a nested plate over cells, the latent biological size factor s bio multiplies lambda_c to give the deterministic molecule content m_c, and the latent technical size factor s tech together with the fixed gene capture vector b outside the plates generate the observed counts x_c through a Poisson law."}
 
 ## Poisson measurement of UMI counts {#sec-poisson-measurement}
 
@@ -707,11 +708,9 @@ interval [@agrestiFoundationsLinearGeneralized2015, ch. 2, 4, 8 and 9].
 on each, including `Unico` (@sec-unico), `DeconV` (@sec-deconv), `imply`
 (@sec-imply) and `BLEND` (@sec-blend).
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-ladder
-%%| fig-cap: The ladder of noise models for the bulk error $\boldsymbol{e}_i$ of @eq-eiv, from the least structured covariance (rung 1, bottom) to the most structured (rung 7, top). Beside each rung, the working $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ and the reviewed methods. `Unico` (highlighted) sits on rung 4 with a variance quadratic in $\boldsymbol{p}_{\cdot i}$, through a $J\times J$ covariance across cell types, fitted by a two-moment generalised method of moments. `DeconV` sits on rung 3; `imply` (subject random effect) and `BLEND` (random reference-mixing weights) on rung 7, `imply` also on rung 1 for its final proportions. The bracket on the left marks the errors-in-variables layer, which can be added on any rung.
 %%| filename: fig-ladder
-%%| alt: A ladder with two vertical rails and seven rungs, numbered from the bottom. Rung 1, OLS or NNLS, sigma squared times the identity: Bisque, CSNet, BEDwARS, DSSC, GSNMF+, swCAM, imply stage III. Rung 2, weighted least squares, diagonal: MuSiC, SCDC, DWLS, deMixSC, MEAD weights, DSection, BayICE. Rung 3, mean-variance GLM: DeconV, DeMixNB, ISOpureR, gnSPADE. Rung 4, quasi-likelihood or asymptotic Gaussian, variance a function of p: linear for RNA-Sieve, ReDeconv and DeCovarT single-cell; a highlighted box gives Unico's quadratic variance p transpose Gamma_g p plus tau_g squared, with a J by J covariance across types and a two-moment GMM. Rung 5, GLS with a dense G by G covariance: DeCovarT and the DECALS GLS variant. Rung 6, sandwich or GEE: DECALS and MEAD. Rung 7, GLMM: RCTD, BayesPrism, bMIND, EPIC-unmix, BLADE, DeMixT, DeCovarT read as an LMM, imply and BLEND. A bracket on the left spans rungs 1 to 6, with ticks at BEDwARS (rung 1), RNA-Sieve (rung 4) and MEAD (rung 6), labelled errors in variables.
 \begin{tikzpicture}[
   rung/.style={fixed, minimum width=40mm, minimum height=8mm, font=\small, align=center},
   rnote/.style={note, anchor=west, align=left, text width=114mm},
@@ -748,6 +747,9 @@ on each, including `Unico` (@sec-unico), `DeconV` (@sec-deconv), `imply`
 \draw[edge] (2.0,{6*\dy+0.55}) -- (2.0,{6*\dy+1.15}) node[note, above] {more of $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ modelled};
 \end{tikzpicture}
 ```
+:::
+
+![The ladder of noise models for the bulk error $\boldsymbol{e}_i$ of @eq-eiv, from the least structured covariance (rung 1, bottom) to the most structured (rung 7, top). Beside each rung, the working $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ and the reviewed methods. `Unico` (highlighted) sits on rung 4 with a variance quadratic in $\boldsymbol{p}_{\cdot i}$, through a $J\times J$ covariance across cell types, fitted by a two-moment generalised method of moments. `DeconV` sits on rung 3; `imply` (subject random effect) and `BLEND` (random reference-mixing weights) on rung 7, `imply` also on rung 1 for its final proportions. The bracket on the left marks the errors-in-variables layer, which can be added on any rung.](figures/tikz/fig-ladder.svg){#fig-ladder fig-alt="A ladder with two vertical rails and seven rungs, numbered from the bottom. Rung 1, OLS or NNLS, sigma squared times the identity: Bisque, CSNet, BEDwARS, DSSC, GSNMF+, swCAM, imply stage III. Rung 2, weighted least squares, diagonal: MuSiC, SCDC, DWLS, deMixSC, MEAD weights, DSection, BayICE. Rung 3, mean-variance GLM: DeconV, DeMixNB, ISOpureR, gnSPADE. Rung 4, quasi-likelihood or asymptotic Gaussian, variance a function of p: linear for RNA-Sieve, ReDeconv and DeCovarT single-cell; a highlighted box gives Unico's quadratic variance p transpose Gamma_g p plus tau_g squared, with a J by J covariance across types and a two-moment GMM. Rung 5, GLS with a dense G by G covariance: DeCovarT and the DECALS GLS variant. Rung 6, sandwich or GEE: DECALS and MEAD. Rung 7, GLMM: RCTD, BayesPrism, bMIND, EPIC-unmix, BLADE, DeMixT, DeCovarT read as an LMM, imply and BLEND. A bracket on the left spans rungs 1 to 6, with ticks at BEDwARS (rung 1), RNA-Sieve (rung 4) and MEAD (rung 6), labelled errors in variables."}
 
 Errors in variables cuts across the ladder: the regressor error
 $\boldsymbol{v}$ of @eq-eiv can be added on any rung, as a joint
@@ -834,11 +836,9 @@ between the two families.
 
 ### MuSiC {#sec-music}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-music
-%%| fig-cap: `MuSiC` [@wangBulkTissueCell2019] in this vignette's notation. (a) The mean model: bulk relative abundance is a cell-size-weighted mixture of relative profiles $\boldsymbol{\theta}$, rescaled by $\kappa_i$. (b) The multi-subject reference: subject-level relative profiles $\boldsymbol{\theta}_i$ vary around the cross-subject mean with variance $\boldsymbol{\sigma}^{2}$, and the inverse of the resulting gene variance weights a non-negative least squares fit.
 %%| filename: fig-dag-music
-%%| alt: Two panels. Panel a: fixed relative profiles theta and S give the deterministic per-cell mean mu tilde; inside a bulk plate, fixed p_i and S give the deterministic constant kappa_i; with a latent Gaussian error epsilon_i they generate the observed relative abundance Y_i. Panel b: observed reference cells inside a replicate plate give deterministic subject profiles, which give the cross-subject mean and variance; inside the bulk plate these generate a latent subject profile theta_i, which with p_i and S generates Y_i; a deterministic weight w_i, computed from sigma squared, S and p_i, enters the fit through a dashed arrow.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west, align=left}}
 % (a) mean model
@@ -883,6 +883,9 @@ between the two families.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![`MuSiC` [@wangBulkTissueCell2019] in this vignette's notation. (a) The mean model: bulk relative abundance is a cell-size-weighted mixture of relative profiles $\boldsymbol{\theta}$, rescaled by $\kappa_i$. (b) The multi-subject reference: subject-level relative profiles $\boldsymbol{\theta}_i$ vary around the cross-subject mean with variance $\boldsymbol{\sigma}^{2}$, and the inverse of the resulting gene variance weights a non-negative least squares fit.](figures/tikz/fig-dag-music.svg){#fig-dag-music fig-alt="Two panels. Panel a: fixed relative profiles theta and S give the deterministic per-cell mean mu tilde; inside a bulk plate, fixed p_i and S give the deterministic constant kappa_i; with a latent Gaussian error epsilon_i they generate the observed relative abundance Y_i. Panel b: observed reference cells inside a replicate plate give deterministic subject profiles, which give the cross-subject mean and variance; inside the bulk plate these generate a latent subject profile theta_i, which with p_i and S generates Y_i; a deterministic weight w_i, computed from sigma squared, S and p_i, enters the fit through a dashed arrow."}
 
 `MuSiC` starts from molecules: the bulk of subject $i$ holds
 $X_{gi}=\sum_jm_{ji}S_j\theta_{gj}=\sum_jm_{ji}\tilde\mu_{gj}$, with
@@ -952,11 +955,9 @@ response error only; a weighted moment estimator with no interval.
 
 ### RNA-Sieve {#sec-rnasieve}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-rnasieve
-%%| fig-cap: `RNA-Sieve` [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]. (a) With known per-cell moments $(\tilde{\boldsymbol{\mu}},\boldsymbol{\varsigma}^{2})$, the bulk is the sum of $n_i$ cells drawn from the cell mixture, with a central-limit Gaussian per gene whose variance is the mixture variance. (b) The reference means are themselves noisy averages of $C_j$ cells; the joint likelihood over bulks and reference means is maximised, with Godambe sandwich intervals.
 %%| filename: fig-dag-rnasieve
-%%| alt: Two panels. Panel a: fixed per-cell means mu tilde and variances varsigma squared outside a bulk plate; inside, fixed p_i gives the deterministic expected bulk per cell, mu tilde p_i, and the deterministic mixture variance sigma squared; with the fixed cell number n_i they generate the observed bulk y_i. Panel b: the same, plus an observed noisy reference mean generated by mu tilde, varsigma squared and the fixed number of reference cells C_j.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 \foreach \panel/\xs in {a/0, b/100} {
@@ -986,6 +987,9 @@ response error only; a weighted moment estimator with no interval.
 \node[ptitle] at (8.4,3.3) {(b) noisy reference, several bulks, eq. (9)--(11)};
 \end{tikzpicture}
 ```
+:::
+
+![`RNA-Sieve` [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]. (a) With known per-cell moments $(\tilde{\boldsymbol{\mu}},\boldsymbol{\varsigma}^{2})$, the bulk is the sum of $n_i$ cells drawn from the cell mixture, with a central-limit Gaussian per gene whose variance is the mixture variance. (b) The reference means are themselves noisy averages of $C_j$ cells; the joint likelihood over bulks and reference means is maximised, with Godambe sandwich intervals.](figures/tikz/fig-dag-rnasieve.svg){#fig-dag-rnasieve fig-alt="Two panels. Panel a: fixed per-cell means mu tilde and variances varsigma squared outside a bulk plate; inside, fixed p_i gives the deterministic expected bulk per cell, mu tilde p_i, and the deterministic mixture variance sigma squared; with the fixed cell number n_i they generate the observed bulk y_i. Panel b: the same, plus an observed noisy reference mean generated by mu tilde, varsigma squared and the fixed number of reference cells C_j."}
 
 `RNA-Sieve` writes the bulk as a sum of $n$ cells, each a draw from the
 cell mixture [the mixture-of-cells covariance](02-1-single-cell-generative-optimisation.html#eq-mixture-cell) restricted to one gene. By the central
@@ -1051,11 +1055,9 @@ likelihood.
 
 ### DWLS {#sec-dwls}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-dwls
-%%| fig-cap: `DWLS` [@tsoucasAccurateEstimationCelltype2019]. The signature is the average of reference cells; the bulk is fitted in cell-type numbers $\boldsymbol{m}_{\cdot i}$ by iterated weighted least squares, with weights equal to the inverse squared fitted mean, capped by a dampening constant $w_{\max}$.
 %%| filename: fig-dag-dwls
-%%| alt: Observed reference cells inside a plate give the deterministic per-cell signature mu tilde hat. Inside a bulk plate, fixed cell numbers m_i and the signature generate the observed bulk y_i; a deterministic weight w_i, computed from the signature, m_i and the fixed dampening constant w max, enters the fit through a dashed arrow.
 \begin{tikzpicture}
 \node[obs] (X) at (0,0) {$\boldsymbol{X}_{c}$};
 \plate{cells}{(X)}{reference cells $c$}
@@ -1071,6 +1073,9 @@ likelihood.
 \plate{i}{(m)(w)(y)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![`DWLS` [@tsoucasAccurateEstimationCelltype2019]. The signature is the average of reference cells; the bulk is fitted in cell-type numbers $\boldsymbol{m}_{\cdot i}$ by iterated weighted least squares, with weights equal to the inverse squared fitted mean, capped by a dampening constant $w_{\max}$.](figures/tikz/fig-dag-dwls.svg){#fig-dag-dwls fig-alt="Observed reference cells inside a plate give the deterministic per-cell signature mu tilde hat. Inside a bulk plate, fixed cell numbers m_i and the signature generate the observed bulk y_i; a deterministic weight w_i, computed from the signature, m_i and the fixed dampening constant w max, enters the fit through a dashed arrow."}
 
 `DWLS` fits the cell-type numbers $\mathbf{x}=\boldsymbol{m}_{\cdot i}$ by
 
@@ -1168,11 +1173,9 @@ moment estimator with no interval.
 
 ### Bisque {#sec-bisque}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-bisque
-%%| fig-cap: `Bisque` [@jewAccurateEstimationCell2020], paired mode. For individuals with both assays, the single-cell counts give a CPM signature $\boldsymbol{\theta}$ and counted proportions, hence a pseudo-bulk; a gene-wise linear map from observed bulk to pseudo-bulk is learned on those pairs and applied to the remaining bulks before non-negative least squares.
 %%| filename: fig-dag-bisque
-%%| alt: A plate over paired individuals contains observed cells, the deterministic counted proportions p_i' and the deterministic pseudo-bulk y ps_i' = theta p_i', and the observed paired bulk. The deterministic CPM signature theta is computed from the cells. A deterministic gene-wise map beta_0, beta is learned from pseudo-bulk and paired bulk. Inside a bulk plate, the map, theta and the fixed proportions p_i generate the observed bulk y_i.
 \begin{tikzpicture}
 \node[obs] (Xc) at (0,0) {$\boldsymbol{X}_{c}$};
 \plate{cells}{(Xc)}{cells $c$}
@@ -1194,6 +1197,9 @@ moment estimator with no interval.
 \plate{i}{(p)(y)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![`Bisque` [@jewAccurateEstimationCell2020], paired mode. For individuals with both assays, the single-cell counts give a CPM signature $\boldsymbol{\theta}$ and counted proportions, hence a pseudo-bulk; a gene-wise linear map from observed bulk to pseudo-bulk is learned on those pairs and applied to the remaining bulks before non-negative least squares.](figures/tikz/fig-dag-bisque.svg){#fig-dag-bisque fig-alt="A plate over paired individuals contains observed cells, the deterministic counted proportions p_i' and the deterministic pseudo-bulk y ps_i' = theta p_i', and the observed paired bulk. The deterministic CPM signature theta is computed from the cells. A deterministic gene-wise map beta_0, beta is learned from pseudo-bulk and paired bulk. Inside a bulk plate, the map, theta and the fixed proportions p_i generate the observed bulk y_i."}
 
 `Bisque` learns the platform shift instead of modelling it. In paired
 mode it fits $y^{\mathrm{ps}}_{gi'}=\beta_{0g}+\beta_gy_{gi'}+\epsilon_{gi'}$ per
@@ -1304,11 +1310,9 @@ so $T_j$ needs that external law. `DecOT` uses transport differently,
 as a loss between count histograms for the composition
 [@liuDecotBulkDeconvolutionOptimal2022].
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-two-scale-ot
-%%| fig-cap: Two-scale transport for one cell type $j$ (perspective). Each specimen $r$ draws a type-level profile $\boldsymbol{M}_{jr}$ from $\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$ (type scale); its cells scatter around it with $\boldsymbol{\Sigma}_{W,j}$ (cell scale). The map $S_j$ carries latent cells to the reference platform. The map $T_j$ pushes the type-level law to the bulk platform, where bulk sample $i$ mixes the transported profiles; $\boldsymbol{\epsilon}_i$ collects within-type cell noise and bulk measurement noise. `Bisque` instead applies a diagonal map to the mixed bulk.
 %%| filename: fig-two-scale-ot
-%%| alt: Generative model in plate notation for one cell type j. Fixed mean mu j and between-specimen covariance Sigma B j generate, inside a specimen plate, the latent type-level profile M j r. Inside a nested cell plate, M j r and the fixed within-type covariance Sigma W j generate the latent cell Z j r c, which the fixed cell-scale map S j turns into the observed reference cell X j r c. On the right, inside a bulk-sample plate, mu j, Sigma B j and the fixed type-scale map T j generate the latent bulk-platform profile M b j i, which with the fixed proportions p i generates the observed bulk y i.
 \begin{tikzpicture}
 \node[fixed] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
 \node[fixed] (SB) at (2.4,0) {$\boldsymbol{\Sigma}_{B,j}$};
@@ -1344,14 +1348,15 @@ as a loss between count histograms for the composition
 \plate{bulk}{(Mb)(nMb)(y)(p)(ny)}{bulk samples $i$}
 \end{tikzpicture}
 ```
+:::
+
+![Two-scale transport for one cell type $j$ (perspective). Each specimen $r$ draws a type-level profile $\boldsymbol{M}_{jr}$ from $\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$ (type scale); its cells scatter around it with $\boldsymbol{\Sigma}_{W,j}$ (cell scale). The map $S_j$ carries latent cells to the reference platform. The map $T_j$ pushes the type-level law to the bulk platform, where bulk sample $i$ mixes the transported profiles; $\boldsymbol{\epsilon}_i$ collects within-type cell noise and bulk measurement noise. `Bisque` instead applies a diagonal map to the mixed bulk.](figures/tikz/fig-two-scale-ot.svg){#fig-two-scale-ot fig-alt="Generative model in plate notation for one cell type j. Fixed mean mu j and between-specimen covariance Sigma B j generate, inside a specimen plate, the latent type-level profile M j r. Inside a nested cell plate, M j r and the fixed within-type covariance Sigma W j generate the latent cell Z j r c, which the fixed cell-scale map S j turns into the observed reference cell X j r c. On the right, inside a bulk-sample plate, mu j, Sigma B j and the fixed type-scale map T j generate the latent bulk-platform profile M b j i, which with the fixed proportions p i generates the observed bulk y i."}
 
 ### RCTD {#sec-rctd}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-rctd
-%%| fig-cap: `RCTD` [@cableRobustDecompositionCell2022a] in this vignette's notation. The reference is collapsed to fixed normalised means $\hat{\boldsymbol{\theta}}_{\cdot j}$. Sample $i$ carries an observed depth $L_i$, a leftover scale $\alpha_i$, a composition and a gene-wise overdispersion; the platform ratio $\tilde{\boldsymbol{b}}$ is shared across samples and is not estimated inside the per-sample fit.
 %%| filename: fig-dag-rctd
-%%| alt: Observed reference cells give the deterministic normalised means theta hat. A fixed platform ratio b tilde sits outside the sample plate. Inside the plate, the observed depth L_i, the fixed scale alpha_i, the fixed composition p_i and the latent overdispersion epsilon_i combine with theta hat and b tilde into the deterministic rate lambda_i, which with L_i generates the observed counts y_i through a Poisson law.
 \begin{tikzpicture}
 \node[obs] (Xc) at (0,0) {$\boldsymbol{X}_{c}$};
 \plate{cells}{(Xc)}{reference cells}
@@ -1373,6 +1378,9 @@ as a loss between count histograms for the composition
 \plate{i}{(N)(al)(p)(e)(lam)(y)(nl)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![`RCTD` [@cableRobustDecompositionCell2022a] in this vignette's notation. The reference is collapsed to fixed normalised means $\hat{\boldsymbol{\theta}}_{\cdot j}$. Sample $i$ carries an observed depth $L_i$, a leftover scale $\alpha_i$, a composition and a gene-wise overdispersion; the platform ratio $\tilde{\boldsymbol{b}}$ is shared across samples and is not estimated inside the per-sample fit.](figures/tikz/fig-dag-rctd.svg){#fig-dag-rctd fig-alt="Observed reference cells give the deterministic normalised means theta hat. A fixed platform ratio b tilde sits outside the sample plate. Inside the plate, the observed depth L_i, the fixed scale alpha_i, the fixed composition p_i and the latent overdispersion epsilon_i combine with theta hat and b tilde into the deterministic rate lambda_i, which with L_i generates the observed counts y_i through a Poisson law."}
 
 `RCTD` works one layer below DeCovarT. Each UMI first picks a type with
 probability $p_{ji}$, then a gene from that type's relative profile: a
@@ -1412,11 +1420,9 @@ $\boldsymbol{\theta}_{\cdot j}$ (our reading). A mixture is the right
 story at the UMI; a convolution of random profiles
 (@eq-gaussian-convolution) is the right story for population profiles.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-rctd-two-stage
-%%| fig-cap: `RCTD` estimation. Stage 1 identifies the gene-wise platform ratio from a pseudobulk of all samples; stage 2 fits each sample by sequential quadratic programming on the unnormalised weights $w_{ji}=p_{ji}e^{\alpha_i}$.
 %%| filename: fig-rctd-two-stage
-%%| alt: Flowchart. Library-normalised cells are averaged to theta hat; differentially expressed genes are kept; together with a pseudobulk of all samples they enter stage 1, a maximum-likelihood fit of the platform ratio b tilde and a bulk-wide mixture. The estimates are plugged into the Poisson-log-normal model; stage 2 runs a per-sample SQP on non-negative weights, which are normalised to give p hat.
 \begin{tikzpicture}[every node/.append style={text width=3.4cm}]
 \node[box] (avg) at (0,0) {average library-normalised cells to $\hat{\boldsymbol{\theta}}_{\cdot j}$};
 \node[box] (filt) at (0,-1.7) {keep differentially expressed genes};
@@ -1429,6 +1435,9 @@ story at the UMI; a convolution of random profiles
 \draw[edge] (s1) -- (plug); \draw[edge] (plug) -- (s2); \draw[edge] (s2) -- (rec);
 \end{tikzpicture}
 ```
+:::
+
+![`RCTD` estimation. Stage 1 identifies the gene-wise platform ratio from a pseudobulk of all samples; stage 2 fits each sample by sequential quadratic programming on the unnormalised weights $w_{ji}=p_{ji}e^{\alpha_i}$.](figures/tikz/fig-rctd-two-stage.svg){#fig-rctd-two-stage fig-alt="Flowchart. Library-normalised cells are averaged to theta hat; differentially expressed genes are kept; together with a pseudobulk of all samples they enter stage 1, a maximum-likelihood fit of the platform ratio b tilde and a bulk-wide mixture. The estimates are plugged into the Poisson-log-normal model; stage 2 runs a per-sample SQP on non-negative weights, which are normalised to give p hat."}
 
 The fit is two-stage because $\tilde{\boldsymbol{b}}$ cannot be free
 inside one sample ([alignment scales](02-1-single-cell-generative-optimisation.html#sec-alignment)):
@@ -1451,11 +1460,9 @@ fixed.
 
 ### DeconV {#sec-deconv}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-deconv
-%%| fig-cap: `DeconV` [@gynterDeconvProbabilisticCellType2023] in this vignette's notation, Poisson ("gamma") variant. Left, the reference model, fitted first: the counts of cell $c$ of type $j$ are zero-inflated Poisson with a Gamma-distributed rate and a type-specific dropout $d_j$. Right, the bulk model: the fitted hyperparameters give a Gamma rate $\theta_{gj}$ per type, the proportions follow a Dirichlet whose concentration $\boldsymbol{N}$ is fitted, and the bulk count is Poisson with a mean linear in $\boldsymbol{p}_{\cdot i}$. The negative-binomial variant replaces $\theta_{gj}$ by a log-normal $r_{gj}$ and adds a gene-wise $P_g$ shared by all types.
 %%| filename: fig-dag-deconv
-%%| alt: Two-part plate diagram. Left, inside a cell-type plate, fixed hyperparameters alpha and beta generate a latent Gamma rate lambda g j; inside a nested cell plate, lambda and a fixed dropout d j generate the observed count x g c through a zero-inflated Poisson. An arrow leaves the reference and gives the deterministic fitted hyperparameters alpha hat and beta hat. Right, inside a bulk-sample plate, the fitted hyperparameters generate a latent Gamma rate theta g j; a fixed concentration N generates latent Dirichlet proportions p i; with a fixed scale K i they generate the observed bulk count y g i, Poisson with mean K i times the sum over types of p j i theta g j, or negative binomial with a shared P g.
 \begin{tikzpicture}
 % reference model, fitted first
 \node[fixed] (ab) at (0,0) {$\alpha_{gj},\beta_{gj}$};
@@ -1484,6 +1491,9 @@ fixed.
 \plate{bulk}{(th)(nth)(p)(np)(y)(ny)(K)}{bulk sample $i$}
 \end{tikzpicture}
 ```
+:::
+
+![`DeconV` [@gynterDeconvProbabilisticCellType2023] in this vignette's notation, Poisson ("gamma") variant. Left, the reference model, fitted first: the counts of cell $c$ of type $j$ are zero-inflated Poisson with a Gamma-distributed rate and a type-specific dropout $d_j$. Right, the bulk model: the fitted hyperparameters give a Gamma rate $\theta_{gj}$ per type, the proportions follow a Dirichlet whose concentration $\boldsymbol{N}$ is fitted, and the bulk count is Poisson with a mean linear in $\boldsymbol{p}_{\cdot i}$. The negative-binomial variant replaces $\theta_{gj}$ by a log-normal $r_{gj}$ and adds a gene-wise $P_g$ shared by all types.](figures/tikz/fig-dag-deconv.svg){#fig-dag-deconv fig-alt="Two-part plate diagram. Left, inside a cell-type plate, fixed hyperparameters alpha and beta generate a latent Gamma rate lambda g j; inside a nested cell plate, lambda and a fixed dropout d j generate the observed count x g c through a zero-inflated Poisson. An arrow leaves the reference and gives the deterministic fitted hyperparameters alpha hat and beta hat. Right, inside a bulk-sample plate, the fitted hyperparameters generate a latent Gamma rate theta g j; a fixed concentration N generates latent Dirichlet proportions p i; with a fixed scale K i they generate the observed bulk count y g i, Poisson with mean K i times the sum over types of p j i theta g j, or negative binomial with a shared P g."}
 
 `DeconV` fits a count model to the single-cell reference, then
 aggregates it to the bulk [@gynterDeconvProbabilisticCellType2023]. The
@@ -1605,11 +1615,9 @@ is plugged in.
 
 ### DECALS {#sec-decals}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-decals
-%%| fig-cap: `DECALS` [@caiStatisticalInferenceCelltype2024] as three increasingly informed working models. (a) Constrained ordinary least squares with an implicit identity covariance; the subject-specific covariance enters only the sandwich variance. (b) Constrained generalised least squares when $\boldsymbol{\Sigma}_i=\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j$ is known. (c) `DECALS` proper: the type covariances are unknown and are estimated from bulk residuals across samples, with a bias correction iterated with the variance of $\hat{\boldsymbol{p}}_{\cdot i}$; the point estimate stays the OLS one.
 %%| filename: fig-dag-decals
-%%| alt: Three panels. Panel a: fixed mu outside a bulk plate; inside, fixed p_i and sigma_i squared generate the observed y_i. Panel b: fixed mu and type covariances Sigma_j; inside the plate, p_i and Sigma_j give the deterministic Sigma_i = sum of p squared Sigma_j, which with mu and p_i generates y_i. Panel c: inside the plate, observed y_i and fixed mu give the deterministic OLS estimate p hat and the residual z hat; outside the plate, the deterministic estimate Sigma hat_j is computed from residuals and estimates of all samples, and feeds the deterministic variance Xi hat_i inside the plate, which feeds back to Sigma hat_j through a dashed iterate arrow.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) constrained OLS working model
@@ -1657,6 +1665,9 @@ is plugged in.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![`DECALS` [@caiStatisticalInferenceCelltype2024] as three increasingly informed working models. (a) Constrained ordinary least squares with an implicit identity covariance; the subject-specific covariance enters only the sandwich variance. (b) Constrained generalised least squares when $\boldsymbol{\Sigma}_i=\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j$ is known. (c) `DECALS` proper: the type covariances are unknown and are estimated from bulk residuals across samples, with a bias correction iterated with the variance of $\hat{\boldsymbol{p}}_{\cdot i}$; the point estimate stays the OLS one.](figures/tikz/fig-dag-decals.svg){#fig-dag-decals fig-alt="Three panels. Panel a: fixed mu outside a bulk plate; inside, fixed p_i and sigma_i squared generate the observed y_i. Panel b: fixed mu and type covariances Sigma_j; inside the plate, p_i and Sigma_j give the deterministic Sigma_i = sum of p squared Sigma_j, which with mu and p_i generates y_i. Panel c: inside the plate, observed y_i and fixed mu give the deterministic OLS estimate p hat and the residual z hat; outside the plate, the deterministic estimate Sigma hat_j is computed from residuals and estimates of all samples, and feeds the deterministic variance Xi hat_i inside the plate, which feeds back to Sigma hat_j through a dashed iterate arrow."}
 
 `DECALS` makes no distributional assumption on the bulk. Its model
 (equations 1--2, 5) is
@@ -1715,11 +1726,9 @@ interval.
 
 ### MEAD {#sec-mead}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-mead
-%%| fig-cap: `MEAD` [@xieStatisticalInferenceCell2026] in this vignette's notation ($a_i=\gamma_i$, $\boldsymbol{b}^{\mathrm{bulk}}=\boldsymbol{\alpha}$, $\boldsymbol{b}^{\mathrm{ref}}=\boldsymbol{\alpha}^{r}$, $\boldsymbol{\mu}=\mathbf{U}$, replicate $r$ = reference individual $j$ of the paper). (a) Bulk and reference share the population law $F_X$ of the type profiles but have their own sample scales and gene-wise capture factors. (b) After reparametrisation only the ratio $\tilde b_g=\alpha_g/\alpha^{r}_g$ remains, treated as random noise around one, and the bulk mean is $\boldsymbol{\mu}\boldsymbol{\beta}_i$ with $\boldsymbol{\beta}_i=a_i\boldsymbol{p}_{\cdot i}$. (c) Across individuals, the composition is regressed on covariates.
 %%| filename: fig-dag-mead
-%%| alt: Three panels. Panel a: a fixed population law F_X generates latent bulk profiles X_i inside a bulk plate and latent reference profiles inside a reference plate; observed bulk y_i depends on X_i, a_i, p_i and a bulk gene factor; observed reference averages Z_r depend on the reference profile, a reference scale and a reference gene factor. Panel b: fixed mu and a latent gene ratio b tilde with mean one; inside the bulk plate a_i and p_i give the deterministic beta_i, which with mu and b tilde generates y_i; inside the reference plate, mu and the reference scale generate Z_r. Panel c: fixed b_0, A_0 and covariates f_i generate a latent composition p_i, which with a_i gives beta_i and then y_i.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) platform and individual scales
@@ -1776,6 +1785,9 @@ interval.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![`MEAD` [@xieStatisticalInferenceCell2026] in this vignette's notation ($a_i=\gamma_i$, $\boldsymbol{b}^{\mathrm{bulk}}=\boldsymbol{\alpha}$, $\boldsymbol{b}^{\mathrm{ref}}=\boldsymbol{\alpha}^{r}$, $\boldsymbol{\mu}=\mathbf{U}$, replicate $r$ = reference individual $j$ of the paper). (a) Bulk and reference share the population law $F_X$ of the type profiles but have their own sample scales and gene-wise capture factors. (b) After reparametrisation only the ratio $\tilde b_g=\alpha_g/\alpha^{r}_g$ remains, treated as random noise around one, and the bulk mean is $\boldsymbol{\mu}\boldsymbol{\beta}_i$ with $\boldsymbol{\beta}_i=a_i\boldsymbol{p}_{\cdot i}$. (c) Across individuals, the composition is regressed on covariates.](figures/tikz/fig-dag-mead.svg){#fig-dag-mead fig-alt="Three panels. Panel a: a fixed population law F_X generates latent bulk profiles X_i inside a bulk plate and latent reference profiles inside a reference plate; observed bulk y_i depends on X_i, a_i, p_i and a bulk gene factor; observed reference averages Z_r depend on the reference profile, a reference scale and a reference gene factor. Panel b: fixed mu and a latent gene ratio b tilde with mean one; inside the bulk plate a_i and p_i give the deterministic beta_i, which with mu and b tilde generates y_i; inside the reference plate, mu and the reference scale generate Z_r. Panel c: fixed b_0, A_0 and covariates f_i generate a latent composition p_i, which with a_i gives beta_i and then y_i."}
 
 `MEAD` is the multivariate errors-in-variables method. Its successive
 models (@fig-dag-mead), translated into our indices, are:
@@ -2006,11 +2018,9 @@ precision $\boldsymbol{\Omega}_j$ ([network inference](03-2-covariance-network-e
 run **after** $\boldsymbol{p}$ has been estimated (@fig-csnet-two-arrows).
 A `CSNet` correlation graph is not a DeCovarT precision.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-csnet-two-arrows
-%%| fig-cap: Two inverse problems on the same convolution. DeCovarT estimates p given mu and Sigma. Given p, the MAP / BLUP recovers sample-level purified profiles, and CSNet recovers type-level means and a sparse co-expression network. A precision Omega_j estimated there can be fed back as the DeCovarT plug-in.
 %%| filename: fig-csnet-two-arrows
-%%| alt: Flowchart. The bulk matrix and plug-in reference moments feed DeCovarT, which estimates p given mu and Sigma. The estimated p and the bulk feed both a MAP, BLUP or Wiener estimate of sample-level purified profiles and CSNet, which estimates type-level means and a sparse correlation R_j. CSNet optionally yields a sparse precision Omega_j that is fed back to DeCovarT as an updated plug-in.
 \begin{tikzpicture}
 \node[box] (bulk) at (-2.6,0) {Bulk matrix $\boldsymbol{y}$, $i=1,\ldots,N$};
 \node[box] (plug) at (2.6,0) {Plug-in $\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{\Sigma}_j$ from a reference};
@@ -2026,6 +2036,9 @@ A `CSNet` correlation graph is not a DeCovarT precision.
 \draw[dashededge] (omega.west) -| node[elabel, pos=0.75, left=1mm] {updated\\ plug-in} (deco.south);
 \end{tikzpicture}
 ```
+:::
+
+![Two inverse problems on the same convolution. DeCovarT estimates p given mu and Sigma. Given p, the MAP / BLUP recovers sample-level purified profiles, and CSNet recovers type-level means and a sparse co-expression network. A precision Omega_j estimated there can be fed back as the DeCovarT plug-in.](figures/tikz/fig-csnet-two-arrows.svg){#fig-csnet-two-arrows fig-alt="Flowchart. The bulk matrix and plug-in reference moments feed DeCovarT, which estimates p given mu and Sigma. The estimated p and the bulk feed both a MAP, BLUP or Wiener estimate of sample-level purified profiles and CSNet, which estimates type-level means and a sparse correlation R_j. CSNet optionally yields a sparse precision Omega_j that is fed back to DeCovarT as an updated plug-in."}
 
 $P$ and $H$ must have full column rank, so $\boldsymbol{p}_{\cdot i}$ has
 to **vary** across the $N$ bulks. One sample identifies $\boldsymbol{p}$
@@ -2169,11 +2182,9 @@ method of moments; the proportions are plugged in as exact.
 
 ## Subject-specific references from repeated bulks (imply) {#sec-imply}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-imply
-%%| fig-cap: Stage II of `imply` [@mengImplyImprovingCelltype2024] in this vignette's notation. Subjects $n$ are the independent units; their $t_n$ repeated bulk samples $i$ are correlated replicates. For gene $g$ and type $j$, the subject reference $r_{gjn}$ is a fixed group mean plus a subject random effect; the bulk mean mixes the subject references with the stage-I proportions $\hat\theta_{j,ni}$, held fixed. Stage III re-estimates the proportions by non-negative least squares with $\boldsymbol{R}_n=[r_{gjn}]$.
 %%| filename: fig-dag-imply
-%%| alt: Nested plate diagram. Outside the plates, fixed effects m g j and beta g j. Inside a subject plate, a fixed group label z n and a latent subject random effect u g j n combine with the fixed effects into the deterministic subject reference r g j n, equal to m plus beta times z plus u. Inside a nested plate of repeated samples, the fixed stage-I proportions theta hat and the subject reference generate the observed bulk y g n i, whose expectation is the sum over types of r g j n times theta hat j n i.
 \begin{tikzpicture}
 \node[fixed] (m) at (0,0) {$m_{gj},\beta_{gj}$};
 \node[note, above=1mm of m] {fixed effects (REML)};
@@ -2193,6 +2204,9 @@ method of moments; the proportions are plugged in as exact.
 \plate{subj}{(z)(u)(nu)(r)(nr)(reps)(reps-caption)}{subjects $n=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![Stage II of `imply` [@mengImplyImprovingCelltype2024] in this vignette's notation. Subjects $n$ are the independent units; their $t_n$ repeated bulk samples $i$ are correlated replicates. For gene $g$ and type $j$, the subject reference $r_{gjn}$ is a fixed group mean plus a subject random effect; the bulk mean mixes the subject references with the stage-I proportions $\hat\theta_{j,ni}$, held fixed. Stage III re-estimates the proportions by non-negative least squares with $\boldsymbol{R}_n=[r_{gjn}]$.](figures/tikz/fig-dag-imply.svg){#fig-dag-imply fig-alt="Nested plate diagram. Outside the plates, fixed effects m g j and beta g j. Inside a subject plate, a fixed group label z n and a latent subject random effect u g j n combine with the fixed effects into the deterministic subject reference r g j n, equal to m plus beta times z plus u. Inside a nested plate of repeated samples, the fixed stage-I proportions theta hat and the subject reference generate the observed bulk y g n i, whose expectation is the sum over types of r g j n times theta hat j n i."}
 
 `imply` estimates a reference per **subject** from that subject's
 repeated bulk samples, then deconvolves those samples again with it
@@ -2272,11 +2286,9 @@ derived in the
 
 ## Cell-type-specific profiles {#sec-bayes-cts}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-bayes-cts
-%%| fig-cap: Bayesian models for cell-type-specific profiles, in this review's notation. (a) `bMIND` and `EPIC-unmix`: for each gene, the sample-level profile across cell types is Gaussian with a $J\times J$ covariance $\boldsymbol{\Gamma}_g$ under an inverse-Wishart prior centred on single-cell estimates; proportions are fixed. (b) `BLADE`: log-normal profiles with a normal-gamma prior, Dirichlet proportions, linear mixing. (c) `BEDwARS`: a cohort-level signature drawn around a noisy reference, Dirichlet proportions, Gaussian residuals.
 %%| filename: fig-dag-bayes-cts
-%%| alt: Three panels. Panel a: inside a gene plate, latent mean mu_g and latent J by J covariance Gamma_g, with priors centred on single-cell estimates, generate a latent sample profile x_g,i inside a sample plate; with fixed proportions and a latent variance sigma_g squared it generates the observed y_gi. Panel b: fixed normal-gamma hyperparameters generate latent log-scale means and precisions, which generate latent log-normal profiles; fixed alpha generates latent Dirichlet proportions; with a fixed gamma_g they generate the observed bulk. Panel c: a fixed reference signature and latent spreads sigma_j generate a latent signature mu; a latent alpha generates Dirichlet proportions; with a latent residual sigma they generate the observed bulk vector.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) bMIND / EPIC-unmix: per-gene J x J covariance across types
@@ -2334,6 +2346,9 @@ derived in the
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![Bayesian models for cell-type-specific profiles, in this review's notation. (a) `bMIND` and `EPIC-unmix`: for each gene, the sample-level profile across cell types is Gaussian with a $J\times J$ covariance $\boldsymbol{\Gamma}_g$ under an inverse-Wishart prior centred on single-cell estimates; proportions are fixed. (b) `BLADE`: log-normal profiles with a normal-gamma prior, Dirichlet proportions, linear mixing. (c) `BEDwARS`: a cohort-level signature drawn around a noisy reference, Dirichlet proportions, Gaussian residuals.](figures/tikz/fig-dag-bayes-cts.svg){#fig-dag-bayes-cts fig-alt="Three panels. Panel a: inside a gene plate, latent mean mu_g and latent J by J covariance Gamma_g, with priors centred on single-cell estimates, generate a latent sample profile x_g,i inside a sample plate; with fixed proportions and a latent variance sigma_g squared it generates the observed y_gi. Panel b: fixed normal-gamma hyperparameters generate latent log-scale means and precisions, which generate latent log-normal profiles; fixed alpha generates latent Dirichlet proportions; with a fixed gamma_g they generate the observed bulk. Panel c: a fixed reference signature and latent spreads sigma_j generate a latent signature mu; a latent alpha generates Dirichlet proportions; with a latent residual sigma they generate the observed bulk vector."}
 
 **`bMIND`** estimates sample-level profiles for proportions estimated
 beforehand (by NNLS or `Bisque`)
@@ -2420,11 +2435,9 @@ special cases (our remark); no reviewed method fits it.
 
 ### BLEND: a per-sample mixture of references {#sec-blend}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-blend
-%%| fig-cap: `BLEND` [@huangBLENDProbabilisticCellular2024] in this vignette's notation. Each bulk sample $i$ draws RNA fractions $\boldsymbol{q}_{\cdot i}$ and, for each type $j$, weights $\boldsymbol{\psi}_{j,i}$ over the $M_j$ observed references $\boldsymbol{\Phi}_{j,m}$; the sample's reference for type $j$ is their convex combination. Each read draws a type, then a gene from that type's sample reference, so the gene counts are multinomial.
 %%| filename: fig-dag-blend
-%%| alt: Plate diagram. A fixed alpha generates the latent RNA fractions q i inside a bulk-sample plate. A fixed beta j generates the latent reference weights psi j i inside a nested type plate; with the fixed observed references Phi j m outside the sample plate they give the deterministic sample reference Phi B j i, the weighted sum of the references. Inside a read plate, a latent type label Y i r drawn from q i and the sample reference of that type generate the observed gene identity X tilde i r, categorical.
 \begin{tikzpicture}
 \node[fixed] (al) at (-3.4,0) {$\boldsymbol{\alpha}$};
 \node[latent] (q) at (-3.4,-2.2) {$\boldsymbol{q}_{\cdot i}$};
@@ -2447,6 +2460,9 @@ special cases (our remark); no reviewed method fits it.
 \plate{samples}{(q)(nq)(types)(types-caption)(reads)(reads-caption)}{bulk sample $i$}
 \end{tikzpicture}
 ```
+:::
+
+![`BLEND` [@huangBLENDProbabilisticCellular2024] in this vignette's notation. Each bulk sample $i$ draws RNA fractions $\boldsymbol{q}_{\cdot i}$ and, for each type $j$, weights $\boldsymbol{\psi}_{j,i}$ over the $M_j$ observed references $\boldsymbol{\Phi}_{j,m}$; the sample's reference for type $j$ is their convex combination. Each read draws a type, then a gene from that type's sample reference, so the gene counts are multinomial.](figures/tikz/fig-dag-blend.svg){#fig-dag-blend fig-alt="Plate diagram. A fixed alpha generates the latent RNA fractions q i inside a bulk-sample plate. A fixed beta j generates the latent reference weights psi j i inside a nested type plate; with the fixed observed references Phi j m outside the sample plate they give the deterministic sample reference Phi B j i, the weighted sum of the references. Inside a read plate, a latent type label Y i r drawn from q i and the sample reference of that type generate the observed gene identity X tilde i r, categorical."}
 
 `BLEND` is the count member of this family with several references per
 type [@huangBLENDProbabilisticCellular2024]. Its generative model
@@ -2511,11 +2527,9 @@ inference.
 
 ## Proportions {#sec-bayes-prop}
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-bayes-prop
-%%| fig-cap: Bayesian estimation of proportions from continuous intensities or from counts. (a) `DSection`: Gaussian bulk on linear intensities with condition-specific type profiles, a gene-wise precision and an informative Dirichlet prior on the proportions. (b) `gnSPADE`: each UMI of a spot draws a type label and then a gene, so the spot counts are multinomial with a probability vector that mixes the type profiles; a gene network enters as a Markov random field on the labels.
 %%| filename: fig-dag-bayes-prop
-%%| alt: Two panels. Panel a: fixed prior proportions generate latent Dirichlet proportions p_i; fixed hyperparameters generate latent condition-specific type profiles x_gjh and a latent gene precision lambda_g; together they generate the observed y_gi with a variance that does not depend on p. Panel b: a fixed alpha generates latent spot transcript fractions q_i; a fixed alpha prime generates latent topic profiles theta_j outside the spot plate; inside a plate over the UMIs of a spot, a latent label z and the topic profiles generate the observed gene w; a fixed gene network and lambda act on the labels.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) DSection: continuous, Gaussian, gene-wise precision
@@ -2552,6 +2566,9 @@ inference.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![Bayesian estimation of proportions from continuous intensities or from counts. (a) `DSection`: Gaussian bulk on linear intensities with condition-specific type profiles, a gene-wise precision and an informative Dirichlet prior on the proportions. (b) `gnSPADE`: each UMI of a spot draws a type label and then a gene, so the spot counts are multinomial with a probability vector that mixes the type profiles; a gene network enters as a Markov random field on the labels.](figures/tikz/fig-dag-bayes-prop.svg){#fig-dag-bayes-prop fig-alt="Two panels. Panel a: fixed prior proportions generate latent Dirichlet proportions p_i; fixed hyperparameters generate latent condition-specific type profiles x_gjh and a latent gene precision lambda_g; together they generate the observed y_gi with a variance that does not depend on p. Panel b: a fixed alpha generates latent spot transcript fractions q_i; a fixed alpha prime generates latent topic profiles theta_j outside the spot plate; inside a plate over the UMIs of a spot, a latent label z and the topic profiles generate the observed gene w; a fixed gene network and lambda act on the labels."}
 
 **`DSection`** is the continuous, Gaussian route
 [@erkkilaProbabilisticAnalysisGene2010]:
@@ -2598,11 +2615,9 @@ unknown component, usually tumour, together with the proportions. With
 one component unknown, the convolution of univariate laws has to be
 written explicitly, and its tractability drives the choice of law.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-semiref
-%%| fig-cap: Two semi-reference convolutions of univariate components. (a) `DeMixT`: log-normal components mixed linearly on the raw scale; the density of the sum has no closed form and is integrated numerically. (b) `DeMixNB`: each component is a negative binomial whose mean is already scaled by its proportion; the density of the sum is an exact finite sum.
 %%| filename: fig-dag-semiref
-%%| alt: Two panels, each inside a plate over samples and genes. Panel a: fixed reference parameters generate latent log-normal normal components N_k; fixed unknown-component parameters generate a latent log-normal tumour component T; with fixed proportions pi_i they generate the observed y_gi through a linear mixture whose density is obtained numerically. Panel b: fixed reference and tumour parameters and a fixed proportion pi_i generate two latent negative binomial components N and T; their sum is the observed y_gi, with an exact finite-sum convolution.
 \begin{tikzpicture}
 \tikzset{ptitle/.style={font=\bfseries\small, anchor=south west}}
 % (a) DeMixT
@@ -2637,6 +2652,9 @@ written explicitly, and its tractability drives the choice of law.
 \end{scope}
 \end{tikzpicture}
 ```
+:::
+
+![Two semi-reference convolutions of univariate components. (a) `DeMixT`: log-normal components mixed linearly on the raw scale; the density of the sum has no closed form and is integrated numerically. (b) `DeMixNB`: each component is a negative binomial whose mean is already scaled by its proportion; the density of the sum is an exact finite sum.](figures/tikz/fig-dag-semiref.svg){#fig-dag-semiref fig-alt="Two panels, each inside a plate over samples and genes. Panel a: fixed reference parameters generate latent log-normal normal components N_k; fixed unknown-component parameters generate a latent log-normal tumour component T; with fixed proportions pi_i they generate the observed y_gi through a linear mixture whose density is obtained numerically. Panel b: fixed reference and tumour parameters and a fixed proportion pi_i generate two latent negative binomial components N and T; their sum is the observed y_gi, with an exact finite-sum convolution."}
 
 **`DeMix` and `DeMixT`.** `DeMix` mixes a tumour and one normal
 component; `DeMixT` adds a second normal component
@@ -2745,11 +2763,9 @@ $\operatorname{tr}(\boldsymbol{\mu}^{\top}\boldsymbol{L}_G\boldsymbol{\mu})$, th
 log-density of an intrinsic Gaussian Markov random field prior on the
 signature; with the cosine distance it uses, the term is quartic.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-dag-swcam
-%%| fig-cap: `swCAM` read as a probabilistic model (our reading, not the paper's). The nuclear-norm penalty on the sample-specific deviations of type $j$ is the MAP of a Gaussian factor model with loadings $\boldsymbol{L}_j$ and sample scores $\boldsymbol{u}_{ij}$, which implies a low-rank gene–gene covariance within each cell type.
 %%| filename: fig-dag-swcam
-%%| alt: Latent loadings L_j inside a cell-type plate and latent scores u_ij inside a sample plate give the deterministic deviation Delta_i. With the fixed signature mu and fixed proportions p_i, the deviation generates the observed bulk y_i as mu plus Delta_i times p_i plus noise.
 \begin{tikzpicture}
 \node[latent] (V) at (2,0.8) {$\boldsymbol{L}_j$};
 \node[fixed] (mu) at (4.4,0.8) {$\boldsymbol{\mu}$};
@@ -2765,6 +2781,9 @@ signature; with the cosine distance it uses, the term is quartic.
 \plate{samples}{(u)(D)(p)(y)(n1)(n2)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![`swCAM` read as a probabilistic model (our reading, not the paper's). The nuclear-norm penalty on the sample-specific deviations of type $j$ is the MAP of a Gaussian factor model with loadings $\boldsymbol{L}_j$ and sample scores $\boldsymbol{u}_{ij}$, which implies a low-rank gene–gene covariance within each cell type.](figures/tikz/fig-dag-swcam.svg){#fig-dag-swcam fig-alt="Latent loadings L_j inside a cell-type plate and latent scores u_ij inside a sample plate give the deterministic deviation Delta_i. With the fixed signature mu and fixed proportions p_i, the deviation generates the observed bulk y_i as mu plus Delta_i times p_i plus noise."}
 
 **`swCAM`** estimates sample-specific signatures [@chenSwCAMEstimationSubtypespecific2022].
 After convex analysis of mixtures has fixed $\boldsymbol{\mu}$ and

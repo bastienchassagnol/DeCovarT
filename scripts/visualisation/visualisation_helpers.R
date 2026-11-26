@@ -4,30 +4,53 @@
 
 # Palettes ---------------------------------------------------------------------
 
-.method_levels <- c(
-  "lsei",
-  "NNLS",
-  "RLM",
-  "CIBERSORT",
-  "Newton-Raphson",
-  "L-BFGS-B",
-  "Firth",
-  "MEAD",
-  "RNA-Sieve",
-  "ReDeconv"
-)
-
-.method_palette <- c(
+.base_method_palette <- c(
   "lsei" = "#999999",
   "NNLS" = "#5F5F5F",
+  "DWLS" = "#B3B3B3",
   "RLM" = "#B8A07E",
   "CIBERSORT" = "#E69F00",
   "Newton-Raphson" = "#1D4E89",
   "L-BFGS-B" = "#56B4E9",
+  "Marquardt-Levenberg" = "#7B3294",
   "Firth" = "#009E73",
+  "DeCovarT diagonal" = "#B8860B",
   "MEAD" = "#CC79A7",
   "RNA-Sieve" = "#D55E00",
   "ReDeconv" = "#8C6D31"
+)
+
+# fig05 runs every scale-dependent method twice, with the true cell count
+# (oracle n) and with the design value (nominal n): same hue, the nominal
+# arm lighter.
+.arm_suffix <- c(oracle = " (oracle n)", nominal = " (nominal n)")
+.base_method <- function(x) sub(" \\((oracle|nominal) n\\)$", "", x)
+# Oracle arm first, then the nominal arm, then methods without a plug-in,
+# so that a facet grid with one column per plug-in method puts each arm on
+# its own row.
+.method_levels <- c(
+  paste0(names(.base_method_palette), .arm_suffix[["oracle"]]),
+  paste0(names(.base_method_palette), .arm_suffix[["nominal"]]),
+  names(.base_method_palette)
+)
+
+# Facet columns of a page with one panel per method: one per plug-in method
+# when the two arms are present, a near-square grid otherwise.
+.method_ncol <- function(algorithm) {
+  present <- unique(as.character(algorithm))
+  n_oracle <- sum(endsWith(present, .arm_suffix[["oracle"]]))
+  if (n_oracle > 0L) n_oracle else ceiling(sqrt(length(present)))
+}
+.method_palette <- c(
+  .base_method_palette,
+  stats::setNames(
+    .base_method_palette,
+    paste0(names(.base_method_palette), .arm_suffix[["oracle"]])
+  ),
+  stats::setNames(
+    colorspace::lighten(.base_method_palette, 0.45),
+    paste0(names(.base_method_palette), .arm_suffix[["nominal"]])
+  )
 )
 
 .ci_levels <- c(
@@ -37,6 +60,7 @@
   "profile",
   "profile_reml",
   "bootstrap",
+  "bootstrap_nprior",
   "oracle",
   "native",
   "native (transcript fractions)",
@@ -52,6 +76,7 @@
   "profile" = "Profile likelihood",
   "profile_reml" = "Profile, REML",
   "bootstrap" = "Parametric bootstrap",
+  "bootstrap_nprior" = "Bootstrap, n redrawn",
   "oracle" = "Oracle (Fisher at p*)",
   "native" = "Method's own interval",
   "native (transcript fractions)" = "Own interval, transcript fractions",
@@ -67,6 +92,7 @@
   "Profile likelihood" = "#009E73",
   "Profile, REML" = "#66C2A5",
   "Parametric bootstrap" = "#E69F00",
+  "Bootstrap, n redrawn" = "#F0C75E",
   "Oracle (Fisher at p*)" = "#6B6B6B",
   "Method's own interval" = "#CC79A7",
   "Own interval, transcript fractions" = "#CC79A7",
@@ -86,7 +112,22 @@
   )
 }
 
-.likelihood_methods <- c("Newton-Raphson", "L-BFGS-B", "Firth")
+.likelihood_methods <- c(
+  "Newton-Raphson",
+  "L-BFGS-B",
+  "Marquardt-Levenberg",
+  "Firth"
+)
+
+# The Newton-Raphson fit that marks the likelihood pictures.
+.newton_label <- function(benchmark) {
+  algorithms <- unique(benchmark$optimisation$algorithm)
+  if ("Newton-Raphson" %in% algorithms) {
+    "Newton-Raphson"
+  } else {
+    paste0("Newton-Raphson", .arm_suffix[["oracle"]])
+  }
+}
 
 # Theme of every page: the package theme on a white background, with the
 # type sizes of a full-page figure.
@@ -119,10 +160,23 @@
 
 # Scenario table with the page and panel of every scenario. A page groups
 # the scenarios that share every factor except the two shown inside it:
-# fig02 the two within-type correlations, fig03 the graph families of
-# types 1 and 2, fig05 the cell sizes and the number of cells per bulk.
+# fig02 and fig05 the two within-type correlations, fig03 the graph
+# families of types 1 and 2, fig06 the cell sizes and the platform scale.
 .scenario_layout <- function(config, figure) {
   config <- tibble::as_tibble(config)
+  if (identical(figure, "fig05")) {
+    # Pages: composition, then cells per bulk; panels as fig02.
+    config$proportions <- factor(
+      config$proportions,
+      c("balanced", "moderately unbalanced", "highly unbalanced")
+    )
+    config <- dplyr::arrange(config, .data$proportions, .data$n_cells)
+    config$page <- sprintf(
+      "%s / n = %s cells per bulk",
+      config$proportions,
+      formatC(config$n_cells, format = "d", big.mark = ",")
+    )
+  }
   if (identical(figure, "fig02")) {
     config$proportions <- factor(
       config$proportions,
@@ -145,6 +199,8 @@
       config$proportions,
       sep = " / "
     )
+  }
+  if (figure %in% c("fig02", "fig05")) {
     config$panel_x <- factor(config$correlation_celltype1)
     config$panel_y <- factor(config$correlation_celltype2)
     config$panel_x_title <- "Correlation, cell type 1"
@@ -234,7 +290,7 @@
     config$panel <- paste(config$panel_y, config$panel_x, sep = " / ")
     config$corner <- TRUE
   }
-  config$grid_panels <- identical(figure, "fig05")
+  config$grid_panels <- identical(figure, "fig06")
   config$page <- factor(config$page, unique(config$page))
   config$panel <- factor(
     config$panel,
@@ -363,12 +419,13 @@
 }
 
 # The balances follow the lineages: fig03 contrasts the two close types,
-# then both against the third; fig05 contrasts the siblings of each lineage,
+# then both against the third; fig06 contrasts the siblings of each lineage,
 # then the two lineages (held at its true value in the pictures).
 .figure_balances <- function(figure) {
   switch(
     figure,
-    fig02 = list(
+    fig02 = ,
+    fig05 = list(
       basis = .balance_basis(2L, list(list(plus = 1L, minus = 2L))),
       labels = "z = balance(CT1 | CT2)"
     ),
@@ -379,7 +436,7 @@
       ),
       labels = c("z1 = balance(CT1 | CT2)", "z2 = balance(CT1, CT2 | CT3)")
     ),
-    fig05 = list(
+    fig06 = list(
       basis = .balance_basis(
         4L,
         list(
@@ -452,13 +509,26 @@
 }
 
 # Write a list of pages (ggplots or cowplot drawings) to one PDF, one page
-# per element; cairo keeps the Greek letters and the vector graphics.
+# per element; cairo keeps the Greek letters and the vector graphics. A
+# `.svg` file takes one page (svglite, the house vector device).
 .save_pages <- function(pages, file, width, height) {
   pages <- Filter(Negate(is.null), pages)
   if (length(pages) == 0L) {
     return(invisible(NULL))
   }
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  if (grepl("\\.svg$", file)) {
+    stopifnot(length(pages) == 1L)
+    ggplot2::ggsave(
+      file,
+      pages[[1L]],
+      device = svglite::svglite,
+      width = width,
+      height = height,
+      limitsize = FALSE
+    )
+    return(invisible(file))
+  }
   book <- gridExtra::marrangeGrob(
     lapply(pages, function(page) {
       if (inherits(page, "patchwork")) {
@@ -556,4 +626,43 @@
     )
   }
   do.call(rbind, segs)
+}
+
+# Outcome helpers ---------------------------------------------------------------
+
+simulation_outcome <- function(numerical_converged, theoretical_converged) {
+  num <- as.logical(numerical_converged)
+  th <- as.logical(theoretical_converged)
+  n <- length(num)
+  if (length(th) != n) {
+    th <- rep_len(th, n)
+  }
+  out <- rep("numerical_failure", n)
+  ok <- !is.na(num) & num
+  success <- ok & !is.na(th) & th
+  out[success] <- "theoretical_success"
+  out[ok & !success] <- "theoretical_failure"
+  out
+}
+
+# Aitchison (clr Euclidean) distance on the simplex
+#
+.aitchison_distance <- function(p, p_hat) {
+  p <- as.numeric(p)
+  p_hat <- as.numeric(p_hat)
+  if (length(p) != length(p_hat) || length(p) < 2L) {
+    return(NA_real_)
+  }
+  if (any(!is.finite(p)) || any(!is.finite(p_hat))) {
+    return(NA_real_)
+  }
+  eps <- .Machine$double.eps
+  p <- pmax(p, eps)
+  p_hat <- pmax(p_hat, eps)
+  p <- p / sum(p)
+  p_hat <- p_hat / sum(p_hat)
+  clr <- function(x) {
+    log(x) - mean(log(x))
+  }
+  sqrt(sum((clr(p) - clr(p_hat))^2))
 }

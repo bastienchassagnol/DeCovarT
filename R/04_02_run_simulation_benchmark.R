@@ -80,6 +80,20 @@
     coverage_interval = coverage_interval,
     likelihood = likelihood,
     nuisance_true = nuisance_true,
+    nuisance_nominal = if (is.null(true_theta$n_cells)) {
+      NULL
+    } else {
+      # The design's cell count: c = a n and phi = a^2 n.
+      a <- if (is.null(true_theta$platform_scale)) {
+        1
+      } else {
+        true_theta$platform_scale
+      }
+      c(
+        mean_scale = a * true_theta$n_cells,
+        variance_scale = a^2 * true_theta$n_cells
+      )
+    },
     label = label
   ))
 

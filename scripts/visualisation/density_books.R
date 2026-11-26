@@ -23,30 +23,53 @@
 # Exact densities on a grid shared by every page: the p-weighted mixture of
 # the purified Gaussians, and the convolution N(mu p, sum_j p_j^2 Sigma_j)
 # that DeCovarT fits; 95% ellipses and centroids of the purified types.
-.data_gene_densities <- function(benchmark, layout, n_grid = 90L) {
+# fig05 (single cell, a = 1) is drawn per cell, y / n: the purified laws
+# are the bulks of one type, N(mu_j, Sigma_W,j / n), the bulk law is
+# N(mu p, S_W(p) / n), and each page (one n) has its own gene axes.
+.data_gene_densities <- function(
+  benchmark,
+  layout,
+  n_grid = 90L,
+  figure = "fig02"
+) {
   corners <- layout[layout$corner, ]
   thetas <- benchmark$theta_true[corners$ID]
-  centres <- do.call(cbind, lapply(thetas, `[[`, "mu"))
-  spread <- 4 *
-    sqrt(max(unlist(lapply(thetas, function(th) {
-      apply(th$sigma, 3L, diag)
-    }))))
-  axis <- seq(min(centres) - spread, max(centres) + spread, length.out = n_grid)
-  grid <- as.matrix(expand.grid(gene_1 = axis, gene_2 = axis))
+  per_cell <- identical(figure, "fig05")
+  if (per_cell) {
+    thetas <- lapply(thetas, function(th) {
+      th$sigma <- th$sigma / th$n_cells
+      th
+    })
+  }
+  axis_of <- function(ths) {
+    centres <- do.call(cbind, lapply(ths, `[[`, "mu"))
+    spread <- 4 *
+      sqrt(max(unlist(lapply(ths, function(th) apply(th$sigma, 3L, diag)))))
+    seq(min(centres) - spread, max(centres) + spread, length.out = n_grid)
+  }
+  page_of <- as.character(layout$page[match(corners$ID, layout$ID)])
+  axes <- if (per_cell) {
+    lapply(split(thetas, page_of), axis_of)
+  } else {
+    list(axis_of(thetas))
+  }
   densities <- purrr::map_dfr(seq_len(nrow(corners)), function(i) {
     th <- thetas[[i]]
     p <- as.numeric(th$p)
+    axis <- if (per_cell) axes[[page_of[[i]]]] else axes[[1L]]
+    grid <- as.matrix(expand.grid(gene_1 = axis, gene_2 = axis))
     purified <- Reduce(
       `+`,
       lapply(seq_along(p), function(j) {
         p[[j]] * .dmvnorm_rows(grid, th$mu[, j], th$sigma[,, j])
       })
     )
-    bulk <- .dmvnorm_rows(
-      grid,
-      drop(th$mu %*% p),
+    bulk_sigma <- if (per_cell) {
+      .single_cell_mixture(p, th$sigma)$matrix
+    } else {
       .compute_global_variance(p, th$sigma)
-    )
+    }
+    bulk <- .dmvnorm_rows(grid, drop(th$mu %*% p), bulk_sigma)
     tibble::tibble(
       ID = corners$ID[[i]],
       gene_1 = grid[, 1L],
@@ -70,26 +93,49 @@
   list(
     densities = .with_layout(densities, layout),
     types = .with_layout(types, layout),
-    limits = range(axis)
+    limits = lapply(axes, range),
+    per_cell = per_cell
   )
 }
 
 plot_gene_densities <- function(data, which) {
-  title <- c(
-    purified = "Purified cell-type laws, weighted by the composition",
-    bulk = "Bulk convolution N(mu p, sum_j p_j^2 Sigma_j)"
-  )[[which]]
-  caption <- c(
-    purified = paste(
-      "Fill: exact density of sum_j p_j N(mu_j, Sigma_j), not the bulk law.",
-      "Outlines: 95% regions of each purified type; points: centroids."
-    ),
-    bulk = paste(
-      "Fill: exact density of the bulk law; points: centroids of the",
-      "purified types. Same gene axes on every page."
-    )
-  )[[which]]
+  per_cell <- isTRUE(data$per_cell)
+  title <- if (per_cell) {
+    c(
+      purified = "Bulks of one cell type, per cell, weighted by the composition",
+      bulk = "Bulk law per cell, N(mu p, S_W(p) / n)"
+    )[[which]]
+  } else {
+    c(
+      purified = "Purified cell-type laws, weighted by the composition",
+      bulk = "Bulk convolution N(mu p, sum_j p_j^2 Sigma_j)"
+    )[[which]]
+  }
+  caption <- if (per_cell) {
+    c(
+      purified = paste(
+        "Fill: exact density of sum_j p_j N(mu_j, Sigma_W,j / n), not the bulk law.",
+        "Outlines: 95% regions of a bulk of n cells of one type; points: centroids."
+      ),
+      bulk = paste(
+        "Fill: exact density of y / n for a bulk of n cells; points: centroids of",
+        "the cell types. Gene axes shrink with n (one range per page)."
+      )
+    )[[which]]
+  } else {
+    c(
+      purified = paste(
+        "Fill: exact density of sum_j p_j N(mu_j, Sigma_j), not the bulk law.",
+        "Outlines: 95% regions of each purified type; points: centroids."
+      ),
+      bulk = paste(
+        "Fill: exact density of the bulk law; points: centroids of the",
+        "purified types. Same gene axes on every page."
+      )
+    )[[which]]
+  }
   lapply(levels(droplevels(data$densities$page)), function(page) {
+    limits <- if (per_cell) data$limits[[page]] else data$limits[[1L]]
     dens <- data$densities[data$densities$page == page, ]
     dens$density <- dens[[which]]
     types <- data$types[data$types$page == page, ]
@@ -119,13 +165,13 @@ plot_gene_densities <- function(data, which) {
       ) +
       ggplot2::facet_wrap(~panel, ncol = 2L) +
       ggplot2::coord_equal(
-        xlim = data$limits,
-        ylim = data$limits,
+        xlim = limits,
+        ylim = limits,
         expand = FALSE
       ) +
       ggplot2::labs(
-        x = "Gene 1",
-        y = "Gene 2",
+        x = if (per_cell) "Gene 1, per cell" else "Gene 1",
+        y = if (per_cell) "Gene 2, per cell" else "Gene 2",
         title = title,
         subtitle = page,
         caption = caption
@@ -196,6 +242,78 @@ plot_gene_densities <- function(data, which) {
   -0.5 * (length(m) * log(phi) + model$log_det + length(m))
 }
 
+# Expected log-likelihood of the single-cell model at known scales (c, phi),
+# without -G/2 log(2 pi): y ~ N(c mu p*, phi S_W(p*)) scored under
+# N(c mu p, phi S_W(p)); maximised at p* exactly.
+.expected_loglik_single_cell_known <- function(p, p_true, mu, Sigma, c, phi) {
+  model <- .single_cell_mixture(p, Sigma)
+  truth <- .single_cell_mixture(p_true, Sigma)
+  gap <- drop(mu %*% (p_true - p))
+  -0.5 *
+    (length(gap) *
+      log(phi) +
+      model$log_det +
+      sum(model$inverse * truth$matrix) +
+      c^2 / phi * sum(gap * drop(model$inverse %*% gap)))
+}
+
+# Observed (bulk `sample`) and expected log-likelihood of one scenario, as
+# functions of p. fig05 holds the scales at the true ones of that bulk.
+.loglik_functions <- function(benchmark, id, figure, sample = 1L) {
+  th <- benchmark$theta_true[[id]]
+  p_true <- as.numeric(th$p)
+  y <- benchmark$data[[id]]$bulk[, sample]
+  nuisance <- benchmark$data[[id]]$nuisance
+  switch(
+    figure,
+    fig05 = {
+      c_true <- nuisance["mean_scale", sample]
+      phi_true <- nuisance["variance_scale", sample]
+      list(
+        observed = function(p) {
+          loglik_single_cell(p, y, th$mu, th$sigma, c_true, phi_true)
+        },
+        expected = function(p) {
+          .expected_loglik_single_cell_known(
+            p,
+            p_true,
+            th$mu,
+            th$sigma,
+            c_true,
+            phi_true
+          )
+        }
+      )
+    },
+    fig06 = list(
+      observed = function(p) {
+        profile_loglik_single_cell_ilr(
+          isometric_log_ratio(p),
+          y,
+          th$mu,
+          th$sigma
+        )
+      },
+      expected = function(p) {
+        .expected_loglik_single_cell(
+          p,
+          p_true,
+          th$mu,
+          th$sigma,
+          nuisance["mean_scale", sample],
+          nuisance["variance_scale", sample]
+        )
+      }
+    ),
+    list(
+      observed = function(p) loglik_multivariate(p, y, th$mu, th$sigma),
+      expected = function(p) {
+        .expected_loglik_population(p, p_true, th$mu, th$sigma)
+      }
+    )
+  )
+}
+
 # Relative log-likelihood log10(L / max L) of `f` on an n x n lattice of
 # the window `xlim` x `ylim`, floored at .loglik_floor.
 .relative_lattice <- function(f, xlim, ylim, n_grid) {
@@ -235,7 +353,7 @@ plot_gene_densities <- function(data, which) {
 
 # Observed (first simulated bulk) and expected log-likelihood of one
 # scenario on a lattice. fig02: unnormalised weights (p1, p2) of the
-# convolution; fig03: the plane of the two balances; fig05: the plane of
+# convolution; fig03: the plane of the two balances; fig06: the plane of
 # the two within-lineage balances, the between-lineage balance held at
 # its true value, each surface on its own zoomed window. The Monte Carlo
 # mean of the Newton-Raphson estimates is the marker of the expected
@@ -243,15 +361,14 @@ plot_gene_densities <- function(data, which) {
 .loglik_lattice <- function(benchmark, id, figure, n_grid) {
   th <- benchmark$theta_true[[id]]
   p_true <- as.numeric(th$p)
-  y <- benchmark$data[[id]]$bulk[, 1L]
-  single_cell <- identical(figure, "fig05")
+  single_cell <- identical(figure, "fig06")
   estimates <- benchmark$optimisation[
     benchmark$optimisation$ID == id &
-      benchmark$optimisation$algorithm == "Newton-Raphson",
+      benchmark$optimisation$algorithm == .newton_label(benchmark),
     colnames(th$mu)
   ]
   estimates <- as.matrix(estimates[stats::complete.cases(estimates), ])
-  if (identical(figure, "fig02")) {
+  if (figure %in% c("fig02", "fig05")) {
     xlim <- ylim <- c(0.01, 0.99)
     to_p <- function(x1, x2) c(x1, x2)
     truth_xy <- p_true
@@ -266,27 +383,9 @@ plot_gene_densities <- function(data, which) {
     interior <- estimates[apply(estimates > 0, 1L, all), , drop = FALSE]
     estimate_xy <- t(crossprod(V, t(log(interior))))[, 1:2, drop = FALSE]
   }
-  if (single_cell) {
-    nuisance <- benchmark$data[[id]]$nuisance
-    observed <- function(p) {
-      profile_loglik_single_cell_ilr(isometric_log_ratio(p), y, th$mu, th$sigma)
-    }
-    expected <- function(p) {
-      .expected_loglik_single_cell(
-        p,
-        p_true,
-        th$mu,
-        th$sigma,
-        nuisance["mean_scale", 1L],
-        nuisance["variance_scale", 1L]
-      )
-    }
-  } else {
-    observed <- function(p) loglik_multivariate(p, y, th$mu, th$sigma)
-    expected <- function(p) {
-      .expected_loglik_population(p, p_true, th$mu, th$sigma)
-    }
-  }
+  fns <- .loglik_functions(benchmark, id, figure)
+  observed <- fns$observed
+  expected <- fns$expected
   on_lattice <- function(f) {
     g <- function(x1, x2) {
       tryCatch(f(to_p(x1, x2)), error = function(e) NA_real_)
@@ -328,14 +427,14 @@ plot_gene_densities <- function(data, which) {
   list(
     surface = bind("surface"),
     markers = bind("markers"),
-    axis_labels = if (identical(figure, "fig02")) {
+    axis_labels = if (figure %in% c("fig02", "fig05")) {
       c("p1 (unnormalised weight)", "p2 (unnormalised weight)")
     } else {
       balance$labels[1:2]
     },
-    simplex = identical(figure, "fig02"),
-    zoomed = identical(figure, "fig05"),
-    held = if (identical(figure, "fig05")) balance$labels[[3L]]
+    simplex = figure %in% c("fig02", "fig05"),
+    zoomed = identical(figure, "fig06"),
+    held = if (identical(figure, "fig06")) balance$labels[[3L]]
   )
 }
 
@@ -439,29 +538,32 @@ plot_loglik_surfaces <- function(data, surface) {
     lapply(.with_legend, legend = legend)
 }
 
-# Log-likelihood along the single ILR coordinate of fig02, on the simplex.
-.data_loglik_profiles <- function(benchmark, layout, n_grid = 300L) {
+# Log-likelihood along the single ILR coordinate of fig02 and fig05, on the
+# simplex.
+.data_loglik_profiles <- function(
+  benchmark,
+  layout,
+  n_grid = 300L,
+  figure = "fig02"
+) {
   axis <- seq(-5, 5, length.out = n_grid)
   ids <- layout$ID[layout$corner]
   pieces <- lapply(ids, function(id) {
     th <- benchmark$theta_true[[id]]
     p_true <- as.numeric(th$p)
-    y <- benchmark$data[[id]]$bulk[, 1L]
+    fns <- .loglik_functions(benchmark, id, figure)
     values <- t(vapply(
       axis,
       function(z) {
         p <- isometric_logistic(z)
-        c(
-          loglik_multivariate(p, y, th$mu, th$sigma),
-          .expected_loglik_population(p, p_true, th$mu, th$sigma)
-        )
+        c(fns$observed(p), fns$expected(p))
       },
       numeric(2)
     ))
     relative <- function(v) pmax((v - max(v)) / log(10), .loglik_floor)
     est <- benchmark$optimisation[
       benchmark$optimisation$ID == id &
-        benchmark$optimisation$algorithm == "Newton-Raphson",
+        benchmark$optimisation$algorithm == .newton_label(benchmark),
       colnames(th$mu)
     ]
     est <- as.matrix(est)
@@ -660,16 +762,16 @@ plot_loglik_rgl <- function(data) {
 
 # Mean signature, networks and pairwise distances -----------------------------
 
-# One mean matrix per distinct reference: fig03 has one, fig05 one per
+# One mean matrix per distinct reference: fig03 has one, fig06 one per
 # gene count and cell-size vector.
 .reference_ids <- function(layout, figure) {
   keys <- switch(
     figure,
     fig03 = c("graph_ct1", "graph_ct2"),
-    fig05 = c("n_genes", "cell_size_label")
+    fig06 = c("n_genes", "cell_size_label")
   )
   keep <- layout$proportions == "balanced"
-  if (identical(figure, "fig05")) {
+  if (identical(figure, "fig06")) {
     keep <- keep &
       layout$platform_scale == max(layout$platform_scale) &
       layout$n_cells == max(layout$n_cells)
@@ -680,7 +782,7 @@ plot_loglik_rgl <- function(data) {
 
 .data_mean_signature <- function(benchmark, layout, figure) {
   refs <- .reference_ids(layout, figure)
-  refs <- if (identical(figure, "fig05")) {
+  refs <- if (identical(figure, "fig06")) {
     refs[!duplicated(refs[c("n_genes", "cell_size_label")]), ]
   } else {
     refs[1L, ]
@@ -688,7 +790,7 @@ plot_loglik_rgl <- function(data) {
   purrr::map_dfr(seq_len(nrow(refs)), function(i) {
     mu <- benchmark$theta_true[[refs$ID[[i]]]]$mu
     tibble::tibble(
-      reference = if (identical(figure, "fig05")) {
+      reference = if (identical(figure, "fig06")) {
         sprintf(
           "G = %d, %s cell sizes",
           refs$n_genes[[i]],
@@ -737,7 +839,7 @@ plot_mean_signature <- function(data) {
 # colour its sign) and its genes: the block of a stochastic block model,
 # the hubs of a scale-free graph. fig03: one page per overlap target, the
 # five distinct graphs (types 1 and 2 under both families, type 3
-# scale-free); fig05: one page per gene count and overlap target, the four
+# scale-free); fig06: one page per gene count and overlap target, the four
 # types. The family of each graph is `theta_true$graph_models` when stored,
 # otherwise the design of the figure; SBM blocks are
 # `theta_true$blocks[[j]]` when stored, otherwise contiguous thirds.
@@ -745,7 +847,7 @@ plot_mean_signature <- function(data) {
   if (!is.null(th$graph_models)) {
     return(unname(th$graph_models))
   }
-  if (identical(figure, "fig05")) {
+  if (identical(figure, "fig06")) {
     return(c(
       "stochastic_block_model",
       "stochastic_block_model",
@@ -792,14 +894,14 @@ plot_mean_signature <- function(data) {
 
 .data_network_topologies <- function(benchmark, layout, figure) {
   refs <- .reference_ids(layout, figure)
-  if (identical(figure, "fig05")) {
+  if (identical(figure, "fig06")) {
     refs <- refs[refs$cell_size_label == "equal", ]
   }
   family_label <- c(scale_free = "scale-free", stochastic_block_model = "SBM")
   pieces <- purrr::map(seq_len(nrow(refs)), function(i) {
     th <- benchmark$theta_true[[refs$ID[[i]]]]
     families <- .network_families(th, refs[i, ], figure)
-    page <- if (identical(figure, "fig05")) {
+    page <- if (identical(figure, "fig06")) {
       sprintf(
         "G = %d / %s sibling overlap",
         refs$n_genes[[i]],
@@ -809,7 +911,7 @@ plot_mean_signature <- function(data) {
       paste(refs$overlap_label[[i]], "overlap")
     }
     purrr::map(seq_along(th$adjacency), function(j) {
-      graph <- if (identical(figure, "fig05")) {
+      graph <- if (identical(figure, "fig06")) {
         sprintf(
           "Cell type %d (lineage %d, %s)",
           j,
@@ -1009,7 +1111,7 @@ plot_pairwise_distances <- function(data, figure) {
     overlap = "MixSim overlap of the pair",
     riemannian = "Affine-invariant Riemannian distance of Sigma_a and Sigma_b"
   )
-  if (identical(figure, "fig05")) {
+  if (identical(figure, "fig06")) {
     data$tile_x <- factor(
       paste("G =", data$n_genes),
       paste("G =", sort(unique(data$n_genes)))
@@ -1093,7 +1195,7 @@ plot_pairwise_distances <- function(data, figure) {
         refs$overlap_label[[i]],
         refs$panel[[i]]
       ),
-      fig05 = sprintf(
+      fig06 = sprintf(
         "G = %d / %s sibling overlap / %s cell sizes",
         refs$n_genes[[i]],
         refs$overlap_label[[i]],
@@ -1218,6 +1320,253 @@ plot_latent_projections <- function(data) {
         y = 0.55,
         width = 0.2,
         height = 0.24
+      )
+  })
+}
+
+# Likelihood slices at a fixed composition (fig05) ------------------------------
+
+# Expected log-likelihood of p_1 at known scales (c = phi = n), while one
+# feature of cell type 1 moves: its mean slides onto the mean of cell type 2
+# (`mean_shift`, t from 0 to 1), or its gene-gene correlation sweeps
+# (-0.95, 0.95) (`correlation`). Global view: log10(L / max L) over p_1 for
+# every slice value. Local view: the Fisher information of p_1 at p*, split
+# into its mean part n d' S_W^-1 d and its covariance part
+# tr[(S_W^-1 (Sigma_W,1 - Sigma_W,2))^2] / 2.
+.data_loglik_slices <- function(
+  benchmark,
+  kind = c("mean_shift", "correlation"),
+  n_cells = c(100, 1000, 10000),
+  compositions = list(
+    "balanced" = c(0.5, 0.5),
+    "moderately unbalanced" = c(0.85, 0.15)
+  ),
+  n_grid = 197L
+) {
+  kind <- match.arg(kind)
+  template <- benchmark$theta_true[[1L]]
+  mu0 <- template$mu
+  variance <- template$sigma[1L, 1L, 1L]
+  sigma_of <- function(rho1, rho2) {
+    out <- template$sigma
+    out[,, 1L] <- variance * matrix(c(1, rho1, rho1, 1), 2L)
+    out[,, 2L] <- variance * matrix(c(1, rho2, rho2, 1), 2L)
+    out
+  }
+  slices <- if (identical(kind, "mean_shift")) {
+    tidyr::expand_grid(
+      value = seq(0, 0.98, by = 0.02),
+      setting = c("rho = (0, 0)", "rho = (+0.8, -0.8)")
+    )
+  } else {
+    tidyr::expand_grid(
+      value = seq(-0.95, 0.95, by = 0.025),
+      setting = "rho_2 = 0"
+    )
+  }
+  p1_axis <- seq(0.005, 0.995, length.out = n_grid)
+  pieces <- list()
+  for (comp in names(compositions)) {
+    p_star <- compositions[[comp]]
+    for (n in n_cells) {
+      for (k in seq_len(nrow(slices))) {
+        value <- slices$value[[k]]
+        setting <- slices$setting[[k]]
+        if (identical(kind, "mean_shift")) {
+          rho <- if (identical(setting, "rho = (0, 0)")) {
+            c(0, 0)
+          } else {
+            c(0.8, -0.8)
+          }
+          sigma <- sigma_of(rho[[1L]], rho[[2L]])
+          mu <- mu0
+          mu[, 1L] <- mu0[, 1L] + value * (mu0[, 2L] - mu0[, 1L])
+        } else {
+          sigma <- sigma_of(value, 0)
+          mu <- mu0
+        }
+        loglik <- vapply(
+          p1_axis,
+          function(p1) {
+            .expected_loglik_single_cell_known(
+              c(p1, 1 - p1),
+              p_star,
+              mu,
+              sigma,
+              n,
+              n
+            )
+          },
+          numeric(1)
+        )
+        fisher <- fig05_fisher_split(p_star, mu, sigma, n)
+        pieces[[length(pieces) + 1L]] <- list(
+          surface = tibble::tibble(
+            composition = comp,
+            n_cells = n,
+            setting = setting,
+            value = value,
+            p1 = p1_axis,
+            relative = pmax((loglik - max(loglik)) / log(10), .loglik_floor)
+          ),
+          fisher = tibble::tibble(
+            composition = comp,
+            n_cells = n,
+            setting = setting,
+            value = value,
+            component = c("mean part", "covariance part", "total"),
+            information = c(fisher[["mean"]], fisher[["cov"]], sum(fisher))
+          )
+        )
+      }
+    }
+  }
+  bind <- function(name) {
+    out <- dplyr::bind_rows(lapply(pieces, `[[`, name))
+    out$page <- factor(out$composition, names(compositions))
+    out$n_label <- factor(
+      paste("n =", formatC(out$n_cells, format = "d", big.mark = ",")),
+      paste("n =", formatC(n_cells, format = "d", big.mark = ","))
+    )
+    out
+  }
+  list(
+    kind = kind,
+    p_star = vapply(compositions, `[[`, numeric(1), 1L),
+    surface = bind("surface"),
+    fisher = bind("fisher")
+  )
+}
+
+plot_loglik_slices <- function(data) {
+  mean_shift <- identical(data$kind, "mean_shift")
+  y_label <- if (mean_shift) {
+    "t: mean of type 1 moved towards type 2"
+  } else {
+    "Gene-gene correlation of cell type 1"
+  }
+  # Drop of 1.92 in log-likelihood: the 95% likelihood-ratio cut-off.
+  cutoff <- -stats::qchisq(0.95, 1L) / 2 / log(10)
+  lapply(levels(droplevels(data$surface$page)), function(page) {
+    surface <- data$surface[data$surface$page == page, ]
+    fisher <- data$fisher[data$fisher$page == page, ]
+    p_star <- data$p_star[[page]]
+    global <- ggplot2::ggplot(
+      surface,
+      ggplot2::aes(.data$p1, .data$value)
+    ) +
+      ggplot2::geom_raster(ggplot2::aes(fill = .data$relative)) +
+      ggplot2::geom_contour(
+        ggplot2::aes(z = .data$relative),
+        breaks = cutoff,
+        colour = "white",
+        linewidth = 0.5
+      ) +
+      ggplot2::geom_vline(
+        xintercept = p_star,
+        linetype = 2,
+        colour = "white"
+      ) +
+      ggplot2::facet_grid(
+        ggplot2::vars(.data$setting),
+        ggplot2::vars(.data$n_label)
+      ) +
+      ggplot2::scale_fill_viridis_c(
+        name = "log10(L / max L)",
+        limits = c(.loglik_floor, 0),
+        guide = ggplot2::guide_colourbar(barwidth = grid::unit(6, "cm"))
+      ) +
+      ggplot2::scale_x_continuous(expand = c(0, 0)) +
+      ggplot2::scale_y_continuous(expand = c(0, 0)) +
+      ggplot2::labs(
+        x = "p1",
+        y = y_label,
+        subtitle = "Global: expected log-likelihood of p1 for every slice"
+      ) +
+      .page_theme()
+    # Direct labels at the right end of the lines of the last column.
+    ends <- fisher[
+      fisher$n_label == utils::tail(levels(droplevels(fisher$n_label)), 1L),
+    ] |>
+      dplyr::slice_max(.data$value, n = 1L, by = c("setting", "component"))
+    ends$information <- pmax(ends$information, 1e-3)
+    local <- ggplot2::ggplot(
+      fisher,
+      ggplot2::aes(.data$value, .data$information, colour = .data$component)
+    ) +
+      ggplot2::geom_line(linewidth = 0.8) +
+      ggrepel::geom_text_repel(
+        data = ends,
+        ggplot2::aes(label = .data$component),
+        direction = "y",
+        hjust = 0,
+        nudge_x = 0.06,
+        xlim = c(-Inf, Inf),
+        min.segment.length = Inf,
+        size = 3.2,
+        show.legend = FALSE
+      ) +
+      ggplot2::coord_cartesian(clip = "off") +
+      # Row strips on the left leave the right margin to the line labels.
+      ggplot2::facet_grid(
+        ggplot2::vars(.data$setting),
+        ggplot2::vars(.data$n_label),
+        switch = "y"
+      ) +
+      # A zero covariance part (equal covariances) is drawn at the floor.
+      ggplot2::scale_y_log10(
+        limits = c(1e-3, NA),
+        oob = function(x, range) {
+          scales::squish(x, range, only.finite = FALSE)
+        }
+      ) +
+      ggplot2::scale_x_continuous(
+        breaks = if (mean_shift) {
+          c(0, 0.25, 0.5, 0.75)
+        } else {
+          c(-0.8, -0.4, 0, 0.4, 0.8)
+        }
+      ) +
+      ggplot2::scale_colour_manual(
+        name = NULL,
+        values = c(
+          "mean part" = "#1D4E89",
+          "covariance part" = "#D55E00",
+          "total" = "grey20"
+        ),
+        guide = "none"
+      ) +
+      ggplot2::labs(
+        x = y_label,
+        y = "Fisher information of p1 at p*",
+        subtitle = "Local: curvature at p*, mean and covariance parts"
+      ) +
+      .page_theme() +
+      ggplot2::theme(
+        strip.placement = "outside",
+        plot.margin = ggplot2::margin(5.5, 95, 5.5, 5.5),
+        panel.spacing.x = grid::unit(1.2, "lines")
+      )
+    patchwork::wrap_plots(global, local, ncol = 1L, heights = c(3, 2)) +
+      patchwork::plot_annotation(
+        title = if (mean_shift) {
+          "Moving one mean onto the other flattens the likelihood unless the covariances differ"
+        } else {
+          "The correlation of one cell type adds information that does not grow with n"
+        },
+        subtitle = sprintf(
+          "%s, p* = (%.2f, %.2f); known scales c = phi = n",
+          page,
+          p_star,
+          1 - p_star
+        ),
+        caption = paste(
+          "Expected log-likelihood E[l(p)] at the true composition, scales known (a = 1); its maximiser is p*",
+          "(dashed) for every slice.\nWhite contour: drop of 1.92 in log-likelihood (expected 95% likelihood-ratio region).",
+          "\nPer-cell covariance 500 R_j, means (20, 22) and (22, 20);",
+          "the covariance part is the same for every n, the mean part grows as n; parts below 1e-3 sit on the floor."
+        ),
+        theme = .page_theme()
       )
   })
 }

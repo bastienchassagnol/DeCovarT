@@ -37,7 +37,7 @@
 .metric_names <- c(rmse = "Mean RMSE", aitchison = "Mean Aitchison distance")
 
 # Grid cells of a page (panel_x by panel_y, for every method) that hold no
-# simulated scenario: the fig05 a = 1 row outside the baseline page.
+# simulated scenario: the fig06 a = 1 row outside the baseline page.
 .missing_cells <- function(df) {
   if (!isTRUE(df$grid_panels[[1L]])) {
     return(df[0L, c("algorithm", "panel_x", "panel_y")])
@@ -78,9 +78,38 @@
   data
 }
 
-plot_metric_tiles <- function(data, metric, exclude = character()) {
+# Positive finite range of a metric, for a log10 scale shared by the pages
+# (fig05 draws each page from its own slice of the data).
+.positive_range <- function(x) range(x[is.finite(x) & x > 0])
+
+# A zero error (every bulk estimated exactly, e.g. on a face) sits at the
+# bottom of a log scale rather than leaving it.
+.squish_all <- function(x, range) scales::squish(x, range, only.finite = FALSE)
+
+# Numeric panel levels (the correlation grid) read horizontally, one label
+# in two; text levels keep the vertical labels.
+.numeric_levels <- function(x) !anyNA(suppressWarnings(as.numeric(levels(x))))
+.every_other <- function(x) {
+  if (.numeric_levels(x)) levels(x)[c(TRUE, FALSE)] else ggplot2::waiver()
+}
+.tile_axis_text <- function(x) {
+  if (.numeric_levels(x)) {
+    ggplot2::element_text()
+  } else {
+    ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)
+  }
+}
+
+plot_metric_tiles <- function(
+  data,
+  metric,
+  exclude = character(),
+  limits = NULL
+) {
   data <- .drop_algorithms(data, exclude)
-  limits <- range(data[[metric]], finite = TRUE)
+  if (is.null(limits)) {
+    limits <- .positive_range(data[[metric]])
+  }
   lapply(levels(droplevels(data$page)), function(page) {
     df <- data[data$page == page, ]
     df$value <- df[[metric]]
@@ -122,9 +151,13 @@ plot_metric_tiles <- function(data, metric, exclude = character()) {
     p +
       ggplot2::facet_wrap(
         ~algorithm,
-        ncol = ceiling(sqrt(dplyr::n_distinct(df$algorithm)))
+        ncol = .method_ncol(df$algorithm),
+        labeller = ggplot2::label_wrap_gen(22)
       ) +
-      ggplot2::scale_x_discrete(drop = FALSE) +
+      ggplot2::scale_x_discrete(
+        drop = FALSE,
+        breaks = .every_other(df$panel_x)
+      ) +
       ggplot2::scale_y_discrete(
         drop = FALSE,
         limits = if (isTRUE(df$grid_panels[[1L]])) rev
@@ -133,6 +166,7 @@ plot_metric_tiles <- function(data, metric, exclude = character()) {
         name = .metric_names[[metric]],
         limits = limits,
         trans = "log10",
+        oob = .squish_all,
         na.value = "grey60",
         guide = ggplot2::guide_colourbar(barwidth = grid::unit(7, "cm"))
       ) +
@@ -150,15 +184,24 @@ plot_metric_tiles <- function(data, metric, exclude = character()) {
       ) +
       .page_theme() +
       ggplot2::theme(
-        axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)
+        axis.text.x = .tile_axis_text(df$panel_x)
       )
   })
 }
 
-plot_rmse_aitchison_dots <- function(data, exclude = character()) {
+plot_rmse_aitchison_dots <- function(
+  data,
+  exclude = character(),
+  rmse_limits = NULL,
+  size_limits = NULL
+) {
   data <- .drop_algorithms(data, exclude)
-  rmse_limits <- range(data$rmse, finite = TRUE)
-  size_limits <- range(data$aitchison, finite = TRUE)
+  if (is.null(rmse_limits)) {
+    rmse_limits <- .positive_range(data$rmse)
+  }
+  if (is.null(size_limits)) {
+    size_limits <- range(data$aitchison, finite = TRUE)
+  }
   lapply(levels(droplevels(data$page)), function(page) {
     df <- data[data$page == page, ]
     failed <- df[!is.finite(df$rmse), ]
@@ -193,9 +236,13 @@ plot_rmse_aitchison_dots <- function(data, exclude = character()) {
     p +
       ggplot2::facet_wrap(
         ~algorithm,
-        ncol = ceiling(sqrt(dplyr::n_distinct(df$algorithm)))
+        ncol = .method_ncol(df$algorithm),
+        labeller = ggplot2::label_wrap_gen(22)
       ) +
-      ggplot2::scale_x_discrete(drop = FALSE) +
+      ggplot2::scale_x_discrete(
+        drop = FALSE,
+        breaks = .every_other(df$panel_x)
+      ) +
       ggplot2::scale_y_discrete(
         drop = FALSE,
         limits = if (isTRUE(df$grid_panels[[1L]])) rev
@@ -203,6 +250,7 @@ plot_rmse_aitchison_dots <- function(data, exclude = character()) {
       ggplot2::scale_colour_viridis_c(
         name = "Mean RMSE",
         limits = rmse_limits,
+        oob = .squish_all,
         trans = "log10"
       ) +
       ggplot2::scale_size_continuous(
@@ -224,7 +272,7 @@ plot_rmse_aitchison_dots <- function(data, exclude = character()) {
       ) +
       .page_theme() +
       ggplot2::theme(
-        axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)
+        axis.text.x = .tile_axis_text(df$panel_x)
       )
   })
 }
@@ -236,14 +284,14 @@ plot_rmse_aitchison_dots <- function(data, exclude = character()) {
   intervals <- intervals[
     is.finite(intervals$mean_lower) & intervals$n_intervals > 0L,
   ]
-  if (identical(figure, "fig02")) {
+  if (figure %in% c("fig02", "fig05")) {
     intervals <- intervals[intervals$parameter == "celltype_1", ]
   }
   # Profile intervals refit from the bulk whatever the solver: keep them
   # once, under Newton-Raphson (benchmarks run before 2.5.0 repeat them).
   intervals <- intervals[
     !grepl("^profile", intervals$ci_method) |
-      intervals$algorithm == "Newton-Raphson",
+      .base_method(intervals$algorithm) == "Newton-Raphson",
   ]
   intervals$algorithm <- .method_factor(intervals$algorithm)
   intervals$ci_label <- factor(
@@ -434,7 +482,7 @@ plot_ci_forest_nuisance <- function(data) {
 .data_estimates <- function(benchmark, layout, figure) {
   long <- .estimates_long(benchmark, layout)
   long <- long[long$corner, ]
-  if (identical(figure, "fig02")) {
+  if (figure %in% c("fig02", "fig05")) {
     long <- long[long$cell_type == "celltype_1", ]
   }
   long$cell_type <- sub("celltype_", "Cell type ", long$cell_type)
@@ -520,13 +568,14 @@ plot_estimate_laws <- function(data, style) {
 # Estimates of the likelihood methods in Helmert ILR coordinates, whitened
 # by the information at the true composition: I_z(p*)^{1/2} (z-hat - z*).
 # Population: expected information; single cell: observed profile
-# information of the bulk at its realised composition. Estimates on a face
-# have no ILR coordinates and are dropped.
+# information of the bulk at its realised composition (fig05: observed
+# information at the true scales of the bulk). Estimates on a face have no
+# ILR coordinates and are dropped.
 .data_whitened <- function(benchmark, layout, figure) {
   cts <- .celltype_names(benchmark)
   opt <- benchmark$optimisation
   opt <- opt[
-    opt$algorithm %in%
+    .base_method(opt$algorithm) %in%
       .likelihood_methods &
       opt$ID %in% layout$ID[layout$corner],
   ]
@@ -539,7 +588,7 @@ plot_estimate_laws <- function(data, style) {
     if (!all(is.finite(p_hat)) || min(p_hat) <= 0) {
       return(NULL)
     }
-    if (identical(figure, "fig05")) {
+    if (identical(figure, "fig06")) {
       p_true <- benchmark$data[[id]]$truth[cts, s]
       z_true <- isometric_log_ratio(p_true)
       info <- -hessian_profile_loglik_single_cell_ilr(
@@ -547,6 +596,21 @@ plot_estimate_laws <- function(data, style) {
         benchmark$data[[id]]$bulk[, s],
         th$mu,
         th$sigma
+      )
+    } else if (identical(figure, "fig05")) {
+      p_true <- benchmark$data[[id]]$truth[cts, s]
+      if (min(p_true) <= 0) {
+        return(NULL)
+      }
+      z_true <- isometric_log_ratio(p_true)
+      scales <- benchmark$data[[id]]$nuisance[, s]
+      info <- -hessian_loglik_single_cell_ilr(
+        z_true,
+        benchmark$data[[id]]$bulk[, s],
+        th$mu,
+        th$sigma,
+        scales[["mean_scale"]],
+        scales[["variance_scale"]]
       )
     } else {
       p_true <- as.numeric(th$p)
@@ -1045,6 +1109,145 @@ plot_nuisance_ratio <- function(data) {
         caption = paste(
           "All scenarios pooled; the ML phi-hat is biased by (G - J) / G, removed by the REML rescaling (bottom row).",
           "\nc-hat / c also absorbs the multinomial noise of the realised composition."
+        )
+      ) +
+      .page_theme()
+  )
+}
+
+# Boundary likelihood-ratio test (fig05) ---------------------------------------
+
+# Rejection rate of p_2 = 0 at the 5% level, per scenario and arm, split by
+# whether the bulk holds a type-2 cell (power) or none (size).
+.data_boundary_lrt <- function(benchmark, layout, level = 0.05) {
+  tests <- benchmark$boundary_lrt
+  tests$truth <- ifelse(
+    tests$p2_realised > 0,
+    "type 2 present: power",
+    "type 2 absent: size"
+  )
+  per_scenario <- tests |>
+    dplyr::filter(is.finite(.data$p_value)) |>
+    dplyr::summarise(
+      rejected = mean(.data$p_value < level),
+      n = dplyr::n(),
+      .by = c("ID", "arm", "truth")
+    )
+  pooled <- tests |>
+    dplyr::filter(is.finite(.data$p_value)) |>
+    dplyr::left_join(layout[c("ID", "proportions", "n_cells")], by = "ID") |>
+    dplyr::summarise(
+      rate = coverage_mc_interval(.data$p_value < level)$coverage,
+      lower = coverage_mc_interval(.data$p_value < level)$lower,
+      upper = coverage_mc_interval(.data$p_value < level)$upper,
+      n = dplyr::n(),
+      .by = c("proportions", "n_cells", "arm", "truth")
+    )
+  per_scenario <- dplyr::left_join(
+    per_scenario,
+    layout[c("ID", "proportions", "n_cells")],
+    by = "ID"
+  )
+  list(per_scenario = per_scenario, pooled = pooled, level = level)
+}
+
+plot_boundary_lrt <- function(data) {
+  arm_palette <- c(oracle = "#1D4E89", nominal = "#8EB0D6")
+  dodge <- ggplot2::position_dodge(width = 0.25)
+  pooled <- data$pooled
+  pooled$truth <- factor(
+    pooled$truth,
+    c("type 2 present: power", "type 2 absent: size")
+  )
+  per_scenario <- data$per_scenario
+  per_scenario$truth <- factor(per_scenario$truth, levels(pooled$truth))
+  # Cells with no bulk of that kind (e.g. no balanced bulk lacks type 2).
+  empty <- dplyr::anti_join(
+    tidyr::expand_grid(
+      proportions = unique(pooled$proportions),
+      truth = factor(levels(pooled$truth), levels(pooled$truth))
+    ),
+    dplyr::distinct(pooled, .data$proportions, .data$truth),
+    by = c("proportions", "truth")
+  )
+  list(
+    ggplot2::ggplot(
+      pooled,
+      ggplot2::aes(
+        factor(.data$n_cells),
+        .data$rate,
+        colour = .data$arm
+      )
+    ) +
+      ggplot2::geom_hline(
+        data = data.frame(
+          truth = factor("type 2 absent: size", levels(pooled$truth))
+        ),
+        ggplot2::aes(yintercept = data$level),
+        linetype = 2,
+        colour = "grey30"
+      ) +
+      ggplot2::geom_point(
+        data = per_scenario,
+        ggplot2::aes(y = .data$rejected),
+        position = ggplot2::position_jitterdodge(
+          jitter.width = 0.12,
+          dodge.width = 0.25,
+          seed = 1L
+        ),
+        size = 0.7,
+        alpha = 0.35
+      ) +
+      ggplot2::geom_pointrange(
+        ggplot2::aes(ymin = .data$lower, ymax = .data$upper),
+        position = dodge,
+        size = 0.45,
+        linewidth = 0.8
+      ) +
+      ggplot2::geom_text(
+        data = dplyr::summarise(
+          pooled,
+          upper = max(.data$upper),
+          n = max(.data$n),
+          .by = c("proportions", "n_cells", "truth")
+        ),
+        ggplot2::aes(
+          factor(.data$n_cells),
+          .data$upper,
+          label = paste("n =", .data$n)
+        ),
+        inherit.aes = FALSE,
+        vjust = -0.7,
+        size = 2.8,
+        colour = "grey30"
+      ) +
+      ggplot2::geom_text(
+        data = empty,
+        ggplot2::aes(x = 2, y = 0.5),
+        label = "no bulk of this kind",
+        inherit.aes = FALSE,
+        colour = "grey45",
+        size = 3.4
+      ) +
+      ggplot2::facet_grid(
+        ggplot2::vars(.data$proportions),
+        ggplot2::vars(.data$truth)
+      ) +
+      ggplot2::scale_colour_manual(
+        name = "Plug-in cell count",
+        values = arm_palette,
+        labels = c(oracle = "oracle n", nominal = "nominal n")
+      ) +
+      ggplot2::scale_y_continuous(limits = c(0, 1)) +
+      ggplot2::labs(
+        x = "Nominal cells per bulk n",
+        y = "Rejection rate of p2 = 0 at 5%",
+        title = "Boundary likelihood-ratio test of an absent cell type",
+        subtitle = "Newton-Raphson at known scales, chi-bar-square calibration",
+        caption = paste(
+          "Small dots: one scenario (9 x 9 correlations); point and bar: pooled rate",
+          "with its Wilson 95% interval; n: bulks pooled.\nSize: bulks with no type-2 cell;",
+          "dashed line at 5%."
         )
       ) +
       .page_theme()

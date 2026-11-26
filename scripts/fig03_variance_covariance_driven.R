@@ -105,7 +105,7 @@ OVERLAP_TARGET <- c(low = 0.02, moderate = 0.08, high = 0.20)
 GRAPH_PARAM_LIBRARY <- list(
   scale_free = list(power = 1, edges_per_node = 1L),
   # Three contiguous blocks of near-equal size (7, 6, 7 genes), the same
-  # rule as fig05 and as the network plot.
+  # rule as fig06 and as the network plot.
   stochastic_block_model = list(
     block_sizes = tabulate(cut(seq_len(N_GENES), 3L, labels = FALSE)),
     p_within = 0.25,

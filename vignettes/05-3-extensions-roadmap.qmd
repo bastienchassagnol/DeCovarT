@@ -637,11 +637,9 @@ is that joint directed graph, drawn with the symbol key of the other
 plate diagrams: grey circles observed, blue circles latent, dotted
 circles deterministic, squares fixed.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-mln-dag
-%%| fig-cap: Directed graph for a logit-normal multinomial gene composition (McGregor et al.) extended with a second simplex for cell-type ratios. Grey circles are observed, unshaded circles are latent, diamonds are deterministic and squares are fixed parameters. The dashed arrow from $\boldsymbol{p}_{\cdot i}$ into $\boldsymbol{\mu}_w$ is the optional deconvolution link; it is not a Gaussian convolution of $\boldsymbol{\Sigma}_j$.
 %%| filename: fig-mln-dag
-%%| alt: Graphical model inside a plate over bulk samples i. Fixed mu_rho and Omega_rho generate the latent ALR coordinate rho_i; p_i is computed from rho_i; a dashed arrow from p_i to the deterministic mean mu_w = B p_i marks the optional deconvolution link. mu_w and the fixed precision Omega_w generate the latent gene log-ratios w_i; the gene composition pi_i is computed from w_i; the observed library size n_i, drawn from fixed mu_n and sigma_n squared, and pi_i generate the observed counts y_i through a multinomial.
 \begin{tikzpicture}[node distance=12mm]
 \node[fixed] (mur) {$\boldsymbol{\mu}_{\rho}$};
 \node[fixed, right=6mm of mur] (Or) {$\boldsymbol{\Omega}_{\rho}$};
@@ -669,6 +667,9 @@ circles deterministic, squares fixed.
 \plate{samples}{(rho)(p)(muw)(nmw)(w)(pi)(y)(n)(nr)(np)(nw)(npi)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![Directed graph for a logit-normal multinomial gene composition (McGregor et al.) extended with a second simplex for cell-type ratios. Grey circles are observed, unshaded circles are latent, diamonds are deterministic and squares are fixed parameters. The dashed arrow from $\boldsymbol{p}_{\cdot i}$ into $\boldsymbol{\mu}_w$ is the optional deconvolution link; it is not a Gaussian convolution of $\boldsymbol{\Sigma}_j$.](figures/tikz/fig-mln-dag.svg){#fig-mln-dag fig-alt="Graphical model inside a plate over bulk samples i. Fixed mu_rho and Omega_rho generate the latent ALR coordinate rho_i; p_i is computed from rho_i; a dashed arrow from p_i to the deterministic mean mu_w = B p_i marks the optional deconvolution link. mu_w and the fixed precision Omega_w generate the latent gene log-ratios w_i; the gene composition pi_i is computed from w_i; the observed library size n_i, drawn from fixed mu_n and sigma_n squared, and pi_i generate the observed counts y_i through a multinomial."}
 
 
 {{< pagebreak >}}

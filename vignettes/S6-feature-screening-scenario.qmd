@@ -326,11 +326,9 @@ pipeline of @fig-recommended-pipeline. With one specimen, the `DESeq2`
 step does not apply and strategy B replaces the shortlist
 ([3.1](03-1-feature-selection.html#wrn-fs-estimand)).
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-recommended-pipeline
-%%| fig-cap: Recommended reference-based feature-selection pipeline from donor pseudobulks to validated, mechanistically annotated panels.
 %%| filename: fig-recommended-pipeline
-%%| alt: Ten-step pipeline drawn as two rows: donor split and pseudobulk; SCTransform highly variable genes; reliability and dropout filter; four-score shortlist with DESeq2, glmnet, Jeffreys and MixSim; stability selection; NSGA-II or greedy Pareto minimising the condition number kappa 2 and overlap; nested cross-validated panel selection with held-out donors; optional D-, E- or A-optimal design; CARNIVAL or CORNETO annotation; external cohort check.
 \begin{tikzpicture}[every node/.append style={text width=2.55cm}]
 \node[keybox] (A) at (0,0) {Donor split and pseudobulk};
 \node[box] (B) at (3.2,0) {\texttt{SCTransform} HVGs\\ (no cell-type regression)};
@@ -346,6 +344,9 @@ step does not apply and strategy B replaces the shortlist
 \draw[edge] (E) -- (F); \draw[edge] (F) -- (G); \draw[edge] (G) -- (H); \draw[edge] (H) -- (I); \draw[edge] (I) -- (J);
 \end{tikzpicture}
 ```
+:::
+
+![Recommended reference-based feature-selection pipeline from donor pseudobulks to validated, mechanistically annotated panels.](figures/tikz/fig-recommended-pipeline.svg){#fig-recommended-pipeline fig-alt="Ten-step pipeline drawn as two rows: donor split and pseudobulk; SCTransform highly variable genes; reliability and dropout filter; four-score shortlist with DESeq2, glmnet, Jeffreys and MixSim; stability selection; NSGA-II or greedy Pareto minimising the condition number kappa 2 and overlap; nested cross-validated panel selection with held-out donors; optional D-, E- or A-optimal design; CARNIVAL or CORNETO annotation; external cohort check."}
 
 ::: {.callout-tip}
 ## Software {#sec-software}

@@ -41,7 +41,7 @@
 #  CIBERSORT (whose nu-SVR would regress two bulk values on two signatures
 #  and an intercept) and the second-generation methods (MEAD, RNA-Sieve,
 #  ReDeconv, whose variance estimates need many more genes than cell types)
-#  are run in fig03 and fig05 only.
+#  are run in fig03 and fig06 only.
 #
 # Confidence intervals at every DeCovarT estimate: Wald (delta method), ILR
 # (Wald in ILR coordinates mapped back), profile likelihood, and the oracle

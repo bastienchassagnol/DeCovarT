@@ -9,7 +9,9 @@ fit_firth_single_cell(
   mean_signature_matrix,
   Sigma,
   epsilon = 1e-08,
-  itmax = 80L
+  itmax = 80L,
+  mean_scale = NULL,
+  variance_scale = NULL
 )
 }
 \arguments{
@@ -23,6 +25,9 @@ fit_firth_single_cell(
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
 \item{itmax}{Maximum number of iterations.}
+
+\item{mean_scale, variance_scale}{Optional fixed scales. Supply both
+or neither.}
 }
 \value{
 A list with \code{coefficients}, \code{rho}, \code{loglik}, \code{penalty},
@@ -33,6 +38,8 @@ Maximises the profile log-likelihood plus half the log determinant
 of the observed profile information. The penalty uses the negative
 profile Hessian, not an expected Fisher matrix. Scales stay
 concentrated out, so the penalty does not add a third free scale.
+With \code{mean_scale} and \code{variance_scale} the scales are known instead:
+the log-likelihood and the penalty are those of the fixed-scale model.
 }
 \examples{
 mu <- matrix(c(2, 0.2, 0.2, 2, 0.2, 3, 0.2, 3), nrow = 4)

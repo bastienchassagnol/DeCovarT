@@ -31,13 +31,22 @@ test_that("multinomial cell counts match the returned technical factors", {
   expect_true(all(abs(colSums(sim$q) - 1) < 1e-12))
 })
 
-test_that("the single-cell generator needs more genes than cell types", {
-  mu <- matrix(c(1, 0, 0, 1), nrow = 2)
+test_that("the generator draws G = J bulks with one cell count per sample", {
+  mu <- matrix(c(20, 22, 22, 20), nrow = 2)
   sigma <- array(rep(diag(2), 2), dim = c(2, 2, 2))
-  expect_error(
-    simulate_bulk_from_cells(mu, sigma, p = c(0.5, 0.5), n_cells = 10),
-    "G > J"
+  sim <- withr::with_seed(
+    1,
+    simulate_bulk_from_cells(
+      mu,
+      sigma,
+      p = c(0.5, 0.5),
+      n_cells = c(100, 1000, 10000),
+      n_samples = 3
+    )
   )
+  expect_identical(dim(sim$Y), c(2L, 3L))
+  expect_equal(sim$mean_scale, c(100, 1000, 10000))
+  expect_equal(colSums(sim$counts), c(100, 1000, 10000), ignore_attr = TRUE)
 })
 
 test_that("a composition that does not sum to one is rejected", {

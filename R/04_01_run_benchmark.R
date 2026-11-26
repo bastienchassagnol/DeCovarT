@@ -305,7 +305,14 @@ compute_benchmark_metrics <- function(
 #'   true composition); for the single-cell model, `wald_reml`, `ilr_reml`
 #'   and `profile_reml` add the REML calibration. Solvers that return a
 #'   list read the estimate from `coefficients`, or from `composition` for
-#'   [deconvolute_single_cell()].
+#'   [deconvolute_single_cell()]. An optional `scales` entry, `"true"` or
+#'   `"nominal"`, plugs known single-cell scales into each fit: `FUN`
+#'   receives `mean_scale` and `variance_scale` (if it has those
+#'   arguments) from the bulk's column of `nuisance_true` or from
+#'   `nuisance_nominal`, and the likelihood is evaluated at those scales.
+#'   An optional `working_sigma` function maps `Sigma` to the covariances
+#'   that method assumes (for instance their diagonals); the fit, its
+#'   diagnostics and its intervals then use that working model.
 #' @param likelihood A likelihood object, [population_likelihood()]
 #'   (default, the Gaussian convolution) or [single_cell_likelihood()] (the
 #'   mixture of cells with its scales profiled out), or its constructor. It
@@ -314,6 +321,9 @@ compute_benchmark_metrics <- function(
 #' @param nuisance_true Optional \eqn{2\times N} matrix of the true scales
 #'   \eqn{(c,\phi)} of the single-cell model, for the coverage of their
 #'   intervals.
+#' @param nuisance_nominal Optional named vector (`mean_scale`,
+#'   `variance_scale`): the scales a user would assume, for methods with
+#'   `scales = "nominal"`.
 #' @param cores Number of `furrr` workers for the **sample** loop.
 #'   Defaults to `getOption("mc.cores", 1L)`. Use `cores = 1` to stay
 #'   sequential (CRAN examples and nested callers). With `cores > 1`,
@@ -413,6 +423,7 @@ deconvolute_ratios <- function(
   progress_every = 10L,
   likelihood = population_likelihood(),
   nuisance_true = NULL,
+  nuisance_nominal = NULL,
   label = NULL
 ) {
   likelihood <- .as_likelihood(likelihood)
@@ -453,7 +464,13 @@ deconvolute_ratios <- function(
             Sigma = Sigma,
             deconvolution_function = deconvolution_function,
             cell_names = cell_names,
-            likelihood = likelihood
+            likelihood = likelihood,
+            scales = .plug_in_scales(
+              deconvolution_function$scales,
+              nuisance_true,
+              nuisance_nominal,
+              i
+            )
           )
         },
         cores = cores,
@@ -533,14 +550,28 @@ deconvolute_ratios <- function(
   Sigma,
   deconvolution_function,
   cell_names,
-  likelihood = NULL
+  likelihood = NULL,
+  scales = NULL
 ) {
   n_celltypes <- length(cell_names)
   fun <- deconvolution_function$FUN
+  if (is.function(deconvolution_function$working_sigma)) {
+    Sigma <- deconvolution_function$working_sigma(Sigma)
+  }
   list_arguments <- c(
     list(y = y_i, mean_signature_matrix = mean_signature_matrix, Sigma = Sigma),
     deconvolution_function$additional_parameters
   )
+  if (!is.null(scales)) {
+    list_arguments$mean_scale <- scales[["mean_scale"]]
+    list_arguments$variance_scale <- scales[["variance_scale"]]
+    if (!is.null(likelihood) && is.function(likelihood$with_scales)) {
+      likelihood <- likelihood$with_scales(
+        scales[["mean_scale"]],
+        scales[["variance_scale"]]
+      )
+    }
+  }
   formal_args <- names(formals(fun))
   if ("return_model" %in% formal_args) {
     list_arguments$return_model <- TRUE
@@ -710,6 +741,27 @@ deconvolute_ratios <- function(
       mean_signature_matrix,
       Sigma,
       ci = deconvolution_function$ci
+    )
+  }
+  out
+}
+
+#' Plug-in scales of bulk `i` for a method with a `scales` entry
+#' @noRd
+.plug_in_scales <- function(which, nuisance_true, nuisance_nominal, i) {
+  if (is.null(which)) {
+    return(NULL)
+  }
+  which <- match.arg(which, c("true", "nominal"))
+  keep <- c("mean_scale", "variance_scale")
+  out <- if (identical(which, "true")) {
+    if (is.null(nuisance_true)) NULL else nuisance_true[keep, i]
+  } else {
+    if (is.null(nuisance_nominal)) NULL else nuisance_nominal[keep]
+  }
+  if (is.null(out) || anyNA(out)) {
+    cli::cli_abort(
+      "{.code scales = \"{which}\"} needs the {which} single-cell scales."
     )
   }
   out

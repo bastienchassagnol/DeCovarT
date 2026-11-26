@@ -11,7 +11,9 @@
 #' \sum_j p_j^2\boldsymbol{\Sigma}_j)};
 #' `single_cell_likelihood()` is the mixture of cells, with its two scales
 #' \eqn{(c,\phi)} profiled out, so every function is evaluated at the
-#' closed-form scales of the composition. They play the part of
+#' closed-form scales of the composition; with `mean_scale` and
+#' `variance_scale` the scales are known instead and held at those values
+#' (the plug-in model, identifiable from \eqn{G=J} genes). They play the part of
 #' [stats::family()] in [stats::glm()]: [deconvolute_ratios()] and
 #' [run_simulation_benchmark()] take one as `likelihood`, either the object
 #' or the constructor itself.
@@ -20,6 +22,10 @@
 #' Each object is a list of class `decovart_likelihood` with
 #' * `name`: `"population"` or `"single_cell"`;
 #' * `nuisance`: whether the model has the scales \eqn{(c,\phi)};
+#' * for the single-cell model, `scales_known` and
+#'   `with_scales(mean_scale, variance_scale)`, which returns the same
+#'   model at known scales ([deconvolute_ratios()] uses it for a method
+#'   with a `scales` entry);
 #' * `parameters(cell_names)`: the rows of every interval matrix, the
 #'   cell types and, for the single-cell model, `mean_scale`,
 #'   `variance_scale`, `platform_scale_a` and `cell_count_n`;
@@ -40,7 +46,8 @@
 #' * `profile`: likelihood-ratio inversion; it refits from `y`, so it does
 #'   not depend on the solver that produced `p_hat`;
 #' * `bootstrap`: percentile interval of a parametric bootstrap refitted by
-#'   `ci$optimiser`;
+#'   `ci$optimiser` (single-cell model at known scales: `ci$n_cells_sdlog`
+#'   draws an uncertain cell count, see [bootstrap_single_cell()]);
 #' * `oracle`: `p_hat` plus or minus the Wald half-width evaluated at the
 #'   true composition.
 #'
@@ -55,6 +62,9 @@
 #' returns such estimates; Newton-Raphson in ILR coordinates does not.
 #' Their rows are then `NA`, scales included, and the coverage of these
 #' methods is conditional on an interior estimate.
+#'
+#' @param mean_scale,variance_scale Known scales \eqn{c} and \eqn{\phi}
+#'   of the single-cell model; `NULL` (default) profiles them out.
 #'
 #' @return An object of class `decovart_likelihood`.
 #'
@@ -149,14 +159,44 @@ population_likelihood <- function() {
 
 #' @rdname population_likelihood
 #' @export
-single_cell_likelihood <- function() {
+single_cell_likelihood <- function(mean_scale = NULL, variance_scale = NULL) {
+  known <- !is.null(mean_scale) || !is.null(variance_scale)
+  if (known) {
+    mean_scale <- .positive_scalar(mean_scale, "mean_scale")
+    variance_scale <- .positive_scalar(variance_scale, "variance_scale")
+  }
   scales_at <- function(p, y, mu, Sigma) {
+    if (known) {
+      return(list(mean_scale = mean_scale, variance_scale = variance_scale))
+    }
     .single_cell_scales_at_p(y, mu, Sigma, p, strict = FALSE)
+  }
+  # Log-likelihood in ILR coordinates and its derivatives: profiled, or at
+  # the known scales.
+  ilr <- function(what, z, y, mu, Sigma) {
+    if (known) {
+      fun <- switch(
+        what,
+        gradient = gradient_loglik_single_cell_ilr,
+        hessian = hessian_loglik_single_cell_ilr
+      )
+      return(fun(z, y, mu, Sigma, mean_scale, variance_scale))
+    }
+    fun <- switch(
+      what,
+      gradient = gradient_profile_loglik_single_cell_ilr,
+      hessian = hessian_profile_loglik_single_cell_ilr
+    )
+    fun(z, y, mu, Sigma)
   }
   structure(
     list(
       name = "single_cell",
       nuisance = TRUE,
+      scales_known = known,
+      with_scales = function(mean_scale, variance_scale) {
+        single_cell_likelihood(mean_scale, variance_scale)
+      },
       parameters = function(cell_names) {
         c(
           cell_names,
@@ -167,11 +207,23 @@ single_cell_likelihood <- function() {
         )
       },
       simulate = function(mean, Sigma, theta, n) {
+        # theta$n_cells_cv > 0: one log-normal cell count per bulk, of mean
+        # theta$n_cells and that coefficient of variation.
+        cv <- if (is.null(theta$n_cells_cv)) 0 else theta$n_cells_cv
+        sdlog <- sqrt(log1p(cv^2))
+        n_cells <- if (sdlog > 0) {
+          pmax(
+            1,
+            round(theta$n_cells * exp(stats::rnorm(n, -sdlog^2 / 2, sdlog)))
+          )
+        } else {
+          theta$n_cells
+        }
         simulated <- simulate_bulk_from_cells(
           mean,
           Sigma,
           p = theta$p,
-          n_cells = theta$n_cells,
+          n_cells = n_cells,
           platform_scale = if (is.null(theta$platform_scale)) {
             1
           } else {
@@ -215,7 +267,16 @@ single_cell_likelihood <- function() {
         )
       },
       se = function(p, y, mu, Sigma) {
-        vcov <- vcov_single_cell(p, y, mu, Sigma, warn = FALSE)$vcov
+        vcov <- vcov_single_cell(
+          p,
+          y,
+          mu,
+          Sigma,
+          mean_scale = mean_scale,
+          variance_scale = variance_scale,
+          scales_known = known,
+          warn = FALSE
+        )$vcov
         stats::setNames(sqrt(pmax(diag(as.matrix(vcov)), 0)), names(p))
       },
       curvature = function(p, y, mu, Sigma) {
@@ -223,11 +284,11 @@ single_cell_likelihood <- function() {
           return(.no_curvature)
         }
         # Same criterion as boundary_diagnostics(): small ILR score and a
-        # negative-definite Hessian of the profile log-likelihood.
+        # negative-definite Hessian of the (profile) log-likelihood.
         z <- isometric_log_ratio(p)
-        score <- gradient_profile_loglik_single_cell_ilr(z, y, mu, Sigma)
+        score <- ilr("gradient", z, y, mu, Sigma)
         ev <- eigen(
-          hessian_profile_loglik_single_cell_ilr(z, y, mu, Sigma),
+          ilr("hessian", z, y, mu, Sigma),
           symmetric = TRUE,
           only.values = TRUE
         )$values
@@ -258,12 +319,23 @@ single_cell_likelihood <- function() {
               how = base,
               n_draws = ci$n_draws,
               seed = NULL,
-              calibration = calibration
+              calibration = calibration,
+              mean_scale = mean_scale,
+              variance_scale = variance_scale
             )
             rbind(pieces$interval, pieces$nuisance$interval)
           },
           oracle = {
-            truth <- vcov_single_cell(p_true, y, mu, Sigma, warn = FALSE)
+            truth <- vcov_single_cell(
+              p_true,
+              y,
+              mu,
+              Sigma,
+              mean_scale = mean_scale,
+              variance_scale = variance_scale,
+              scales_known = known,
+              warn = FALSE
+            )
             .wald_bounds(p_hat, sqrt(pmax(diag(truth$vcov), 0)), ci$level)
           },
           profile = confint_profile_single_cell(
@@ -271,7 +343,9 @@ single_cell_likelihood <- function() {
             mu,
             Sigma,
             level = ci$level,
-            variance = calibration$variance
+            variance = calibration$variance,
+            mean_scale = mean_scale,
+            variance_scale = variance_scale
           )[, c("lower", "upper"), drop = FALSE],
           bootstrap = {
             boot <- bootstrap_single_cell(
@@ -280,7 +354,14 @@ single_cell_likelihood <- function() {
               Sigma,
               n_boot = ci$n_boot,
               level = ci$level,
-              optimiser = ci$optimiser
+              optimiser = ci$optimiser,
+              mean_scale = mean_scale,
+              variance_scale = variance_scale,
+              n_cells_sdlog = if (is.null(ci$n_cells_sdlog)) {
+                0
+              } else {
+                ci$n_cells_sdlog
+              }
             )
             rbind(boot$interval, boot$scale_interval)
           },
@@ -299,7 +380,13 @@ print.decovart_likelihood <- function(x, ...) {
   cat(
     "<decovart_likelihood: ",
     x$name,
-    if (isTRUE(x$nuisance)) ", scales (c, phi) profiled out" else "",
+    if (isTRUE(x$scales_known)) {
+      ", scales (c, phi) known"
+    } else if (isTRUE(x$nuisance)) {
+      ", scales (c, phi) profiled out"
+    } else {
+      ""
+    },
     ">\n",
     sep = ""
   )

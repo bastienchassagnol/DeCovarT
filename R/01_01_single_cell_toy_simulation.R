@@ -1,7 +1,7 @@
 # Single-cell bulk: a sum of independent Gaussian cells.
 # The population generator simulate_bulk_mixture() (p^2 weights) is in
-# R/01_01_population_toy_simulation.R and is not used here. The fit needs
-# G > J genes to identify the two technical scales.
+# R/01_01_population_toy_simulation.R and is not used here. A fit that
+# estimates the two technical scales needs G > J genes; the draw does not.
 
 #' Simulate a bulk sample as a sum of single cells
 #'
@@ -30,7 +30,8 @@
 #'   \eqn{\boldsymbol{\Sigma}_{W,j}} (\eqn{G\times G\times J}).
 #' @param p Cell-fraction vector of length \eqn{J}, or a \eqn{J\times N}
 #'   matrix. Each column must sum to 1.
-#' @param n_cells Cells per bulk sample, \eqn{n_i}. Recycled to \eqn{N}.
+#' @param n_cells Cells per bulk sample, \eqn{n_i}. Recycled to \eqn{N};
+#'   pass one value per sample for bulks of different sizes.
 #'   The multinomial size is the rounded value; the fitted
 #'   \eqn{\hat n} need not be an integer.
 #' @param platform_scale Capture scale \eqn{a_i}. Use `1` when the bulk
@@ -89,17 +90,6 @@ simulate_bulk_from_cells <- function(
   mean_signature_matrix <- as.matrix(mean_signature_matrix)
   n_genes <- nrow(mean_signature_matrix)
   n_types <- ncol(mean_signature_matrix)
-  if (n_genes <= n_types) {
-    stop(
-      "The two technical scales need more genes than cell types ",
-      "(G > J); got G = ",
-      n_genes,
-      " and J = ",
-      n_types,
-      ".",
-      call. = FALSE
-    )
-  }
   if (
     length(dim(Sigma)) != 3L ||
       !identical(dim(Sigma)[1:2], c(n_genes, n_genes)) ||

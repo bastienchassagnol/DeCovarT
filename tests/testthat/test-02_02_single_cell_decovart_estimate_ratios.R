@@ -517,6 +517,44 @@ test_that("two-stage and fixed-scale fits are labelled and differ", {
   expect_gte(joint$loglik, two_stage$loglik - 1e-10)
 })
 
+test_that("known scales fit G = J = 2 with the three optimisers", {
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    nrow = 2,
+    dimnames = list(c("g1", "g2"), c("ct1", "ct2"))
+  )
+  sigma <- array(
+    c(500, 400, 400, 500, 500, -400, -400, 500),
+    dim = c(2, 2, 2),
+    dimnames = list(c("g1", "g2"), c("g1", "g2"), c("ct1", "ct2"))
+  )
+  sim <- withr::with_seed(
+    3,
+    simulate_bulk_from_cells(mu, sigma, p = c(0.7, 0.3), n_cells = 1e4)
+  )
+  fits <- lapply(c("newton", "lbfgsb", "marquardt"), function(opt) {
+    suppressWarnings(deconvolute_single_cell(
+      sim$Y[, 1],
+      mu,
+      sigma,
+      mean_scale = sim$mean_scale,
+      variance_scale = sim$variance_scale,
+      optimiser = opt
+    ))
+  })
+  truth <- sim$p_realised[1, 1]
+  for (fit in fits) {
+    expect_identical(fit$fit_type, "fixed_scales")
+    expect_lt(abs(fit$composition[["ct1"]] - truth), 0.1)
+  }
+  expect_equal(
+    fits[[3L]]$composition,
+    fits[[1L]]$composition,
+    tolerance = 1e-3
+  )
+  expect_true(all(is.finite(fits[[1L]]$vcov)))
+})
+
 test_that("the fit needs more genes than cell types", {
   mu <- diag(3)
   sigma <- array(rep(diag(3), 3), dim = c(3, 3, 3))
@@ -582,4 +620,40 @@ test_that("both single-cell optimisers are equivariant to the bulk scale", {
     epsilon = 1e-12
   )
   expect_equal(lbfgsb$p, newton$p, tolerance = 1e-4)
+})
+
+test_that("the bivariate single-cell scenario script builds and runs", {
+  skip_if_not_installed("MixSim")
+  script <- file.path(
+    testthat::test_path(),
+    "..",
+    "..",
+    "scripts",
+    "fig05_bivariate_single_cell.R"
+  )
+  skip_if_not(file.exists(script))
+  # A temp copy: sourcing defines the builders without running the pipeline.
+  tmp <- withr::local_tempfile(fileext = ".R")
+  file.copy(script, tmp)
+  env <- new.env()
+  sys.source(tmp, envir = env)
+  config <- env$build_bivariate_single_cell_config()
+  expect_identical(nrow(config), 729L)
+  expect_identical(anyDuplicated(config$ID), 0L)
+  methods <- env$bivariate_single_cell_deconvolution_functions(
+    intervals = FALSE,
+    dwls = FALSE
+  )
+  out <- withr::with_seed(
+    1,
+    run_simulation_benchmark(
+      config,
+      methods,
+      n = 2,
+      likelihood = single_cell_likelihood(),
+      scenarios = 122L
+    )
+  )
+  expect_setequal(unique(out$optimisation$algorithm), names(methods))
+  expect_true(all(out$optimisation$numerical_converged))
 })

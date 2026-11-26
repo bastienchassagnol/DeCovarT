@@ -18,6 +18,7 @@ deconvolute_ratios(
   progress_every = 10L,
   likelihood = population_likelihood(),
   nuisance_true = NULL,
+  nuisance_nominal = NULL,
   label = NULL
 )
 }
@@ -46,7 +47,14 @@ interval methods to evaluate at that solver's estimate: \code{wald},
 true composition); for the single-cell model, \code{wald_reml}, \code{ilr_reml}
 and \code{profile_reml} add the REML calibration. Solvers that return a
 list read the estimate from \code{coefficients}, or from \code{composition} for
-\code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}}.}
+\code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}}. An optional \code{scales} entry, \code{"true"} or
+\code{"nominal"}, plugs known single-cell scales into each fit: \code{FUN}
+receives \code{mean_scale} and \code{variance_scale} (if it has those
+arguments) from the bulk's column of \code{nuisance_true} or from
+\code{nuisance_nominal}, and the likelihood is evaluated at those scales.
+An optional \code{working_sigma} function maps \code{Sigma} to the covariances
+that method assumes (for instance their diagonals); the fit, its
+diagnostics and its intervals then use that working model.}
 
 \item{standardise}{If \code{TRUE}, apply a \strong{gene-wise} affine z-score
 computed once from \eqn{\boldsymbol{\mu}} to bulk, means and covariances
@@ -81,6 +89,10 @@ diagnostics, the Wald standard errors and the interval menu.}
 \item{nuisance_true}{Optional \eqn{2\times N} matrix of the true scales
 \eqn{(c,\phi)} of the single-cell model, for the coverage of their
 intervals.}
+
+\item{nuisance_nominal}{Optional named vector (\code{mean_scale},
+\code{variance_scale}): the scales a user would assume, for methods with
+\code{scales = "nominal"}.}
 
 \item{label}{Optional scenario label. When given, one line per solver
 reports the label, the solver, the number of bulks, the elapsed time

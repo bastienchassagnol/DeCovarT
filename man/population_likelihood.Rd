@@ -7,7 +7,11 @@
 \usage{
 population_likelihood()
 
-single_cell_likelihood()
+single_cell_likelihood(mean_scale = NULL, variance_scale = NULL)
+}
+\arguments{
+\item{mean_scale, variance_scale}{Known scales \eqn{c} and \eqn{\phi}
+of the single-cell model; \code{NULL} (default) profiles them out.}
 }
 \value{
 An object of class \code{decovart_likelihood}.
@@ -18,7 +22,9 @@ An object of class \code{decovart_likelihood}.
 \sum_j p_j^2\boldsymbol{\Sigma}_j)};
 \code{single_cell_likelihood()} is the mixture of cells, with its two scales
 \eqn{(c,\phi)} profiled out, so every function is evaluated at the
-closed-form scales of the composition. They play the part of
+closed-form scales of the composition; with \code{mean_scale} and
+\code{variance_scale} the scales are known instead and held at those values
+(the plug-in model, identifiable from \eqn{G=J} genes). They play the part of
 \code{\link[stats:family]{stats::family()}} in \code{\link[stats:glm]{stats::glm()}}: \code{\link[=deconvolute_ratios]{deconvolute_ratios()}} and
 \code{\link[=run_simulation_benchmark]{run_simulation_benchmark()}} take one as \code{likelihood}, either the object
 or the constructor itself.
@@ -28,6 +34,10 @@ Each object is a list of class \code{decovart_likelihood} with
 \itemize{
 \item \code{name}: \code{"population"} or \code{"single_cell"};
 \item \code{nuisance}: whether the model has the scales \eqn{(c,\phi)};
+\item for the single-cell model, \code{scales_known} and
+\code{with_scales(mean_scale, variance_scale)}, which returns the same
+model at known scales (\code{\link[=deconvolute_ratios]{deconvolute_ratios()}} uses it for a method
+with a \code{scales} entry);
 \item \code{parameters(cell_names)}: the rows of every interval matrix, the
 cell types and, for the single-cell model, \code{mean_scale},
 \code{variance_scale}, \code{platform_scale_a} and \code{cell_count_n};
@@ -50,7 +60,8 @@ The interval methods are
 \item \code{profile}: likelihood-ratio inversion; it refits from \code{y}, so it does
 not depend on the solver that produced \code{p_hat};
 \item \code{bootstrap}: percentile interval of a parametric bootstrap refitted by
-\code{ci$optimiser};
+\code{ci$optimiser} (single-cell model at known scales: \code{ci$n_cells_sdlog}
+draws an uncertain cell count, see \code{\link[=bootstrap_single_cell]{bootstrap_single_cell()}});
 \item \code{oracle}: \code{p_hat} plus or minus the Wald half-width evaluated at the
 true composition.
 }

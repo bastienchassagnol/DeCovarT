@@ -34,6 +34,16 @@ the others; the variance of alpha_K is therefore 1' V 1 over the first K - 1
 coordinates. Intervals are alpha +/- z sqrt(var), clipped to [0, 1] as in
 rnasieve.
 
+One fix to the release, as in DeCovarT_reproducibility/scripts/python/
+run_rnasieve.py: `rnasieve.algo._minimize_alpha` passes its simplex
+constraints to `cp.Minimize()` instead of `cp.Problem()`. Under cvxpy 1.6.0
+(pinned in uv.lock) that raises a TypeError, which the package catches; it
+then returns the previous proportions, so the proportions never move from
+their start in the alternating maximisation (Erdmann-Pham et al. 2021,
+Algorithm 1, lines 6 and 12, p. 1804). The corrected update below replaces
+it at import, so forked workers inherit it; `--release` restores the
+released function.
+
 Writes <out_dir>/<scenario_id>/{estimates,lower,upper,lower_fisher,
 upper_fisher,lower_godambe,upper_godambe}.csv (cell types x bulk columns) and
 <out_dir>/status.csv (scenario_id, status, message, elapsed_sec).
@@ -42,8 +52,11 @@ upper_fisher,lower_godambe,upper_godambe}.csv (cell types x bulk columns) and
 import argparse
 from pathlib import Path
 
+import cvxpy as cp
 import numpy as np
 import pandas as pd
+import rnasieve.algo as rnasieve_algo
+from rnasieve.helper import CLIP_VALUE, compute_mixture_sigma
 from rnasieve.preprocessing import model_from_raw_counts
 from rnasieve.stats import (
     _godambe_hessian_log_likelihood_alpha,
@@ -52,6 +65,30 @@ from rnasieve.stats import (
 from scipy.stats import norm
 
 from batch import run_batch
+
+
+RELEASED_MINIMIZE_ALPHA = rnasieve_algo._minimize_alpha
+
+
+def minimize_alpha_constrained(alpha_prev, sigma, phi, psi, n):
+    """`rnasieve.algo._minimize_alpha` with the constraints in `cp.Problem`."""
+    alpha_next = cp.Variable(alpha_prev.shape)
+    coef = n / np.clip(compute_mixture_sigma(alpha_prev, sigma, phi), CLIP_VALUE, None)
+    prob = cp.Problem(
+        cp.Minimize(coef.T @ (phi @ alpha_next.T - psi / n) ** 2),
+        [alpha_next >= 0, cp.sum(alpha_next) == 1],
+    )
+    try:
+        prob.solve()
+    except cp.SolverError:
+        return alpha_prev
+    if alpha_next.value is None:
+        return alpha_prev
+    alpha = np.clip(alpha_next.value, 0, None)
+    return alpha / np.sum(alpha)
+
+
+rnasieve_algo._minimize_alpha = minimize_alpha_constrained
 
 
 def marginal_variances(alpha, phi, sigma, psi, n):
@@ -162,7 +199,10 @@ def main():
     parser.add_argument("out_dir", type=Path)
     parser.add_argument("--level", type=float, default=0.95)
     parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument("--release", action="store_true")
     args = parser.parse_args()
+    if args.release:
+        rnasieve_algo._minimize_alpha = RELEASED_MINIMIZE_ALPHA
     run_batch(
         "RNA-Sieve",
         fit_and_write,

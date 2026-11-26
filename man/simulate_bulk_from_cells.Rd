@@ -24,7 +24,8 @@ simulate_bulk_from_cells(
 \item{p}{Cell-fraction vector of length \eqn{J}, or a \eqn{J\times N}
 matrix. Each column must sum to 1.}
 
-\item{n_cells}{Cells per bulk sample, \eqn{n_i}. Recycled to \eqn{N}.
+\item{n_cells}{Cells per bulk sample, \eqn{n_i}. Recycled to \eqn{N};
+pass one value per sample for bulks of different sizes.
 The multinomial size is the rounded value; the fitted
 \eqn{\hat n} need not be an integer.}
 

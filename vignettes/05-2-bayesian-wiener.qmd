@@ -75,11 +75,9 @@ matters for the latent formulation: with $\boldsymbol{D}=\boldsymbol{0}$
 the bulk is an exact linear function of the profiles, and their
 conditional law is degenerate.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-bw-dag
-%%| fig-cap: The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample $i$; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the purified-profile likelihood.
 %%| filename: fig-bw-dag
-%%| alt: Plate diagram. A fixed Dirichlet parameter alpha generates the latent proportions p_i inside a sample plate. The fixed reference means mu and precisions Lambda_j, outside the plates, generate the latent profile x_j,i inside a nested cell-type plate. The proportions, the profiles and a fixed diagonal noise D generate the observed bulk y_i.
 \begin{tikzpicture}
 \node[fixed] (al) at (-2.6,0) {$\boldsymbol{\alpha}$};
 \node[latent] (p) at (-0.6,0) {$\boldsymbol{p}_{\cdot i}$};
@@ -95,6 +93,9 @@ conditional law is degenerate.
 \plate{samples}{(p)(types)(types-caption)(y)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+:::
+
+![The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample $i$; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the purified-profile likelihood.](figures/tikz/fig-bw-dag.svg){#fig-bw-dag fig-alt="Plate diagram. A fixed Dirichlet parameter alpha generates the latent proportions p_i inside a sample plate. The fixed reference means mu and precisions Lambda_j, outside the plates, generate the latent profile x_j,i inside a nested cell-type plate. The proportions, the profiles and a fixed diagonal noise D generate the observed bulk y_i."}
 
 {{< pagebreak >}}
 
@@ -158,9 +159,10 @@ $\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})$ by
 $\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})+\boldsymbol{D}$.
 The gain $p_{ji}\boldsymbol{\Sigma}_j\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$
 shrinks the bulk residual back onto type $j$ in proportion to that
-type's weight and covariance. The experimental helper
-[`scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`](https://github.com/bastienchassagnol/DeCovarT/blob/main/scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R)
-is this update with $\boldsymbol{\Sigma}(\boldsymbol{p})$ assembled by
+type's weight and covariance. The experimental helper, since removed
+from the repository
+([last version](https://github.com/bastienchassagnol/DeCovarT/blob/51bfcd8/scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R)),
+was this update with $\boldsymbol{\Sigma}(\boldsymbol{p})$ assembled by
 [`.compute_global_variance()`](../reference/dot-compute_global_variance.html).
 A production path must pass the fitted $\boldsymbol{p}_{\cdot i}$, not a
 vector of ones.

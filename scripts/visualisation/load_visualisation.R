@@ -1,6 +1,7 @@
 # Figure books of scripts/fig02_bivariate_toy.R,
-# scripts/fig03_variance_covariance_driven.R and
-# scripts/fig05_single_cell_hierarchical.R.
+# scripts/fig03_variance_covariance_driven.R,
+# scripts/fig05_bivariate_single_cell.R and
+# scripts/fig06_single_cell_hierarchical.R.
 #
 #   plot_data <- figure_plot_data(readRDS(file), "fig03")
 #   render_figure_books(plot_data, "output/fig03")
@@ -8,9 +9,10 @@
 #
 # `plot_data` is a list keyed by file stem; each entry holds the plot
 # function, its data and the page size, so any book is redrawn from
-# figXX_plot_data.rds alone (after sourcing this file).
+# figXX_plot_data.rds alone (after sourcing this file). fig05 is split into
+# one entry per page, keyed `<stem>/<page>`, drawn as one SVG with its RDS
+# (the entry) next to it.
 
-source(file.path("scripts", "benchmark_metrics", "outcome_metrics.R"))
 source(file.path("scripts", "visualisation", "visualisation_helpers.R"))
 source(file.path("scripts", "visualisation", "density_books.R"))
 source(file.path("scripts", "visualisation", "performance_books.R"))
@@ -27,15 +29,18 @@ source(file.path("scripts", "visualisation", "scenario_books.R"))
   )
 }
 
-figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
+figure_plot_data <- function(
+  benchmark,
+  figure = c("fig02", "fig03", "fig05", "fig06")
+) {
   figure <- match.arg(figure)
   layout <- .scenario_layout(benchmark$config, figure)
   density <- "density_visualisations"
   performance <- "performance_visualisations"
   books <- list()
-  if (identical(figure, "fig02")) {
-    densities <- .data_gene_densities(benchmark, layout)
-    profiles <- .data_loglik_profiles(benchmark, layout)
+  if (figure %in% c("fig02", "fig05")) {
+    densities <- .data_gene_densities(benchmark, layout, figure = figure)
+    profiles <- .data_loglik_profiles(benchmark, layout, figure = figure)
     books$purified_density <- .book(
       "plot_gene_densities",
       densities,
@@ -110,7 +115,7 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
       .data_pairwise_distances(benchmark, layout, figure),
       density,
       10,
-      if (identical(figure, "fig05")) 14 else 9,
+      if (identical(figure, "fig06")) 14 else 9,
       figure = figure
     )
   }
@@ -118,7 +123,7 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     benchmark,
     layout,
     figure,
-    n_grid = if (identical(figure, "fig05")) 35L else 60L
+    n_grid = if (identical(figure, "fig06")) 35L else 60L
   )
   books$loglik_surface_p <- .book(
     "plot_loglik_surfaces",
@@ -136,22 +141,26 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     11.5,
     surface = "expected"
   )
-  books$loglik_rgl <- .book(
-    "plot_loglik_rgl",
-    surfaces[c("surface", "markers", "axis_labels")],
-    density,
-    11,
-    10
-  )
+  if (!identical(figure, "fig05")) {
+    books$loglik_rgl <- .book(
+      "plot_loglik_rgl",
+      surfaces[c("surface", "markers", "axis_labels")],
+      density,
+      11,
+      10
+    )
+  }
 
   errors <- .data_errors(benchmark, layout)
+  # fig05 pages are drawn one at a time: their colour scales are fixed here.
+  shared <- function(x) if (identical(figure, "fig05")) x
   whitened <- .data_whitened(benchmark, layout, figure)
   estimates <- .data_estimates(benchmark, layout, figure)
   optimisation <- .data_optimisation(benchmark, layout)
   # These methods' errors in the single-cell scenario are far above the
   # others and would squeeze the shared accuracy scales. They are removed
   # from the data, including their factor levels, so no panel remains.
-  exclude <- if (identical(figure, "fig05")) {
+  exclude <- if (identical(figure, "fig06")) {
     c("CIBERSORT", "lsei", "MEAD")
   } else {
     character()
@@ -163,7 +172,8 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     14,
     10,
     metric = "rmse",
-    exclude = exclude
+    exclude = exclude,
+    limits = shared(.positive_range(errors$rmse))
   )
   books$heatmap_aitchison <- .book(
     "plot_metric_tiles",
@@ -172,7 +182,8 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     14,
     10,
     metric = "aitchison",
-    exclude = exclude
+    exclude = exclude,
+    limits = shared(.positive_range(errors$aitchison))
   )
   books$rmse_colour_aitchison_size_dots <- .book(
     "plot_rmse_aitchison_dots",
@@ -180,7 +191,9 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     performance,
     14,
     10,
-    exclude = exclude
+    exclude = exclude,
+    rmse_limits = shared(.positive_range(errors$rmse)),
+    size_limits = shared(range(errors$aitchison, finite = TRUE))
   )
   books$ci_width_forest <- .book(
     "plot_ci_forest",
@@ -257,6 +270,30 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     metric = "memory_mib"
   )
   if (identical(figure, "fig05")) {
+    books$loglik_mean_shift_slice <- .book(
+      "plot_loglik_slices",
+      .data_loglik_slices(benchmark, "mean_shift"),
+      density,
+      12,
+      11
+    )
+    books$loglik_correlation_slice <- .book(
+      "plot_loglik_slices",
+      .data_loglik_slices(benchmark, "correlation"),
+      density,
+      12,
+      9
+    )
+    books$boundary_lrt <- .book(
+      "plot_boundary_lrt",
+      .data_boundary_lrt(benchmark, layout),
+      performance,
+      10,
+      9
+    )
+    books <- .split_books_by_page(books)
+  }
+  if (identical(figure, "fig06")) {
     books$ci_width_forest_nuisance <- .book(
       "plot_ci_forest_nuisance",
       .data_ci_forest_nuisance(benchmark, layout),
@@ -273,6 +310,56 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
     )
   }
   books
+}
+
+# One entry per page: every table of the entry that has a `page` column is
+# cut to that page (and, for the interval forests, to one scenario). The
+# key is `<stem>/<page slug>`; entries without pages are kept whole. All
+# entries are drawn as SVG.
+.split_books_by_page <- function(books) {
+  slug <- function(x) {
+    x <- gsub(",", "", tolower(as.character(x)), fixed = TRUE)
+    x <- sub(" cells per bulk$", "", x)
+    gsub("^_|_$", "", gsub("[^a-z0-9]+", "_", x))
+  }
+  out <- list()
+  for (stem in names(books)) {
+    book <- books[[stem]]
+    book$format <- "svg"
+    tables <- if (is.data.frame(book$data)) list(book$data) else book$data
+    has_page <- vapply(
+      tables,
+      function(t) is.data.frame(t) && "page" %in% names(t),
+      logical(1)
+    )
+    if (!any(has_page)) {
+      out[[stem]] <- book
+      next
+    }
+    by <- if (identical(stem, "ci_width_forest")) c("page", "ID") else "page"
+    keys <- unique(tables[[which(has_page)[[1L]]]][by])
+    for (k in seq_len(nrow(keys))) {
+      cut <- function(t) {
+        if (!is.data.frame(t) || !all(by %in% names(t))) {
+          return(t)
+        }
+        keep <- Reduce(`&`, lapply(by, function(b) t[[b]] == keys[[b]][[k]]))
+        t[keep, , drop = FALSE]
+      }
+      page_book <- book
+      page_book$data <- if (is.data.frame(book$data)) {
+        cut(book$data)
+      } else {
+        lapply(book$data, cut)
+      }
+      key <- paste(
+        vapply(by, function(b) slug(keys[[b]][[k]]), ""),
+        collapse = "_"
+      )
+      out[[paste0(stem, "/", key)]] <- page_book
+    }
+  }
+  out
 }
 
 render_figure_from_data <- function(stem, plot_data, out_dir) {
@@ -296,6 +383,21 @@ render_figure_from_data <- function(stem, plot_data, out_dir) {
   if (is.na(width)) {
     width <- pages[[1L]]$width
     height <- pages[[1L]]$height
+  }
+  if (identical(book$format, "svg")) {
+    # One SVG per page, with the plot data of the entry next to it.
+    pages <- Filter(Negate(is.null), pages)
+    base <- file.path(out_dir, book$folder, stem)
+    files <- if (length(pages) == 1L) {
+      paste0(base, ".svg")
+    } else {
+      sprintf("%s_%d.svg", base, seq_along(pages))
+    }
+    for (k in seq_along(pages)) {
+      .save_pages(pages[k], files[[k]], width, height)
+    }
+    saveRDS(book, paste0(base, ".rds"))
+    return(invisible(files))
   }
   .save_pages(
     pages,

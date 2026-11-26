@@ -1,6 +1,6 @@
 # Benchmark artefacts shared by scripts/fig02_bivariate_toy.R,
 # scripts/fig03_variance_covariance_driven.R and
-# scripts/fig05_single_cell_hierarchical.R.
+# scripts/fig06_single_cell_hierarchical.R.
 #
 # Every figure keeps two files in output/figXX/:
 # * figXX_benchmark.rds: list(meta, config, theta_true, descriptors,
@@ -223,14 +223,18 @@ save_benchmark <- function(benchmark, config, meta, file) {
       config = config[setdiff(names(config), "true_theta")],
       theta_true = stats::setNames(config$true_theta, config$ID)
     ),
-    benchmark[c(
-      "descriptors",
-      "supplementary",
-      "regression",
-      "monte_carlo",
-      "optimisation",
-      "intervals",
-      "data"
+    benchmark[intersect(
+      c(
+        "descriptors",
+        "supplementary",
+        "regression",
+        "monte_carlo",
+        "optimisation",
+        "intervals",
+        "boundary_lrt",
+        "data"
+      ),
+      names(benchmark)
     )]
   )
   names(artefact$data) <- config$ID

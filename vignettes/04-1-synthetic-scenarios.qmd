@@ -83,11 +83,9 @@ Each cell type carries its own graph-constrained signed precision $\boldsymbol{\
 
 The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](R1-bivariate-toy.html) and [covariance-driven hybrid](R2-covariance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-pipeline-api
-%%| fig-cap: Pipeline from synthetic moment generation to deconvolution.
 %%| filename: fig-pipeline-api
-%%| alt: Pipeline. A graph script-G_j gives signed weights W(script-G_j), then a positive-definite precision Omega_j, then the covariance Sigma_j as its inverse. Sigma_j and the means mu = s Q K to the one half feed simulate_hierarchical_grn_moments, whose output goes to simulate_bulk_mixture and then deconvolute_ratios.
 \begin{tikzpicture}[node distance=6mm and 7mm]
 \node[box] (A) {Graph $\mathcal{G}_j$};
 \node[box, right=of A] (B) {Weights $W(\mathcal{G}_j)$};
@@ -101,6 +99,9 @@ The exported entry point orchestrates internal helpers and returns moments that 
 \draw[edge] (D) -- (F); \draw[edge] (E) -- (F); \draw[edge] (F) -- (G); \draw[edge] (G) -- (H);
 \end{tikzpicture}
 ```
+:::
+
+![Pipeline from synthetic moment generation to deconvolution.](figures/tikz/fig-pipeline-api.svg){#fig-pipeline-api fig-alt="Pipeline. A graph script-G_j gives signed weights W(script-G_j), then a positive-definite precision Omega_j, then the covariance Sigma_j as its inverse. Sigma_j and the means mu = s Q K to the one half feed simulate_hierarchical_grn_moments, whose output goes to simulate_bulk_mixture and then deconvolute_ratios."}
 
 ```{r moments-example}
 library(DeCovarT)
@@ -554,11 +555,9 @@ $$ {#eq-ggm-pipeline}
 
 Here $\mathcal{G}$ is an **undirected** graph on the $G$ genes, not the gene count. $W(\mathcal{G})$ is a symmetric weighted matrix with the same off-diagonal support, $\Omega$ a strictly positive-definite precision, and $\boldsymbol{x}_{\cdot c}$ a cell profile. This section covers **undirected** Gaussian Markov / precision-graph simulation only. `generate_random_network_skeleton()` draws $\mathcal{G}$; `build_normalised_precision()` completes it to $\Omega\succ 0$ by an affine spectral shift; `build_covariance_array_from_precision()` maps each slice $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$ (cell types need not share one network).
 
+::: {.content-hidden}
 ```{.tikz}
-%%| label: fig-ggm-pipeline
-%%| fig-cap: Undirected simulation pipeline from topology to observations (optional observation layer dashed).
 %%| filename: fig-ggm-pipeline
-%%| alt: Graphical model. A fixed graph script-G determines signed weights W(script-G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow.
 \begin{tikzpicture}[node distance=14mm]
 \node[fixed] (G) {$\mathcal{G}$};
 \node[det, right=14mm of G] (W) {$W(\mathcal{G})$};
@@ -576,6 +575,9 @@ Here $\mathcal{G}$ is an **undirected** graph on the $G$ genes, not the gene cou
 \plate{pi}{(mu)(X)(Y)(nx)(ny)}{$i=1,\ldots,n$}
 \end{tikzpicture}
 ```
+:::
+
+![Undirected simulation pipeline from topology to observations (optional observation layer dashed).](figures/tikz/fig-ggm-pipeline.svg){#fig-ggm-pipeline fig-alt="Graphical model. A fixed graph script-G determines signed weights W(script-G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow."}
 
 ## Graph structure generators
 
