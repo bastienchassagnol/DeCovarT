@@ -33,15 +33,18 @@ test_that("single-cell bulks at G = 200 are drawn without an eigendecomposition"
   G <- 200L
   genes <- paste0("g", seq_len(G))
   cts <- c("ct1", "ct2")
-  mu <- withr::with_seed(5L, matrix(
-    stats::rexp(G * 2L, 1 / 5),
-    G,
-    2L,
-    dimnames = list(genes, cts)
-  ))
+  mu <- withr::with_seed(
+    5L,
+    matrix(
+      stats::rexp(G * 2L, 1 / 5),
+      G,
+      2L,
+      dimnames = list(genes, cts)
+    )
+  )
   sigma <- array(0, c(G, G, 2L), dimnames = list(genes, genes, cts))
-  sigma[, , 1L] <- spd_matrix(G, 6L) * 1e-3
-  sigma[, , 2L] <- spd_matrix(G, 7L) * 1e-3
+  sigma[,, 1L] <- spd_matrix(G, 6L) * 1e-3
+  sigma[,, 2L] <- spd_matrix(G, 7L) * 1e-3
   sim <- withr::with_seed(
     8L,
     simulate_bulk_from_cells(

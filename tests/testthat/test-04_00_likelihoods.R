@@ -10,7 +10,7 @@ sc_inputs <- function(G = 12L, J = 4L) {
   )
   Sigma <- array(0, c(G, G, J))
   for (j in seq_len(J)) {
-    Sigma[, , j] <- diag(mu[, j])
+    Sigma[,, j] <- diag(mu[, j])
   }
   list(mu = mu, Sigma = Sigma)
 }

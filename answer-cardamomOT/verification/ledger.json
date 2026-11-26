@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-11-22",
+    "date": "2026-11-25",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
     "python": "3.14.3"
@@ -373,8 +373,8 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{14600041}{2304}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 14600041/2304; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{33166081}{11664}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 33166081/11664; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
@@ -942,7 +942,7 @@
       "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
       "qmd_lines": [
         "summary_side_comparison:241",
-        "answer_elias:832"
+        "answer_elias:952"
       ]
     },
     {
@@ -1028,7 +1028,7 @@
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
         "summary_side_comparison:149",
-        "answer_elias:879"
+        "answer_elias:999"
       ]
     },
     {
@@ -1711,8 +1711,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:733",
-        "answer_elias:832"
+        "answer_elias:853",
+        "answer_elias:952"
       ]
     },
     {
@@ -1725,8 +1725,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:733",
-        "answer_elias:832"
+        "answer_elias:853",
+        "answer_elias:952"
       ]
     },
     {
@@ -1739,7 +1739,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1175"
+        "answer_elias:1294"
       ]
     },
     {
@@ -1752,7 +1752,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:377"
+        "answer_elias:452"
       ]
     },
     {
@@ -1765,7 +1765,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:404"
+        "answer_elias:526"
       ]
     },
     {
@@ -1778,7 +1778,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:426"
+        "answer_elias:526"
       ]
     },
     {
@@ -1791,7 +1791,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V47_elias_review.py",
       "qmd_lines": [
-        "answer_elias:879"
+        "answer_elias:999"
       ]
     },
     {
@@ -1804,7 +1804,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:733"
+        "answer_elias:853"
       ]
     },
     {
@@ -1817,7 +1817,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:758"
+        "answer_elias:878"
       ]
     },
     {
@@ -1830,7 +1830,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1175"
+        "answer_elias:1294"
       ]
     },
     {
@@ -1843,8 +1843,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:650",
-        "answer_elias:1277"
+        "answer_elias:770",
+        "answer_elias:1396"
       ]
     },
     {
@@ -1857,7 +1857,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1277"
+        "answer_elias:1396"
       ]
     },
     {
@@ -1870,7 +1870,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:879"
+        "answer_elias:999"
       ]
     },
     {
@@ -1883,7 +1883,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1240"
+        "answer_elias:1359"
       ]
     },
     {
@@ -1896,7 +1896,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1020"
+        "answer_elias:1139"
       ]
     },
     {
@@ -1909,7 +1909,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1412"
+        "answer_elias:1572"
       ]
     },
     {
@@ -1922,8 +1922,128 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V48_elias_review.py",
       "qmd_lines": [
-        "answer_elias:1412"
+        "answer_elias:1572"
       ]
+    },
+    {
+      "id": "V49a",
+      "claim": "Gamma--Poisson, zero count: $\\mathrm{E}(r\\mid X=0)=\\alpha/(\\beta+L)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "integration of the posterior kernel, symbolic $\\alpha,\\beta,L$",
+      "detail_full": "integration of the posterior kernel, symbolic $\\alpha,\\beta,L$",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49b",
+      "claim": "$\\alpha=\\beta=1$, $L=25$: posterior mean $1/26$",
+      "kind": "numeric",
+      "status": "flag",
+      "detail": "1/26 = 0.0384615; the draft printed 0.03829",
+      "detail_full": "1/26 = 0.0384615; the draft printed 0.03829",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49c",
+      "claim": "Free gene factors $b_A=0.2/p_A$, $b_B=0.8/(1-p_A)$ give bulk 20 and 80 for every $p_A$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "symbolic $p_A$; $p_A=0.4$ gives $1/2$ and $4/3$",
+      "detail_full": "symbolic $p_A$; $p_A=0.4$ gives $1/2$ and $4/3$",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49d",
+      "claim": "Welch's $G$ with $J=2$ equals Welch's $t^2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "symbolic means, variances and sizes",
+      "detail_full": "symbolic means, variances and sizes",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49e",
+      "claim": "$\\Delta^{1/2}\\{(1-\\lambda)R+\\lambda I\\}\\Delta^{1/2}=(1-\\lambda)\\Sigma+\\lambda\\Delta$; eigenvalues $(1-\\lambda)\\omega+\\lambda$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$2\\times2$, symbolic $\\rho$, $\\lambda$, variances",
+      "detail_full": "$2\\times2$, symbolic $\\rho$, $\\lambda$, variances",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49f",
+      "claim": "$r_{\\mathrm{PR}}$ and $r_{\\mathrm H}$ equal $G$ for a flat spectrum and 1 for one direction",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=4$",
+      "detail_full": "$G=4$",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49g",
+      "claim": "Independent normal genes: $\\mathrm E r^2=1/(n-1)$, so $r^0_{\\mathrm{PR}}\\approx G/\\{1+(G-1)/(n-1)\\}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "null density of $r$, $n=4,\\ldots,12$; the rank is a ratio of expectations (approximation)",
+      "detail_full": "null density of $r$, $n=4,\\ldots,12$; the rank is a ratio of expectations (approximation)",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49h",
+      "claim": "$X=sY$, $s\\perp Y$: $\\mathrm{Cov}(X_g,X_h)=\\mathrm E(s^2)\\mathrm{Cov}(Y_g,Y_h)+\\mathrm{Var}(s)\\mu_g\\mu_h$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "moments of $s$ symbolic",
+      "detail_full": "moments of $s$ symbolic",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49i",
+      "claim": "$I(p_A)=c^2(\\mu_A-\\mu_B)^2/(\\phi v)+\\tfrac12\\{(\\sigma^2_A-\\sigma^2_B)/v\\}^2$; perfect marker: $c^2\\mu^2/(\\phi p\\sigma^2)+1/(2p^2)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$-\\mathrm E\\,\\partial^2_p\\ell$ for one gene",
+      "detail_full": "$-\\mathrm E\\,\\partial^2_p\\ell$ for one gene",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49j",
+      "claim": "Perfect marker of variance $p\\sigma^2$: $\\ell/\\log p\\to(G-1)/2$ if $y_g>0$, $\\to-1/2$ if $y_g=0$",
+      "kind": "series",
+      "status": "pass",
+      "detail": "$G=5$, other genes $Q_0>0$: limits 2 and -1/2",
+      "detail_full": "$G=5$, other genes $Q_0>0$: limits 2 and -1/2",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49k",
+      "claim": "$\\alpha_I=qR/G=1.25\\,\\%$; ORA $E=nK/N=10$, fold 3",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "hypergeometric tail $P(X\\ge 30)=5.709E-8$",
+      "detail_full": "hypergeometric tail $P(X\\ge 30)=5.709E-8$",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
+    },
+    {
+      "id": "V49l",
+      "claim": "48 h: predicting 100 \\% epiblast gives RMSE 0.02134",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "RMSE = 0.021345; lambda\\_selection.csv minimum 0.021345",
+      "detail_full": "RMSE = 0.021345; lambda\\_selection.csv minimum 0.021345",
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
     }
   ]
 }

@@ -36,7 +36,9 @@
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
   if (is.null(Sigma)) {
-    cli::cli_abort("{.arg true_theta} must contain {.field sigma} for simulation.")
+    cli::cli_abort(
+      "{.arg true_theta} must contain {.field sigma} for simulation."
+    )
   }
   p <- true_theta$p
   generative_mean <- if (is.null(true_theta$generative_mean)) {
@@ -356,16 +358,26 @@ run_simulation_benchmark <- function(
 
   run_ids <- if (is.null(scenarios)) seq_len(n_scen) else as.integer(scenarios)
   if (anyNA(run_ids) || any(run_ids < 1L | run_ids > n_scen)) {
-    cli::cli_abort("{.arg scenarios} must be row indices of {.arg scenario_config}.")
+    cli::cli_abort(
+      "{.arg scenarios} must be row indices of {.arg scenario_config}."
+    )
   }
   .run_seeded <- function(i) {
     withCallingHandlers(
-      if (is.null(seed)) .run_row(i) else withr::with_seed(seed + i, .run_row(i)),
+      if (is.null(seed)) {
+        .run_row(i)
+      } else {
+        withr::with_seed(seed + i, .run_row(i))
+      },
       error = function(e) {
         message(
-          "Scenario ", i, " failed",
+          "Scenario ",
+          i,
+          " failed",
           if (!is.null(seed)) paste0(" (seed ", seed + i, ")"),
-          "; rerun it alone with `scenarios = ", i, "`."
+          "; rerun it alone with `scenarios = ",
+          i,
+          "`."
         )
       }
     )

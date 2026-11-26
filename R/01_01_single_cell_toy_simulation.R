@@ -200,7 +200,8 @@ simulate_bulk_from_cells <- function(
       if (count_j <= 0L) {
         next
       }
-      draw <- count_j * mean_signature_matrix[, j] +
+      draw <- count_j *
+        mean_signature_matrix[, j] +
         sqrt(count_j) * drop(crossprod(roots[[j]], stats::rnorm(n_genes)))
       total <- total + as.numeric(draw)
     }

@@ -146,5 +146,9 @@ suppinger_complete.pdf
 # CodeGraph local index
 .codegraph/
 review-decovart-bastien-elias-marielle-anais/*_files/
+!review-decovart-bastien-elias-marielle-anais/retour_figure_1_and_4_files/
 review-decovart-bastien-elias-marielle-anais/.quarto/
+review-decovart-bastien-elias-marielle-anais/retour_figure_1_and_4_render.pdf
+review-decovart-bastien-elias-marielle-anais/retour_figure_1_and_4.pdf.*
+review-decovart-bastien-elias-marielle-anais/retour_figure_1_and_4_compressed.pdf
 luque_villaonga.pdf

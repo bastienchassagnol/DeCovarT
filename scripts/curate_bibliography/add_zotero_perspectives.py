@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import argparse
+import csv
 import json
 import re
 import sqlite3
@@ -165,10 +167,11 @@ def citekey(creators, title: str, year: str) -> str:
     words = re.findall(r"[A-Za-z0-9]+", title or "")
     kept = []
     for w in words:
-        if w.lower() in STOP and kept:
+        # Zotero's default key skips function words and keeps three title words.
+        if w.lower() in STOP:
             continue
         kept.append(w[:1].upper() + w[1:].lower())
-        if len(kept) >= 4:
+        if len(kept) >= 3:
             break
     short = "".join(kept) if kept else "Untitled"
     year = re.sub(r"[^0-9]", "", year)[:4] or "nd"
@@ -180,7 +183,8 @@ def from_crossref(doi: str) -> dict | None:
     if not data or "message" not in data:
         return None
     m = data["message"]
-    title = " ".join(m.get("title") or [""]).strip()
+    title = " ".join(m.get("title") or [""])
+    title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", title)).strip()  # Crossref JATS tags
     authors = []
     for a in m.get("author") or []:
         authors.append(
@@ -334,7 +338,18 @@ def post_items(items: list[dict]) -> list[dict]:
     return payload
 
 
+def read_targets(path: Path) -> list[tuple[str, str]]:
+    """Rows `doi,collection` of a CSV file (header required)."""
+    with path.open(newline="", encoding="utf-8") as fh:
+        return [(r["doi"].strip(), r["collection"].strip()) for r in csv.DictReader(fh)]
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--targets", type=Path, help="CSV with columns doi,collection; default: TARGETS")
+    parser.add_argument("--dry-run", action="store_true", help="resolve and print, post nothing")
+    args = parser.parse_args()
+    targets = read_targets(args.targets) if args.targets else TARGETS
     have = existing_dois()
     created = []
     skipped = []
@@ -342,7 +357,7 @@ def main() -> None:
     batch = []
     meta = []
 
-    for doi, coll in TARGETS:
+    for doi, coll in targets:
         dlow = doi.lower()
         if dlow in have or any(dlow in h or h in dlow for h in have):
             skipped.append(doi)
@@ -362,6 +377,8 @@ def main() -> None:
         time.sleep(0.2)
 
     print(f"\nTo create: {len(batch)}; skip {len(skipped)}; fail {len(failed)}")
+    if args.dry_run:
+        return
     # Zotero max 50 per request
     for i in range(0, len(batch), 50):
         chunk = batch[i : i + 50]
@@ -384,7 +401,8 @@ def main() -> None:
             print("failed detail", resp["failed"])
         created.extend(chunk)
 
-    out = Path(__file__).with_name("zotero-perspectives-added.json")
+    stem = args.targets.stem if args.targets else "zotero-perspectives"
+    out = Path(__file__).with_name(f"{stem}-added.json")
     out.write_text(
         json.dumps(
             {

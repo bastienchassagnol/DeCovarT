@@ -21,7 +21,7 @@ test_that("small simulation testing", {
   expected <- withr::with_seed(3L, {
     x <- lapply(1:2, function(j) {
       z <- matrix(stats::rnorm(20), 10, 2)
-      sweep(z %*% chol(Sigma[, , j]), 2, mu[, j], "+")
+      sweep(z %*% chol(Sigma[,, j]), 2, mu[, j], "+")
     })
     t(0.5 * x[[1]] + 0.5 * x[[2]])
   })

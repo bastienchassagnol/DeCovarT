@@ -1,0 +1,2171 @@
+---
+title: "`DeCovarT` : justifier la sélection des gènes et la régularisation"
+subtitle: "Retour sur les figures 1 et 4 du manuscrit, pour Elias, Marielle et Anaïs"
+author: "Bastien Chassagnol"
+date: 2026-11-25
+lang: fr
+bibliography: ../inst/REFERENCES.bib
+link-citations: true
+number-sections: true
+crossref:
+  eq-prefix: "équation"
+  sec-prefix: "section"
+  fig-prefix: "figure"
+  fig-title: "Figure"
+  tbl-prefix: "tableau"
+  tbl-title: "Tableau"
+execute:
+  echo: false
+  warning: false
+  message: false
+extensions:
+  highlight-text:
+    styles:
+      cle: {bg-colour: "#fff1a8"}
+      claude: {bg-colour: "#fbe3d4", border-colour: "#c45c26", par: true}
+filters:
+  - highlight-text
+format:
+  html:
+    embed-resources: false
+    fig-embed: false
+    self-contained-math: true
+    toc: true
+    toc-depth: 2
+    toc-title: "Sommaire"
+    html-math-method:
+      method: mathjax
+      url: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg-full.js"
+    fig-cap-location: bottom
+    include-in-header:
+      text: |
+        <script src="_ojs-vendor/d3.min.js"></script>
+        <script src="_ojs-vendor/plot.umd.min.js"></script>
+        <script src="_ojs-vendor/htl.min.js"></script>
+        <script src="_ojs-vendor/inputs.min.js"></script>
+        <style>
+          .claude { display: block; padding: .6em .9em; margin: .8em 0; }
+          form label { min-width: 13em; }
+        </style>
+  pdf:
+    fig-dpi: 150
+    pdf-engine: lualatex
+    documentclass: article
+    papersize: a4
+    geometry: margin=2.3cm
+    fontsize: 11pt
+    mainfont: "Noto Serif"
+    sansfont: "Noto Sans"
+    monofont: "DejaVu Sans Mono"
+    mathfont: "STIX Two Math"
+    colorlinks: true
+    toc: true
+    toc-depth: 1
+    fig-pos: "tbp"
+    include-in-header:
+      text: |
+        \AtBeginDocument{\renewcommand{\boldsymbol}[1]{\symbfit{#1}}}
+---
+
+```{r}
+#| label: setup
+library(ggplot2)
+library(tinytable)
+knitr::opts_chunk$set(
+  dev = if (knitr::is_html_output()) "svglite" else "ragg_png",
+  dpi = 300, fig.width = 7, fig.height = 4
+)
+family <- if ("Noto Sans" %in% systemfonts::system_fonts()$family) "Noto Sans" else "sans"
+theme_slide <- function(base_size = 12) {
+  theme_minimal(base_size = base_size, base_family = family) +
+    theme(
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(colour = "#e6e1d8"),
+      plot.title = element_text(face = "bold", colour = "#0e4d3a"),
+      axis.title = element_text(colour = "#1c2b24"),
+      strip.text = element_text(face = "bold", colour = "#0e4d3a"),
+      legend.position = "bottom",
+      plot.background = element_rect(fill = "white", colour = NA),
+      panel.background = element_rect(fill = "white", colour = NA)
+    )
+}
+col_main <- "#1d4e89"
+col_second <- "#c45c26"
+col_guide <- "#1c2b24"
+dat <- function(f) utils::read.csv(file.path("data", f), fileEncoding = "UTF-8")
+fr <- function(x, d = 2) formatC(x, format = "f", digits = d, decimal.mark = ",", big.mark = " ")
+book <- "https://bastienchassagnol.github.io/DeCovarT_reproducibility/"
+vig <- "https://bastienchassagnol.github.io/DeCovarT/articles/"
+```
+
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+// Libraries vendored in _ojs-vendor/ (pinned to the Quarto 1.10 runtime) so
+// that the self-contained HTML never fetches them from a CDN.
+d3 = window.d3
+Plot = window.Plot
+Inputs = window.Inputs
+colMain = "#1d4e89"
+colSecond = "#c45c26"
+```
+:::
+
+**Pourquoi ce document.** Il corrige et complète un premier brouillon rédigé
+avec ChatGPT. Il répond aux questions soulevées
+par les figures 1 (pipeline) et 4 (application aux gastruloïdes) du
+manuscrit : pourquoi ce filtre sur les gènes, pourquoi ce test, comment
+choisir la régularisation des covariances. Les chiffres viennent des sorties
+locales du [livre de reproductibilité](`r book`), extraites par
+`scripts/extract_local_results.R`. Dans la version HTML, les figures
+interactives se manipulent avec des curseurs ; la version PDF en montre une
+position fixe.
+
+**Code couleur.**
+
+- [Passage important]{.cle}.
+- Encadré orangé : un **désaccord de Claude Code**, l'assistant qui a relu le
+  brouillon, avec mon raisonnement ou avec la version ChatGPT. Je les laisse
+  visibles pour qu'on en discute.
+
+Les équations nouvelles sont recalculées dans le registre SymPy du dépôt
+(`answer-cardamomOT/verification/`, identifiants V49a à V49l, tous validés ;
+V49b confirme l'erreur du brouillon sur le modèle Gamma–Poisson).
+
+# Philosophie générale du pipeline {#sec-intro}
+
+[`DeCovarT` choisit des gènes qui permettent d'estimer, de façon stable et
+interprétable, la composition cellulaire d'un bulk RNA-seq à partir d'une
+référence single-cell.]{.cle} Cette liste est plus courte que celle des gènes
+différentiellement exprimés : un bon marqueur pour annoter un cluster n'est
+pas forcément un bon gène pour déconvoluer.
+
+`DeCovarT` utilise les moyennes d'expression de chaque population, mais
+aussi leurs variances et leurs covariances : les gènes d'un même programme
+transcriptionnel ne sont pas traités comme des sources d'information
+indépendantes. Le modèle retenu pour les données de
+@suppingerMultimodalCharacterizationMurine2023 est
+
+$$
+\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}
+\sim\mathcal{N}_G\bigl(c_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\;
+\phi_i\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})\bigr),
+\qquad
+\boldsymbol{S}_W(\boldsymbol{p})=\sum_{j}p_j\boldsymbol{\Sigma}_{W,j},
+$$ {#eq-sc-model}
+
+avec $\boldsymbol{y}_{\cdot i}$ le profil bulk de l'échantillon $i$ sur $G$
+gènes, $\boldsymbol{p}_{\cdot i}$ ses proportions sur $J$ types,
+$\tilde{\boldsymbol{\mu}}$ la matrice $G\times J$ des profils moyens de
+référence, $\boldsymbol{\Sigma}_{W,j}$ la covariance entre cellules du type
+$j$, et $c_i$, $\phi_i$ deux échelles libres. Les notations complètes sont
+dans la [note de réponse à Elias](answer_elias.qmd) et la
+[page de notation](`r vig`notation.html).
+
+@Fig-pipeline résume les étapes : contrôle qualité et *presence gate*,
+sélection statistique, moments de référence régularisés, puis déconvolution.
+
+::: {#fig-pipeline}
+Figure 1 du manuscrit : le pipeline `DeCovarT` appliqué aux gastruloïdes.
+(a) Les trois filtres de la sélection de gènes ; (b) les moments de
+référence et le *shrinkage* de la covariance ; (c) le modèle de bruit du
+bulk ; (d) le plan Wnt standard et précoce.
+[Vecteur du manuscrit](../article/figs/fig01_pipeline.pdf) ;
+[aperçu PNG](figures/fig01_pipeline.png).
+:::
+
+# Contrôle qualité : pourquoi écarter les marqueurs « parfaits » ? {#sec-qc}
+
+## Marqueur biologique ou marqueur statistiquement parfait {#sec-qc-def}
+
+Un **marqueur biologique** caractérise une population ou un programme
+biologique. Un **marqueur parfait**, au sens statistique employé ici, est
+exprimé dans une seule population et totalement absent des autres. La
+*presence gate* exclut plus largement tout gène qui n'est pas détecté dans
+au moins deux cellules de **chaque** population retenue à un temps donné.
+
+[Les marqueurs enrichis et les gènes différentiels restent donc éligibles :
+seules certaines configurations d'expression sont écartées.]{.cle}
+
+## Arguments statistiques {#sec-qc-stat}
+
+**Une variance nulle rend certaines procédures dégénérées.** `DeCovarT`
+décrit chaque population par un vecteur de moyennes et une matrice de
+covariance. Un gène jamais exprimé dans une population y a une moyenne et
+une variance empiriques nulles (gène A du @tbl-variance-jouet). Sa
+corrélation avec les autres gènes n'est pas définie, puisqu'elle divise par
+un écart-type nul.
+
+```{r}
+#| label: tbl-variance-jouet
+#| tbl-cap: "Trois gènes fictifs dans quatre cellules d'une même population."
+tt(data.frame(
+  Gène = c("A", "B", "C"),
+  `Cellule 1` = c(0, 0, 2), `Cellule 2` = c(0, 0, 5),
+  `Cellule 3` = c(0, 0, 1), `Cellule 4` = c(0, 10, 8),
+  Variance = c("nulle", "positive, mais portée par une cellule", "positive"),
+  check.names = FALSE
+))
+```
+
+**Une seule cellule ne suffit pas.** La variance du gène B existe, mais elle
+repose sur une seule cellule. Deux gènes exprimés uniquement dans la même
+cellule ont une corrélation empirique égale à 1, quels que soient leurs
+niveaux : un événement technique isolé passerait pour de la co-expression.
+D'où le seuil minimal de deux cellules positives par population.
+[C'est une condition minimale de stabilité, pas une garantie que la
+variance soit bien estimée.]{.cle}
+
+**Conséquences pour la covariance.** Une variance nulle annule la ligne et
+la colonne correspondantes de $\boldsymbol{\Sigma}_{W,j}$, qui devient
+singulière. Or l'inverse et le déterminant de @eq-sc-model entrent dans la
+vraisemblance. Le *shrinkage* de @schäferShrinkageApproachLargescale2005,
+qui contracte les corrélations en gardant les variances, ne répare pas une
+variance initialement nulle. La *presence gate* ne suffit pas non plus à
+rendre la covariance inversible : avec plus de gènes que de cellules, la
+covariance empirique est toujours singulière, d'où la régularisation de la
+@sec-lambda.
+
+::: {.claude}
+**Désaccord de Claude Code : le test omnibus n'est pas le problème, les
+*fold changes* le sont.**
+
+Le brouillon affirme qu'un gène nul dans une population empêche le test de
+Welch. Ce n'est pas exact pour notre pipeline. Le test omnibus porte sur les
+résidus de Pearson du modèle nul (@eq-pearson), dont la valeur attendue
+dépend de la profondeur $s_c$ de chaque cellule : un gène nul dans un type y
+a des résidus $-\sqrt{V(\hat m_{gc})}$ qui varient d'une cellule à l'autre,
+donc une variance non nulle. Le rapport de vraisemblance NB reste lui aussi
+valide quand un type est entièrement nul, à condition que le gène soit
+exprimé ailleurs.
+
+Sans *shrinkage* des *log fold changes*
+(LFC), que nous ne voulons pas, le paramètre $\eta_j=\log\mu_j$ d'un type
+entièrement nul part vers $-\infty$ : l'optimiseur s'arrête à une borne
+arbitraire et l'erreur standard explose. Le contraste $\Delta_j$
+(@eq-contraste), un seuil de *fold change* de type TREAT
+[@mccarthyTestingSignificanceRelative2009] et le classement par taille
+d'effet perdent alors leur sens. DESeq2 contourne ce problème par un
+*shrinkage* des LFC [@loveModeratedEstimationFold2014a] ; la vignette note
+aussi que le test de Wald échoue près de ces types nuls (effet
+Hauck–Donner, @yeeHauckDonnerEffectWald2022). [La justification solide de la
+*presence gate* est donc le stade post-hoc et l'estimation de la covariance,
+pas le test omnibus.]{.cle}
+:::
+
+::: {.claude}
+**Désaccord de Claude Code : ce que coûte la *presence gate*, à gènes
+indépendants.**
+
+Supposons des gènes indépendants (covariance diagonale) et deux types $A$
+et $B$. Dans le modèle gaussien @eq-sc-model, l'information de Fisher sur
+$p_A$ apportée par le gène $g$ vaut
+
+$$
+I_g(p_A)=\frac{c^{2}\,(\mu_{gA}-\mu_{gB})^{2}}{\phi\,v_g(p_A)}
++\frac12\left(\frac{\sigma^{2}_{gA}-\sigma^{2}_{gB}}{v_g(p_A)}\right)^{2},
+\qquad v_g(p_A)=p_A\sigma^{2}_{gA}+(1-p_A)\sigma^{2}_{gB}.
+$$ {#eq-info-fisher}
+<!-- chk: V49i -->
+
+Pour un marqueur parfait de $A$ ($\mu_{gB}=\sigma^{2}_{gB}=0$), $v_g=p_A\sigma^{2}_{gA}$
+et les deux termes croissent comme $1/p_A$ et $1/p_A^{2}$.
+[Les marqueurs parfaits sont donc les gènes les plus informatifs
+précisément pour les populations rares, et la *presence gate* les
+retire.]{.cle} Le panel penche alors vers les types abondants
+(@fig-information).
+
+Les données nuancent cependant ce constat (@tbl-gate-losses). Les gènes
+écartés par la condition par type sont surtout des gènes **non détectés
+dans la population la plus petite** : 3 872 gènes à 48 h ne manquent qu'aux
+36 cellules « naïve pluripotency », 2 171 à 96 h qu'aux 29 cellules du
+« somite differentiation front ». À l'inverse, les 2 188 gènes détectés
+uniquement dans l'épiblaste (10 590 cellules) sont surtout des gènes faibles
+que seul un grand effectif permet de voir. Beaucoup de ces exclusions
+reflètent la puissance de détection, pas une absence biologique.
+
+Piste à discuter : appliquer la *presence gate* au seul stade post-hoc
+(contrastes, classement) et garder ces gènes dans le panel de déconvolution
+avec un plancher de variance.
+:::
+
+::: {#fig-information}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof info = Inputs.form({
+  markers: Inputs.range([0, 20], {value: 5, step: 1, label: "Marqueurs parfaits de A"}),
+  shared: Inputs.range([10, 1000], {value: 200, step: 10, label: "Gènes partagés"}),
+  delta: Inputs.range([0.1, 2], {value: 0.5, step: 0.1, label: "Écart moyen partagé"})
+})
+```
+
+```{ojs}
+//| echo: false
+infoCurve = {
+  const n = 10000, mu = 5, s2 = 5;
+  const ps = d3.range(-3, Math.log10(0.5) + 1e-9, 0.02).map(e => 10 ** e);
+  const se = (p, m) => {
+    // c = n, phi = n (scale a = 1): shared genes then perfect markers of A
+    const iShared = info.shared * n * info.delta ** 2 / s2;
+    const iMark = m * (n * mu ** 2 / (p * s2) + 1 / (2 * p * p));
+    return 1 / Math.sqrt(iShared + iMark) / p;
+  };
+  return ps.flatMap(p => [
+    {p, rse: se(p, 0), panel: "sans marqueur parfait"},
+    {p, rse: se(p, info.markers), panel: `avec ${info.markers} marqueurs parfaits`}
+  ]);
+}
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 640, height: 320, marginLeft: 60,
+  x: {type: "log", label: "Proportion vraie du type rare A"},
+  y: {type: "log", label: "Erreur standard relative de p̂A"},
+  color: {domain: ["sans marqueur parfait", `avec ${info.markers} marqueurs parfaits`], range: ["#9a9a9a", colMain], legend: true},
+  marks: [Plot.line(infoCurve, {x: "p", y: "rse", stroke: "panel", strokeWidth: 2}), Plot.ruleY([1], {stroke: "#1c2b24", strokeDasharray: "4 3"})]
+})
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3.6
+info_se <- function(p, m, shared = 200, delta = 0.5, n = 1e4, mu = 5, s2 = 5) {
+  1 / sqrt(shared * n * delta^2 / s2 + m * (n * mu^2 / (p * s2) + 1 / (2 * p^2))) / p
+}
+p <- 10^seq(-3, log10(0.5), by = 0.02)
+d <- rbind(
+  data.frame(p = p, rse = info_se(p, 0), panel = "sans marqueur parfait"),
+  data.frame(p = p, rse = info_se(p, 5), panel = "avec 5 marqueurs parfaits")
+)
+ggplot(d, aes(p, rse, colour = panel)) +
+  geom_hline(yintercept = 1, linetype = 2, colour = col_guide) +
+  geom_line(linewidth = 1) +
+  scale_x_log10() + scale_y_log10() +
+  scale_colour_manual(values = c("sans marqueur parfait" = "#9a9a9a", "avec 5 marqueurs parfaits" = col_main), name = NULL) +
+  labs(x = "Proportion vraie du type rare A", y = "Erreur standard relative") +
+  theme_slide()
+```
+:::
+Erreur standard relative de $\hat p_A$ (inverse de la racine de
+@eq-info-fisher, divisé par $p_A$) selon la proportion vraie du type rare,
+avec ou sans marqueurs parfaits. Modèle jouet : deux types, gènes
+indépendants, bulk de $10\,000$ cellules ($c_i=\phi_i=10\,000$), gènes
+partagés d'écart moyen $\delta$ et de variance 5, marqueurs de moyenne 5 et
+de variance 5 dans $A$. Tiretés : erreur relative de 100 %. Version PDF :
+200 gènes partagés, $\delta=0{,}5$, 5 marqueurs.
+:::
+
+```{r}
+#| label: tbl-gate-losses
+#| tbl-cap: "Gènes détectés dans au moins 20 cellules du temps, mais écartés par la condition « au moins 2 cellules positives dans chaque type ». *Absents du seul type* : détectés partout sauf dans ce type (marqueurs négatifs). *Présents dans ce seul type* : détectés dans ce type uniquement (marqueurs positifs). Calcul sur `scored_slots.rds` (copie locale)."
+gl <- dat("gate_losses.csv")
+gl <- merge(gl, dat("cell_counts.csv")[, c("time_point", "cell_type", "cells")],
+  by.x = c("time", "cell_type"), by.y = c("time_point", "cell_type"))
+gl <- gl[order(gl$time, -gl$cells), ]
+tt(width = 1, data.frame(
+  Temps = gl$time, Type = gl$cell_type, Cellules = fr(gl$cells, 0),
+  `Présents dans ce seul type` = fr(gl$only_in, 0),
+  `Absents du seul type` = fr(gl$absent_in, 0),
+  `Échouent dans ce type` = fr(gl$fail_any, 0),
+  check.names = FALSE
+))
+```
+
+**Une population absente du bulk.** Le brouillon disait qu'un marqueur
+parfait rend la vraisemblance « non bornée » quand la population disparaît
+du mélange. Il faut préciser le sens.
+
+::: {.claude}
+**Désaccord de Claude Code : non bornée, mais dans quel sens ?**
+
+Pour le maximum de vraisemblance, seule la borne **supérieure** compte. Une
+log-vraisemblance qui tend vers $-\infty$ au bord du simplexe est non bornée
+inférieurement : elle agit comme une barrière et le maximum reste à
+l'intérieur. La dégénérescence redoutée est l'inverse, un supremum infini.
+
+Prenons la vraisemblance profilée en $\phi$,
+
+$$
+\ell(\boldsymbol{p})=-\frac{G}{2}\log\hat\phi(\boldsymbol{p})-\frac12\log\det\boldsymbol{S}_W(\boldsymbol{p}),
+\qquad
+\hat\phi(\boldsymbol{p})=\frac{1}{G}\,\boldsymbol{r}^{\top}\boldsymbol{S}_W(\boldsymbol{p})^{-1}\boldsymbol{r},
+$$ {#eq-loglik-profil}
+<!-- chk: V49j -->
+
+avec $\boldsymbol{r}=\boldsymbol{y}-c\tilde{\boldsymbol{\mu}}\boldsymbol{p}$,
+et un marqueur parfait $g$ de $A$ dont la variance modélisée vaut
+$\varepsilon=p_A\sigma^{2}_{gA}\to0$.
+
+- Si le bulk exprime ce marqueur ($y_g>0$), $r_g^{2}/\varepsilon\to\infty$,
+  donc $\hat\phi\sim y_g^{2}/(G\varepsilon)$, et
+  $\ell\approx-\tfrac{G-1}{2}\lvert\log\varepsilon\rvert\to-\infty$ :
+  c'est une barrière qui repousse $p_A$ du bord.
+- Si le bulk vaut exactement 0 sur ce marqueur, le résidu s'annule avec
+  $p_A$ et $-\tfrac12\log\varepsilon\to+\infty$ : la vraisemblance n'est
+  plus bornée supérieurement.
+
+[La vraisemblance n'est donc non bornée (au sens gênant) que si le bulk vaut
+exactement 0 sur un marqueur parfait.]{.cle} Le cas reste hypothétique ici,
+puisque la *presence gate* écarte déjà ces gènes (@fig-barriere).
+:::
+
+::: {#fig-barriere}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof bar = Inputs.form({
+  ym: Inputs.range([0, 20], {value: 6, step: 0.5, label: "Bulk observé sur le marqueur"}),
+  s2m: Inputs.range([1, 40], {value: 20, step: 1, label: "Variance du marqueur dans A"})
+})
+```
+
+```{ojs}
+//| echo: false
+barCurve = {
+  // One perfect marker of A (gene 1) and four shared genes; c = 1.
+  const muA = [20, 8, 2, 5, 3], muB = [0, 3, 6, 5, 1];
+  const sA = [bar.s2m, 10, 4, 8, 3], sB = [0, 5, 9, 8, 2];
+  const pTrue = 0.3;
+  const y = muA.map((m, g) => g === 0 ? bar.ym : pTrue * m + (1 - pTrue) * muB[g]);
+  const G = y.length;
+  const ll = p => {
+    let q = 0, ld = 0;
+    for (let g = 0; g < G; g++) {
+      const v = p * sA[g] + (1 - p) * sB[g];
+      const r = y[g] - (p * muA[g] + (1 - p) * muB[g]);
+      q += r * r / v; ld += Math.log(v);
+    }
+    return -G / 2 * Math.log(q / G) - ld / 2;
+  };
+  return d3.range(-12, 0.001, 0.05).map(e => ({p: 10 ** e, ll: ll(Math.min(10 ** e, 1 - 1e-9))}));
+}
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 640, height: 300, marginLeft: 60,
+  x: {type: "log", label: "Proportion p_A testée"},
+  y: {label: "Log-vraisemblance profilée"},
+  marks: [Plot.line(barCurve, {x: "p", y: "ll", stroke: bar.ym === 0 ? colSecond : colMain, strokeWidth: 2}),
+          Plot.ruleX([0.3], {stroke: "#1c2b24", strokeDasharray: "4 3"})]
+})
+```
+
+```{ojs}
+//| echo: false
+html`<span style="color:#3d4a42">${bar.ym === 0 ? "Bulk nul sur le marqueur : la courbe remonte sans limite quand p_A tend vers 0 (supremum infini)." : "Bulk positif sur le marqueur : la courbe plonge quand p_A tend vers 0 (barrière)."}</span>`
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3.4
+bar_ll <- function(p, ym, s2m = 20) {
+  muA <- c(20, 8, 2, 5, 3); muB <- c(0, 3, 6, 5, 1)
+  sA <- c(s2m, 10, 4, 8, 3); sB <- c(0, 5, 9, 8, 2)
+  y <- c(ym, 0.3 * muA[-1] + 0.7 * muB[-1])
+  vapply(p, function(pp) {
+    v <- pp * sA + (1 - pp) * sB
+    r <- y - (pp * muA + (1 - pp) * muB)
+    -length(y) / 2 * log(sum(r^2 / v) / length(y)) - sum(log(v)) / 2
+  }, numeric(1))
+}
+p <- 10^seq(-12, -1e-9, by = 0.05)
+d <- rbind(
+  data.frame(p = p, ll = bar_ll(p, 6), cas = "bulk positif sur le marqueur (6)"),
+  data.frame(p = p, ll = bar_ll(p, 0), cas = "bulk nul sur le marqueur")
+)
+d$cas <- factor(d$cas, levels = c("bulk positif sur le marqueur (6)", "bulk nul sur le marqueur"))
+ggplot(d, aes(p, ll, colour = cas)) +
+  geom_vline(xintercept = 0.3, linetype = 2, colour = col_guide) +
+  geom_line(linewidth = 1) + scale_x_log10() +
+  scale_colour_manual(values = c(col_main, col_second), name = NULL) +
+  labs(x = expression("Proportion" ~ p[A] ~ "testée"), y = "Log-vraisemblance profilée") +
+  theme_slide()
+```
+:::
+Log-vraisemblance profilée (@eq-loglik-profil) d'un bulk jouet selon la
+proportion $p_A$ testée (échelle log). Deux types, un marqueur parfait de
+$A$ et quatre gènes partagés, covariance diagonale, $c=1$ ; proportion
+vraie 0,3 (tirets). Bleu : bulk positif sur le marqueur, la courbe plonge
+au bord (barrière). Orange : bulk exactement nul sur le marqueur, la courbe
+remonte sans limite.
+:::
+
+Sources : [presence gate](`r vig`03-1-feature-selection.html#sec-fs-presence),
+[résidus de Pearson](`r vig`03-1-feature-selection.html#sec-sctransform),
+[filtre dans le livre](`r book`02-feature-selection.html#sec-fs-presence).
+
+## Identifiabilité et corrections entre plateformes {#sec-identifiabilite}
+
+Un modèle est **identifiable** si deux valeurs différentes de ses paramètres
+ne produisent jamais la même loi des données. Avec une infinité de données,
+on retrouverait alors la vraie composition.
+
+L'expression bulk moyenne d'un marqueur parfait de $A$ dépend de sa moyenne
+de référence, de $p_A$, et d'un éventuel facteur multiplicatif propre au
+gène, qui corrige les différences entre single-cell et bulk. Si ce facteur
+est libre, deux compositions différentes peuvent produire exactement le
+même bulk (@fig-identifiabilite) : on ne sait plus si le signal vient de la
+composition ou de l'efficacité de mesure du gène.
+
+::: {#fig-identifiabilite}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof pA = Inputs.range([0.05, 0.95], {value: 0.4, step: 0.01, label: "Proportion de A supposée"})
+```
+
+```{ojs}
+//| echo: false
+idCurve = d3.range(0.05, 0.951, 0.01).flatMap(p => [
+  {p, b: 0.2 / p, gene: "facteur du marqueur de A"},
+  {p, b: 0.8 / (1 - p), gene: "facteur du marqueur de B"}
+])
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 640, height: 280, marginLeft: 60,
+  x: {label: "Proportion de A supposée"}, y: {type: "log", label: "Facteur interplateforme requis"},
+  color: {legend: true, range: [colMain, colSecond]},
+  marks: [Plot.line(idCurve, {x: "p", y: "b", stroke: "gene", strokeWidth: 2}),
+          Plot.dot(idCurve.filter(d => Math.abs(d.p - pA) < 0.005), {x: "p", y: "b", fill: "gene", r: 6}),
+          Plot.ruleY([1], {stroke: "#1c2b24", strokeDasharray: "4 3"})]
+})
+```
+
+```{ojs}
+//| echo: false
+html`<span style="color:#3d4a42">Avec p_A = ${pA.toFixed(2)}, les facteurs ${(0.2 / pA).toFixed(2)} (A) et ${(0.8 / (1 - pA)).toFixed(2)} (B) redonnent exactement les bulks observés 20 et 80.</span>`
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3
+p <- seq(0.05, 0.95, by = 0.01)
+d <- rbind(
+  data.frame(p = p, b = 0.2 / p, gene = "facteur du marqueur de A"),
+  data.frame(p = p, b = 0.8 / (1 - p), gene = "facteur du marqueur de B")
+)
+ggplot(d, aes(p, b, colour = gene)) +
+  geom_hline(yintercept = 1, linetype = 2, colour = col_guide) +
+  geom_line(linewidth = 1) +
+  geom_point(data = d[abs(d$p - 0.4) < 1e-9, ], size = 3) +
+  scale_y_log10() + scale_colour_manual(values = c(col_main, col_second), name = NULL) +
+  labs(x = "Proportion de A supposée", y = "Facteur requis") +
+  theme_slide()
+```
+:::
+Deux marqueurs parfaits (référence 100 dans leur type), bulk observé 20
+pour le marqueur de $A$ et 80 pour celui de $B$. Pour chaque proportion de
+$A$ supposée, les facteurs interplateformes $b_A=0{,}2/p_A$ et
+$b_B=0{,}8/(1-p_A)$ reproduisent exactement ces deux valeurs : toute
+composition est compatible. Tirets : facteur 1 (pas de correction), qui
+donne $p_A=0{,}2$. Points : $p_A=0{,}4$, facteurs 0,5 et 4/3.
+:::
+
+Trois nuances :
+
+- Sans facteur libre par gène, comme dans `DeCovarT`, les marqueurs
+  parfaits sont très informatifs et ne rendent pas le modèle non
+  identifiable. Le problème apparaît avec un facteur libre par gène, comme
+  dans MEAD [@xieStatisticalInferenceCell2026].
+- Une correction connue (longueur des gènes, par exemple), appliquée de
+  la même façon aux données et aux moments, ne détruit pas
+  l'identifiabilité.
+- Les seconds moments, qu'exploite `DeCovarT`, peuvent rétablir
+  l'identifiabilité quand les seules moyennes ne suffisent pas.
+
+[Notre intérêt est de ne pas dépendre de gènes dont l'interprétation repose
+sur une hypothèse forte de comparabilité entre plateformes.]{.cle} Le
+contre-exemple complet est dans la
+[note à Elias](answer_elias.qmd), section « Faut-il garder les gènes
+marqueurs parfaits ? ».
+
+## Arguments biologiques et technologiques {#sec-qc-bio}
+
+En pratique, un marqueur parfait est sensible à l'efficacité de capture de
+chaque technologie, à la profondeur et aux non-détections, à l'ARN ambiant,
+aux doublets et aux erreurs d'annotation, et à l'état de différenciation.
+Un zéro single-cell n'implique pas l'absence du transcrit. Sans facteur de
+calibration par gène, un marqueur très spécifique et peu variable pèse
+lourd dans l'estimation : un biais de mesure sur ce gène passe directement
+dans la composition. Ce problème de transfert est documenté par DeMixSC
+[@guoDeMixSCDeconvolutionFramework2023] et Bisque
+[@jewAccurateEstimationCell2020] ; MuSiC privilégie les gènes stables
+entre cellules et entre individus [@wangBulkTissueCell2019].
+
+Nous cherchons donc un compromis entre cinq propriétés
+(@tbl-proprietes).
+
+```{r}
+#| label: tbl-proprietes
+#| tbl-cap: "Propriétés recherchées pour un gène du panel."
+tt(width = 1, data.frame(
+  Propriété = c("Pouvoir discriminant", "Stabilité intra-population", "Transférabilité", "Stabilité numérique", "Complémentarité"),
+  Objectif = c(
+    "Distinguer les populations", "Ne pas dépendre de quelques cellules atypiques",
+    "Résister aux différences entre plateformes", "Estimer les moments sans dégénérescence",
+    "Apporter une information utile en combinaison avec les autres gènes"
+  )
+))
+```
+
+## Perspective : réintégrer les marqueurs dans un cadre bayésien {#sec-qc-bayes}
+
+On pourrait réintégrer ces marqueurs en modélisant l'incertitude des zéros.
+Si un gène n'est détecté dans aucune cellule d'une population, son taux
+d'expression $r$ reçoit un a priori $\mathrm{Gamma}(\alpha,\beta)$ et les
+comptes suivent une loi de Poisson. Après zéro compte pour une exposition
+totale $L$ (somme des tailles de librairie de la population),
+
+$$
+\mathbb{E}(r\mid X=0)=\frac{\alpha}{\beta+L}.
+$$ {#eq-gamma-poisson}
+<!-- chk: V49a, V49b -->
+
+Cette moyenne n'est plus nulle et diminue quand l'exposition augmente
+(@fig-gamma-poisson) : plus on a séquencé sans voir le gène, plus son
+expression vraie est probablement faible.
+
+::: {#fig-gamma-poisson}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof gp = Inputs.form({
+  alpha: Inputs.range([0.1, 5], {value: 1, step: 0.1, label: "α (a priori)"}),
+  beta: Inputs.range([0.1, 5], {value: 1, step: 0.1, label: "β (a priori)"}),
+  L: Inputs.range([1, 100000], {value: 25, step: 1, transform: Math.log, label: "Exposition totale L"})
+})
+```
+
+```{ojs}
+//| echo: false
+gpCurve = d3.range(0, 5.001, 0.02).map(e => ({L: 10 ** e, m: gp.alpha / (gp.beta + 10 ** e)}))
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 640, height: 280, marginLeft: 60,
+  x: {type: "log", label: "Exposition totale L"}, y: {type: "log", label: "Taux moyen a posteriori"},
+  marks: [Plot.line(gpCurve, {x: "L", y: "m", stroke: colMain, strokeWidth: 2}),
+          Plot.dot([{L: gp.L, m: gp.alpha / (gp.beta + gp.L)}], {x: "L", y: "m", fill: colSecond, r: 6}),
+          Plot.text([{L: gp.L, m: gp.alpha / (gp.beta + gp.L)}], {x: "L", y: "m", text: d => d.m.toPrecision(3), dx: 10, dy: -10, textAnchor: "start"})]
+})
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3
+d <- data.frame(L = 10^seq(0, 5, by = 0.02))
+d$m <- 1 / (1 + d$L)
+ggplot(d, aes(L, m)) +
+  geom_line(linewidth = 1, colour = col_main) +
+  annotate("point", x = 25, y = 1 / 26, colour = col_second, size = 3) +
+  annotate("text", x = 40, y = 1 / 26 * 1.6, label = "1/26 = 0,0385", hjust = 0, family = family) +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Exposition totale L", y = "Taux moyen a posteriori") +
+  theme_slide()
+```
+:::
+Moyenne a posteriori du taux d'expression après zéro compte
+(@eq-gamma-poisson), selon l'exposition totale $L$ (échelles log). Point :
+$\alpha=\beta=1$ et $L=25$, soit $1/26\approx0{,}0385$.
+:::
+
+Il faudrait distinguer trois phénomènes : la variabilité biologique entre
+cellules, l'incertitude sur les paramètres d'expression et le bruit de
+mesure. Un modèle bayésien hiérarchique, avec des a priori sur les
+moyennes, les dispersions et les efficacités de capture, s'y prête bien.
+Un plancher de variance ou une vraisemblance pénalisée resteraient des
+options fréquentistes. Je préfère développer cette extension plus tard
+plutôt que d'ajouter des pseudocomptes sans justification probabiliste.
+
+## Seuils de présence {#sec-seuils}
+
+Le filtre est appliqué à chaque temps (@tbl-seuils).
+
+```{r}
+#| label: tbl-seuils
+#| tbl-cap: "Seuils de la *presence gate* et de conservation des populations (`presence_gate()` et `scored_types()` du livre)."
+tt(data.frame(
+  Critère = c(
+    "Cellules exprimant le gène, tous types confondus",
+    "Cellules exprimant le gène dans chaque type",
+    "Variance empirique dans chaque type",
+    "Cellules pour conserver une population"
+  ),
+  Seuil = c("≥ 20", "≥ 2", "strictement positive", "≥ 20")
+))
+```
+
+Le premier critère suit @lueckenCurrentBestPractices2019, qui proposent de
+fixer le nombre minimal de cellules exprimant un gène à la taille de la
+plus petite population d'intérêt. C'est une règle pragmatique, pas un
+seuil universel. Les deux critères suivants sont propres à `DeCovarT`.
+
+Après ces filtres, 11 couples type × temps sont conservés
+(@fig-effectifs). Trois populations sont exclues : l'artefact *Zscan4+* à
+48 h (44 cellules), l'artefact *Cd63+ ectoderm-like* à 72 h (100 cellules)
+et « exiting naïve pluripotency » à 72 h (8 cellules).
+
+```{r}
+#| label: fig-effectifs
+#| fig-cap: "Cellules conservées par type et par temps (échelle log, pour voir les populations rares). Source : `tier_01/cell_counts.csv`."
+#| fig-height: 3.6
+cc <- dat("cell_counts.csv")
+cc$cell_type <- stats::reorder(cc$cell_type, cc$cells)
+ggplot(cc, aes(cells, cell_type)) +
+  geom_segment(aes(x = 10, xend = cells, yend = cell_type), colour = "#d9d3c7") +
+  geom_point(colour = col_main, size = 2.5) +
+  geom_text(aes(label = fr(cells, 0)), hjust = -0.3, size = 3.2, family = family) +
+  facet_grid(time_point ~ ., scales = "free_y", space = "free_y") +
+  scale_x_log10(limits = c(10, 1e5), labels = scales::label_comma(big.mark = " ")) +
+  labs(x = "Cellules (échelle log)", y = NULL) +
+  theme_slide()
+```
+
+[Le déséquilibre est considérable : 10 590 cellules d'épiblaste contre 36
+cellules « naïve pluripotency » à 48 h.]{.cle} Exclure une population rare a
+aussi un coût : si elle est présente dans le bulk, son expression sera
+attribuée aux populations conservées. Les compositions estimées sont donc
+relatives au référentiel retenu.
+
+Sources : [effectifs](`r book`02-feature-selection.html#tbl-fs-cell-counts),
+[filtres](`r book`02-feature-selection.html#sec-fs-presence).
+
+# Sélection statistique des gènes en deux temps {#sec-selection}
+
+## Pourquoi pas les méthodes classiques ? {#sec-selection-pourquoi}
+
+La logique s'inspire de la *cross-cell consistency* de MuSiC
+[@wangBulkTissueCell2019] : un gène utile varie fortement **entre**
+populations et peu **au sein** de chacune. Les gènes hautement variables
+(HVG) ne suffisent pas : un gène peut varier à cause du cycle cellulaire,
+d'un stress ou d'un artefact, sans distinguer les populations. Je cherche à
+séparer la variabilité liée à l'identité cellulaire de la variabilité
+résiduelle.
+
+## Première étape : modéliser l'expression {#sec-modele-comptage}
+
+**Un modèle de comptage.** Pour chaque gène et chaque temps, deux modèles
+linéaires généralisés binomiaux négatifs (NB), à lien logarithmique, sont
+ajustés avec `glmGamPoi` [@glmGamPoi2020]. Le modèle NB autorise une
+variance supérieure à la moyenne :
+
+$$
+\operatorname{Var}(x_{gc})=m_{gc}+\frac{m_{gc}^{2}}{\psi_g},
+$$ {#eq-nb-var}
+
+alors que la loi de Poisson impose $\operatorname{Var}=m$. Plus la
+dispersion $\psi_g$ est petite, plus la variance excède la moyenne
+(@fig-nb-variance).
+
+::: {#fig-nb-variance}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof psi = Inputs.range([0.2, 100], {value: 2, step: 0.1, transform: Math.log, label: "Dispersion ψ"})
+```
+
+```{ojs}
+//| echo: false
+nbCurve = d3.range(-1, 2.001, 0.02).flatMap(e => {
+  const m = 10 ** e;
+  return [{m, v: m, law: "Poisson"}, {m, v: m + m * m / psi, law: `NB, ψ = ${psi.toFixed(1)}`}];
+})
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 640, height: 280, marginLeft: 60,
+  x: {type: "log", label: "Moyenne m"}, y: {type: "log", label: "Variance"},
+  color: {legend: true, range: ["#9a9a9a", colMain]},
+  marks: [Plot.line(nbCurve, {x: "m", y: "v", stroke: "law", strokeWidth: 2})]
+})
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3
+m <- 10^seq(-1, 2, by = 0.02)
+d <- rbind(
+  data.frame(m = m, v = m, loi = "Poisson"),
+  data.frame(m = m, v = m + m^2 / 2, loi = "NB, ψ = 2"),
+  data.frame(m = m, v = m + m^2 / 20, loi = "NB, ψ = 20")
+)
+ggplot(d, aes(m, v, colour = loi)) +
+  geom_line(linewidth = 1) + scale_x_log10() + scale_y_log10() +
+  scale_colour_manual(values = c("Poisson" = "#9a9a9a", "NB, ψ = 2" = col_main, "NB, ψ = 20" = col_second), name = NULL) +
+  labs(x = "Moyenne m", y = "Variance") +
+  theme_slide()
+```
+:::
+Relation moyenne–variance (@eq-nb-var), échelles log. Gris : Poisson ;
+couleur : binomiale négative de dispersion $\psi$.
+:::
+
+**La profondeur de séquençage.** La taille de librairie $s_c$ entre comme
+*offset* logarithmique de coefficient 1 : une cellule séquencée deux fois
+plus profondément a deux fois plus de comptes attendus. Les deux modèles
+sont
+
+$$
+M_0:\ \log m_{gc}=\beta_{0g}+\log s_c,
+\qquad
+M_1:\ \log m_{gc}=\beta_{0g}+\beta_{g,j(c)}+\log s_c,
+$$ {#eq-m0-m1}
+
+avec $j(c)$ le type de la cellule $c$. La dispersion est estimée gène par
+gène par maximum de vraisemblance, sans *shrinkage* entre gènes pour le
+rapport de vraisemblance et le test de Welch. La taille de librairie
+mélange des effets techniques et une vraie différence de taille du
+transcriptome : le modèle teste une expression relative à cette exposition.
+
+**Décomposer la variabilité.** Le résidu de Pearson du modèle nul,
+
+$$
+r_{gc}=\frac{x_{gc}-\hat m_{gc}}{\sqrt{V(\hat m_{gc})}},
+$$ {#eq-pearson}
+
+est positif quand la cellule exprime le gène plus que ne le prévoient le
+modèle nul et sa profondeur. Je ne tronque pas ces résidus, contrairement
+à `SCTransform` [@hafemeisterNormalizationVarianceStabilization2019 ;
+@lauseAnalyticPearsonResiduals2021] : les valeurs extrêmes viennent souvent
+des cellules informatives d'une population rare. Leur variabilité se
+décompose en
+
+$$
+SS_{\text{total}}=SS_{\text{inter-types}}+SS_{\text{intra-types}},
+$$ {#eq-ss}
+
+comme dans une ANOVA. La taille d'effet est la part de déviance expliquée
+par le type,
+
+$$
+R^{2}_{D}=1-\frac{D(M_1)}{D(M_0)}.
+$$ {#eq-r2d}
+
+[Significativité et taille d'effet sont deux notions distinctes : avec des
+milliers de cellules, un effet minuscule devient significatif sans être
+utile à la déconvolution.]{.cle}
+
+Source : [vignette 3.1, modèle nul](`r vig`03-1-feature-selection.html#sec-sctransform).
+
+## Quatre tests pour une même question {#sec-tests}
+
+La question est : *le gène a-t-il une moyenne différente dans au moins deux
+populations ?* C'est un test **omnibus**, qui ne dit pas encore quelle
+population est responsable. Les quatre tests diffèrent par leur statistique
+et leur loi de référence (@tbl-tests).
+
+```{r}
+#| label: tbl-tests
+#| tbl-cap: "Les quatre tests de l'effet du type cellulaire."
+tt(width = 1, data.frame(
+  Test = c("Rapport de vraisemblance (LR)", "Quasi-vraisemblance F", "ANOVA sur expression transformée", "G de Welch par permutation"),
+  `Statistique et loi de référence` = c(
+    "Différence de déviance, loi du χ²", "Déviance ajustée, loi F",
+    "Rapport de sommes de carrés, loi F", "Comparaison studentisée des résidus, loi empirique par permutation"
+  ),
+  `Hypothèse principale` = c(
+    "Modèle NB bien spécifié", "Dispersion résiduelle commune estimable",
+    "Variances à peu près égales entre types", "Échangeabilité des résidus sous l'hypothèse nulle"
+  ),
+  check.names = FALSE
+))
+```
+
+- Le rapport de vraisemblance compare directement $M_0$ et $M_1$ et
+  reste puissant quand le modèle est juste. Si la dispersion varie
+  fortement entre populations sans être modélisée, sa loi de référence est
+  fausse.
+- Le $F$ de quasi-vraisemblance
+  [@lundDetectingDifferentialExpression2012] corrige l'incertitude sur la dispersion, mais une dispersion unique
+  par gène ne décrit pas des populations d'hétérogénéités très différentes.
+- L'ANOVA sur expression transformée est intuitive, mais une transformation
+  logarithmique n'égalise pas les variances, et le test est mal calibré
+  quand hétéroscédasticité et effectifs déséquilibrés se combinent.
+- Le $G$ de Welch par permutation [@welchComparisonSeveralMean1951]
+  autorise une variance par population. Chaque moyenne de type est
+  pondérée par $w_j=C_j/s_j^{2}$ ($C_j$ cellules, variance $s_j^{2}$) :
+
+$$
+G=\frac{\dfrac{1}{J-1}\sum_j w_j(\bar r_j-\bar r_w)^{2}}
+{1+\dfrac{2(J-2)}{J^{2}-1}\sum_j\dfrac{(1-w_j/W)^{2}}{C_j-1}},
+\qquad W=\sum_j w_j,\quad \bar r_w=\frac{1}{W}\sum_j w_j\bar r_j .
+$$ {#eq-welch-g}
+<!-- chk: V49d -->
+
+  Une population très variable ou peu représentée a une moyenne moins
+  précise, donc un poids plus faible.
+
+## Pourquoi combiner Welch et permutations ? {#sec-permutation}
+
+Les permutations construisent la loi de référence à partir des données :
+les expressions restent fixes, seules les étiquettes de type sont
+redistribuées, à l'intérieur de chaque lot. Avec $B$ permutations,
+
+$$
+p_g=\frac{1+\#\{G^{*}_g\geq G_g\}}{B+1}.
+$$ {#eq-pval-perm}
+
+Trois avantages : pas besoin que les résidus soient gaussiens (ils restent
+asymétriques pour les gènes faibles) ; la studentisation de Welch protège
+contre des variances différentes ; les permutations peuvent respecter des
+blocs. À 48 h, deux lignées sont présentes (B-S et SBR), et les étiquettes
+sont permutées au sein de chaque lignée.
+
+**Pourquoi ne pas permuter une simple ANOVA ?** Parce que la permutation ne
+corrige pas l'hétéroscédasticité. Si deux populations ont la même moyenne
+mais des variances différentes, leurs cellules ne sont pas échangeables, et
+une statistique $F$ non studentisée a une loi nulle qui dépend des
+variances inconnues. $G$ reste approximativement pivotale
+[@chungExactAsymptoticallyRobust2013 ; @winklerPermutationInferenceGeneral2014 ;
+@freedmanNonstochasticInterpretation1983]. @fig-permutation le montre sur un
+jouet gaussien.
+
+::: {#fig-permutation}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof perm = Inputs.form({
+  ratio: Inputs.range([1, 5], {value: 3, step: 0.5, label: "Écart-type des petits types"}),
+  genes: Inputs.range([100, 500], {value: 300, step: 50, label: "Gènes nuls simulés"}),
+  seed: Inputs.button("Nouveau tirage", {value: 1, reduce: s => s + 1})
+})
+```
+
+```{ojs}
+//| echo: false
+permResult = {
+  // Gaussian toy, every gene null: same mean everywhere, larger SD in the
+  // two small types. B = 199 label permutations shared by all genes.
+  const sizes = [400, 60, 20, 8], J = 4, B = 199;
+  let a = 2654435761 * perm.seed >>> 0;
+  const rand = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const norm = () => Math.sqrt(-2 * Math.log(rand() + 1e-300)) * Math.cos(2 * Math.PI * rand());
+  const labels = sizes.flatMap((n, j) => Array(n).fill(j));
+  const N = labels.length;
+  const sd = [1, 1, perm.ratio, perm.ratio];
+  const X = Array.from({length: perm.genes}, () => Float64Array.from(labels, j => sd[j] * norm()));
+  const stats = (x, lab) => {
+    const n = new Float64Array(J), s = new Float64Array(J), s2 = new Float64Array(J);
+    for (let c = 0; c < N; c++) { const j = lab[c]; n[j]++; s[j] += x[c]; s2[j] += x[c] * x[c]; }
+    const m = s.map((v, j) => v / n[j]);
+    const v = s2.map((v, j) => (v - n[j] * m[j] * m[j]) / (n[j] - 1));
+    const grand = s.reduce((p, q) => p + q, 0) / N;
+    let ssb = 0, ssw = 0;
+    for (let j = 0; j < J; j++) { ssb += n[j] * (m[j] - grand) ** 2; ssw += (n[j] - 1) * v[j]; }
+    const F = (ssb / (J - 1)) / (ssw / (N - J));
+    const w = v.map((vv, j) => n[j] / vv), W = w.reduce((p, q) => p + q, 0);
+    const mw = w.reduce((p, q, j) => p + q * m[j], 0) / W;
+    let num = 0, den = 0;
+    for (let j = 0; j < J; j++) { num += w[j] * (m[j] - mw) ** 2; den += (1 - w[j] / W) ** 2 / (n[j] - 1); }
+    const G = (num / (J - 1)) / (1 + 2 * (J - 2) / (J * J - 1) * den);
+    return [F, G];
+  };
+  const obs = X.map(x => stats(x, labels));
+  const exceed = obs.map(() => [0, 0]);
+  const lab = labels.slice();
+  for (let b = 0; b < B; b++) {
+    for (let i = N - 1; i > 0; i--) { const k = Math.floor(rand() * (i + 1)); [lab[i], lab[k]] = [lab[k], lab[i]]; }
+    X.forEach((x, g) => { const st = stats(x, lab); if (st[0] >= obs[g][0]) exceed[g][0]++; if (st[1] >= obs[g][1]) exceed[g][1]++; });
+  }
+  return exceed.flatMap(e => [
+    {test: "F permuté", p: (1 + e[0]) / (B + 1)},
+    {test: "G de Welch permuté", p: (1 + e[1]) / (B + 1)}
+  ]);
+}
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 640, height: 260, marginLeft: 50,
+  fx: {label: null}, x: {label: "p-value (sous l'hypothèse nulle)", domain: [0, 1]}, y: {label: "Gènes"},
+  marks: [Plot.rectY(permResult, Plot.binX({y: "count"}, {x: "p", fx: "test", fill: d => d.test === "F permuté" ? colSecond : colMain, thresholds: d3.range(0, 1.0001, 0.05)})),
+          Plot.ruleY([perm.genes / 20], {stroke: "#1c2b24", strokeDasharray: "4 3"})]
+})
+```
+
+```{ojs}
+//| echo: false
+{
+  const rate = t => { const v = permResult.filter(d => d.test === t); return (100 * v.filter(d => d.p <= 0.05).length / v.length).toFixed(1); };
+  return html`<span style="color:#3d4a42">Rejets à 5 % : F permuté ${rate("F permuté")} %, G de Welch permuté ${rate("G de Welch permuté")} % (attendu : 5 %).</span>`;
+}
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3
+set.seed(20261125)
+sizes <- c(400, 60, 20, 8); lab <- rep(1:4, sizes); sdv <- c(1, 1, 3, 3)
+X <- matrix(rnorm(300 * length(lab)) * sdv[lab], nrow = 300, byrow = TRUE)
+fg <- function(X, lab) {
+  n <- tabulate(lab); J <- length(n)
+  s <- t(rowsum(t(X), lab)); s2 <- t(rowsum(t(X^2), lab))
+  m <- sweep(s, 2, n, "/"); v <- sweep(s2 - sweep(m^2, 2, n, "*"), 2, n - 1, "/")
+  grand <- rowSums(s) / length(lab)
+  F <- (rowSums(sweep((m - grand)^2, 2, n, "*")) / (J - 1)) / (rowSums(sweep(v, 2, n - 1, "*")) / (length(lab) - J))
+  w <- sweep(1 / v, 2, n, "*"); W <- rowSums(w); mw <- rowSums(w * m) / W
+  G <- (rowSums(w * (m - mw)^2) / (J - 1)) / (1 + 2 * (J - 2) / (J^2 - 1) * rowSums(sweep((1 - w / W)^2, 2, n - 1, "/")))
+  cbind(F = F, G = G)
+}
+obs <- fg(X, lab)
+exc <- matrix(0, nrow(X), 2)
+for (b in 1:199) exc <- exc + (fg(X, sample(lab)) >= obs)
+d <- data.frame(
+  p = c((1 + exc[, 1]) / 200, (1 + exc[, 2]) / 200),
+  test = rep(c("F permuté", "G de Welch permuté"), each = nrow(X))
+)
+rates <- tapply(d$p <= 0.05, d$test, mean)
+ggplot(d, aes(p, fill = test)) +
+  geom_histogram(breaks = seq(0, 1, 0.05), colour = "white") +
+  geom_hline(yintercept = nrow(X) / 20, linetype = 2, colour = col_guide) +
+  facet_wrap(~ paste0(test, " : ", fr(100 * rates[test], 1), " % de rejets à 5 %")) +
+  scale_fill_manual(values = c(col_second, col_main), guide = "none") +
+  labs(x = "p-value (sous l'hypothèse nulle)", y = "Gènes") +
+  theme_slide()
+```
+:::
+Jouet gaussien : 300 gènes sans aucun effet du type (même moyenne
+partout), quatre types de 400, 60, 20 et 8 cellules, écart-type plus grand
+dans les deux petits types. Histogramme des p-values par permutation
+($B=199$ permutations des étiquettes communes à tous les gènes ; classes de
+0,05). Tirets : hauteur attendue sous une calibration parfaite. Le $F$
+permuté rejette trop souvent ; le $G$ de Welch permuté reste proche de
+5 %. Version PDF : écart-type 3, graine 20261125.
+:::
+
+[À ma connaissance, l'originalité tient à la combinaison : résidus de
+Pearson d'un modèle NB avec *offset*, $G$ de Welch, permutations
+stratifiées, sélection hiérarchique et application à une déconvolution
+multivariée.]{.cle} Les tests studentisés par permutation existent déjà
+[@chungExactAsymptoticallyRobust2013] : je revendique leur intégration dans
+ce pipeline, pas l'invention du test.
+
+## Validation par simulation {#sec-simulation}
+
+La vignette simule 1 000 gènes dans quatre populations très déséquilibrées
+(2 000, 300, 60 et 25 cellules) : 600 gènes nuls de dispersion commune, 300
+gènes nuls dont la dispersion diffère entre types (moyennes identiques), et
+100 gènes réellement différentiels. Le scénario hétéroscédastique compte :
+[un gène ne doit pas être sélectionné parce qu'une population est plus
+hétérogène qu'une autre.]{.cle}
+
+Sous l'hypothèse nulle hétéroscédastique, le rapport de vraisemblance, la
+quasi-vraisemblance et l'ANOVA rejettent 15 à 19 % des gènes au seuil de
+5 %, le $F$ permuté 18 %, le $G$ de Welch permuté 6 %. Après
+Benjamini–Hochberg à 5 % [@benjaminiControllingFalseDiscovery1995], le
+rapport de vraisemblance fait 105 découvertes (FDR empirique 19 %,
+puissance 85 %) et le Welch permuté 43 (FDR 5 %, puissance 41 %).
+[Notre choix repose sur la calibration, pas sur une supériorité de
+puissance.]{.cle} Quand le modèle NB est juste, le rapport de vraisemblance
+peut rester préférable.
+
+Il faudra compléter par des lois non binomiales négatives : la simulation
+montre la robustesse à une dispersion variable entre populations, pas à
+toutes les erreurs de spécification.
+
+Source : [simulation des quatre tests](`r vig`03-1-feature-selection.html#sec-fs-tests-simulation).
+
+## Correction de Benjamini–Hochberg {#sec-bh}
+
+La procédure BH contrôle le *false discovery rate* : sous ses conditions de
+validité, la proportion moyenne de fausses découvertes parmi les gènes
+retenus ne dépasse pas 5 %. Cela ne veut pas dire que chaque gène retenu a
+95 % de chances d'être différentiel. BH est appliquée à chaque temps, puis
+les gènes sont classés par $R^{2}_{D}$. Au total, 6 749 gènes distincts
+passent le filtre à au moins un temps (1 360 à 48 h, 3 617 à 72 h, 5 893 à
+96 h). L'union des trois listes n'hérite pas automatiquement d'une
+garantie globale de FDR à 5 %.
+
+Avec $B=2\,000$ permutations, la plus petite p-value possible est
+$1/2\,001\approx0{,}0005$ : beaucoup de gènes très significatifs partagent
+cette valeur plancher. C'est une raison de plus pour les classer par taille
+d'effet.
+
+## Deuxième étape : quelle population est responsable ? {#sec-posthoc}
+
+**Un type contre la moyenne des autres.** Pour chaque population, avec
+$\eta_j=\log\mu_j$,
+
+$$
+\Delta_j=\eta_j-\frac{1}{J-1}\sum_{k\neq j}\eta_k .
+$$ {#eq-contraste}
+
+Chaque population de comparaison a le même poids, quel que soit son
+effectif. [À 48 h, une moyenne pondérée par les effectifs reviendrait à
+comparer presque uniquement à l'épiblaste.]{.cle}
+
+**Unilatéral ou bilatéral.** La sous-expression est aussi informative pour
+la déconvolution : la perte des programmes de pluripotence signale une
+population différenciée autant que l'acquisition d'un programme
+mésodermique (@tbl-direction).
+
+```{r}
+#| label: tbl-direction
+#| tbl-cap: "Direction du test selon l'objectif."
+tt(data.frame(
+  Objectif = c("Sélection des gènes pour la déconvolution", "Programmes biologiques positifs", "Perte de programmes transcriptionnels", "Marqueurs très spécifiques"),
+  Approche = c("Bilatérale ou omnibus", "Unilatérale", "Unilatérale négative", "Comparaison à chacun des autres types")
+))
+```
+
+**Enrichissement moyen ou supériorité stricte.** Prenons des moyennes 10,
+8, 1 et 1 dans les types A à D. Les types A et B sont enrichis par rapport
+à la moyenne des autres (hypothèse A), mais seul A dépasse chacun des
+autres (hypothèse B). L'hypothèse B, plus restrictive, demande de montrer
+la supériorité face à chaque population concurrente : c'est un test
+d'intersection-union.
+
+## Correction hiérarchique inspirée de `stageR` {#sec-stager}
+
+La procédure suit `stageR` [@vandenbergeStagerGeneralStage2017 ;
+@hellerFlexibleTwoStage2009]. Étape 1 : test omnibus de Welch et BH à 5 %
+sur les $G$ gènes testés ; $R$ gènes passent. Étape 2 : les contrastes
+post-hoc des $R$ gènes retenus sont testés au niveau
+
+$$
+\alpha_I=q\,\frac{R}{G},
+$$ {#eq-alpha-stager}
+<!-- chk: V49k -->
+
+avec une correction de Holm au sein de chaque gène, et une procédure
+graphique [@bretzGraphicalApproachSequentially2009] pour la famille
+complète des hypothèses A et B. Par exemple, si 2 500 gènes sur 10 000
+passent l'étape 1 à $q=5$ %, $\alpha_I=1{,}25$ %.
+
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof stg = Inputs.form({
+  G: Inputs.range([100, 20000], {value: 10000, step: 100, label: "Gènes testés G"}),
+  R: Inputs.range([0, 20000], {value: 2500, step: 50, label: "Gènes retenus R"}),
+  q: Inputs.range([0.01, 0.1], {value: 0.05, step: 0.01, label: "Niveau q"})
+})
+```
+
+```{ojs}
+//| echo: false
+html`<p style="color:#3d4a42">Niveau de confirmation α<sub>I</sub> = ${(100 * stg.q * Math.min(stg.R, stg.G) / stg.G).toFixed(2)} %, avant Holm au sein de chaque gène.</p>`
+```
+:::
+
+Ce contrôle reste conditionnel à la validité des p-values des deux étapes.
+
+**Un seuil minimal de *fold change*.** Tester une différence non nulle puis
+garder les grands effets n'est pas la même chose que tester directement
+que l'effet dépasse un seuil (TREAT,
+@mccarthyTestingSignificanceRelative2009). La seconde option est plus
+exigeante et demanderait d'adapter l'étape 1.
+
+Source : [procédure post-hoc](`r vig`03-1-feature-selection.html#sec-fs-omnibus).
+
+## Marqueurs issus des connaissances biologiques {#sec-marqueurs}
+
+Je veux garder la possibilité d'ajouter des marqueurs choisis a priori par
+Marielle, indépendamment des résultats statistiques. Dans le livre, 15 des
+19 marqueurs murins étudiés figurent parmi les 2 944 gènes de la couche
+`SCT` des auteurs, contre environ 2,1 attendus sous un tirage au hasard ;
+les quatre absents sont *Myod1*, *Pax6*, *Sox1* et *Tfap2a*. Ce n'est pas
+le taux de récupération par notre procédure de Welch : ce sont deux
+comparaisons différentes.
+
+Pour chaque marqueur, je propose de rapporter la population et le temps
+attendus, le passage de la *presence gate*, le *fold change* observé, le
+résultat du Welch et du post-hoc, et la décision finale. [Un marqueur ajouté
+à la main ne doit pas réintroduire une variance nulle, ni être présenté
+comme une découverte couverte par le contrôle du FDR.]{.cle}
+
+Source : [marqueurs](`r book`02-feature-selection.html#sec-fs-markers).
+
+# Validation biologique : analyses d'enrichissement {#sec-enrichissement}
+
+## Ce qui a été fait {#sec-enrich-methodes}
+
+Les analyses d'enrichissement utilisent `clusterProfiler`
+[@wuClusterprofiler402021] pour GO *Biological Process*, `ReactomePA`
+[@yuReactomepaRBioconductor2015] pour Reactome
+[@milacicReactomePathwayKnowledgebase2024], `msigdbr` pour MSigDB Hallmark
+[@liberzonMolecularSignaturesDatabase2015], et `simplifyEnrichment`
+[@guSimplifyenrichmentBioconductorPackage2023] pour regrouper les termes GO
+redondants. Les ensembles comptent de 10 à 500 gènes ; une correction BH à
+5 % est appliquée par type, temps, méthode et base.
+
+Deux approches sont comparées. L'**ORA** (*over-representation analysis*)
+part de la liste des gènes confirmés comme surexprimés dans une population
+par la procédure hiérarchique, et teste si une voie y est surreprésentée.
+La **GSEA** [@subramanianGeneSetEnrichment2005] part de tous les gènes
+éligibles, classés par la statistique $t$ de Welch du type contre la
+moyenne des autres, et teste si les gènes d'une voie se concentrent à une
+extrémité du classement.
+
+## Pourquoi privilégier Reactome ? {#sec-reactome}
+
+GO BP produit des termes très redondants : 1 902 termes significatifs,
+regroupés en 40 clusters sémantiques, dont 20 singletons. Au total, l'ORA
+donne 1 498 termes GO, 225 voies Reactome et 33 ensembles Hallmark ; la
+GSEA 3 270, 991 et 139. Reactome offre des voies curées et organisées par
+mécanisme, plus proches des cascades de signalisation (Wnt, Nodal, BMP,
+Notch, FGF) et des programmes métaboliques. Reactome reste hiérarchique et
+redondant, et ses voies murines sont en grande partie inférées des voies
+humaines par orthologie. Hallmark, volontairement compact, sert de contrôle
+de sensibilité. [Je propose Reactome comme base principale, GO BP et
+Hallmark en analyses complémentaires.]{.cle}
+
+## Pourquoi l'ORA en analyse principale ? {#sec-ora}
+
+Notre sélection produit déjà une liste de gènes dont la proportion de faux
+positifs est contrôlée : il est naturel de demander si ces gènes sont
+surreprésentés dans une voie. L'ORA utilise un test hypergéométrique.
+Avec un univers de $N$ gènes testés, une voie de $K$ gènes et une liste de
+$n$ gènes sélectionnés, le chevauchement attendu au hasard est
+
+$$
+\mathbb{E}(X)=\frac{nK}{N},
+\qquad
+p=\Pr(X\geq k)=\sum_{x=k}^{\min(n,K)}\frac{\binom{K}{x}\binom{N-K}{n-x}}{\binom{N}{n}} .
+$$ {#eq-hypergeom}
+<!-- chk: V49k -->
+
+::: {#fig-ora}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof ora = Inputs.form({
+  N: Inputs.range([1000, 20000], {value: 10000, step: 500, label: "Univers N"}),
+  n: Inputs.range([10, 2000], {value: 500, step: 10, label: "Gènes sélectionnés n"}),
+  K: Inputs.range([10, 500], {value: 200, step: 10, label: "Gènes de la voie K"}),
+  k: Inputs.range([0, 200], {value: 30, step: 1, label: "Chevauchement observé k"})
+})
+```
+
+```{ojs}
+//| echo: false
+oraRes = {
+  // log-gamma (Lanczos) for the hypergeometric tail
+  const lg = x => { const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5]; let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (const ci of c) s += ci / ++y; return -t + Math.log(2.5066282746310005 * s / x); };
+  const lc = (a, b) => lg(a + 1) - lg(b + 1) - lg(a - b + 1);
+  const {N, n, K} = ora, k = Math.min(ora.k, n, K);
+  let p = 0;
+  for (let x = k; x <= Math.min(n, K); x++) p += Math.exp(lc(K, x) + lc(N - K, n - x) - lc(N, n));
+  const E = n * K / N;
+  return {E, k, fold: k / E, p: Math.min(1, p)};
+}
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 520, height: 200, marginLeft: 110,
+  x: {label: "Gènes de la voie dans la liste"}, y: {label: null},
+  marks: [Plot.barX([{lab: "attendu au hasard", v: oraRes.E}, {lab: "observé", v: oraRes.k}], {y: "lab", x: "v", fill: d => d.lab === "observé" ? colMain : "#d9d3c7"}),
+          Plot.ruleX([0])]
+})
+```
+
+```{ojs}
+//| echo: false
+html`<span style="color:#3d4a42">Attendu ${oraRes.E.toFixed(1)}, observé ${oraRes.k}, facteur d'enrichissement ${oraRes.fold.toFixed(2)}, p hypergéométrique ${oraRes.p.toExponential(2)}.</span>`
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 1.8
+pv <- stats::phyper(29, 200, 10000 - 200, 500, lower.tail = FALSE)
+ggplot(data.frame(lab = factor(c("attendu au hasard", "observé"), levels = c("observé", "attendu au hasard")), v = c(10, 30)), aes(v, lab)) +
+  geom_col(fill = c("#d9d3c7", col_main), width = 0.6) +
+  geom_text(aes(label = fr(v, 0)), hjust = -0.3, family = family) +
+  labs(x = "Gènes de la voie dans la liste", y = NULL,
+       subtitle = paste0("Facteur 3, p hypergéométrique ", format(pv, digits = 2))) +
+  theme_slide()
+```
+:::
+Analyse ORA (@eq-hypergeom). Exemple par défaut : univers de 10 000 gènes,
+500 gènes sélectionnés, voie de 200 gènes, 30 en commun. On attend 10 gènes
+au hasard : le facteur d'enrichissement vaut 3, et le test hypergéométrique
+en évalue la significativité.
+:::
+
+Le test hypergéométrique unilatéral teste la **surreprésentation** des
+gènes d'une voie dans une liste, pas la surexpression de la voie : la
+direction biologique vient de la sélection préalable des gènes
+surexprimés.
+
+L'ORA a des limites : elle dépend du seuil de sélection, perd
+l'information des tailles d'effet, et suppose un mécanisme de sélection que
+perturbent la détectabilité et la corrélation des gènes.
+[L'univers de référence doit être l'ensemble des gènes testables après la
+*presence gate*, pas le génome murin entier.]{.cle} Je propose une analyse
+de sensibilité au seuil, et `goseq` [@youngGeneOntologyAnalysis2010] pour
+vérifier l'effet des biais de détectabilité et de longueur. La GSEA reste
+complémentaire, pour les programmes aux effets modestes mais cohérents.
+
+## Résultats préliminaires {#sec-enrich-resultats}
+
+Les thèmes du @tbl-enrichissement sont une première lecture, rédigée avec
+l'aide de Claude ; ils restent à valider par l'examen des gènes
+responsables.
+
+```{r}
+#| label: tbl-enrichissement
+#| tbl-cap: "Signaux d'enrichissement par population. NES : *normalised enrichment score* de la GSEA ; un NES négatif signale une voie relativement moins représentée dans le classement de la population."
+tt(width = 1, data.frame(
+  Population = c("Epiblast, 48 h", "Exiting naïve pluripotency, 48 h", "Naïve pluripotency, 48 et 72 h", "Ectopic pluripotency, 72 et 96 h", "Primitive streak, 72 h", "Caudal mesoderm, 96 h", "Gut, 96 h", "Pre-somitic mesoderm, 96 h", "Somite differentiation front, 96 h"),
+  Signal = c(
+    "Maturation et épissage des ARNm (ORA : MYC targets en tête)",
+    "Phosphorylation oxydative en GSEA seulement ; en ORA, un seul terme (métabolisme des xénobiotiques)",
+    "Réponse au LIF",
+    "Biogenèse des ribosomes, métabolisme des ARNr",
+    "Déplétion de la réponse au LIF (GSEA, NES −3,26)",
+    "Chaîne respiratoire",
+    "Déplétion de la biogenèse des ribosomes et de MYC v1 (GSEA)",
+    "Spécification antéro-postérieure, régionalisation",
+    "MYC v1 et G2/M parmi les termes positifs (GSEA)"
+  )
+))
+```
+
+[Les résultats sur la réponse au LIF sont les plus intéressants : ils
+semblent distinguer plusieurs états de pluripotence des populations
+engagées dans la différenciation.]{.cle} Un NES négatif de la biogenèse des
+ribosomes dans le *gut* ne veut pas dire que la voie est absente, mais
+qu'elle est moins représentée dans le classement de cette population.
+
+Il faut examiner les gènes responsables avant d'interpréter un terme. Par
+exemple, des termes « T cell mediated cytotoxicity » et « leukocyte
+mediated cytotoxicity » sortent à 96 h (caudal mesoderm, PSM, somite front,
+gut). Ils ne prouvent pas la présence de lymphocytes : ils sont portés par
+*B2m* et des gènes *H2-* du CMH de classe I, exprimés bien au-delà du
+système immunitaire.
+
+Source : [chapitre d'enrichissement](`r book`02-feature-selection.html#sec-fs-enrichment).
+
+# Validation statistique de la sélection {#sec-validation}
+
+L'enrichissement ne valide pas la procédure statistique. Trois questions
+sont distinctes : la validité **inférentielle** (les erreurs sont-elles
+contrôlées ?), **biologique** (les gènes correspondent-ils à des programmes
+pertinents ?) et **prédictive** (ces gènes améliorent-ils la
+quantification ?).
+
+## Comparaison à des classifieurs {#sec-classifieurs}
+
+Un classifieur prédit le type cellulaire à partir de l'expression
+(type ~ expression), alors que notre sélection teste si l'expression
+dépend du type (expression ~ type) : l'un est multivarié et prédictif,
+l'autre marginal et inférentiel. Le livre compare sept classifieurs :
+`glmnet` [@friedmanGlmnetLassoElasticNet2011], *sparse-group lasso*
+(`msgl`), PLN-LDA, forêt aléatoire, forêt équilibrée, XGBoost et sPLS-DA.
+La validation croisée est imbriquée (5 plis externes stratifiés par type, 3
+internes), avec des poids de classe $n_c^{-1/2}$ (@tbl-macro-f1).
+
+```{r}
+#| label: tbl-macro-f1
+#| tbl-cap: "Macro-F1 moyen sur les 5 plis externes, par méthode et par temps (variante principale). NA : run `msgl` à 48 h arrêté pour cause de durée. Source : `classifiers/metrics.csv`."
+f1 <- dat("classifier_f1.csv")
+lab <- c(glmnet = "glmnet", msgl = "sparse-group lasso", plnlda = "PLN-LDA", ranger = "forêt aléatoire pondérée",
+         ranger_balanced = "forêt aléatoire équilibrée", splsda = "sPLS-DA", xgboost = "XGBoost")
+w <- stats::reshape(f1[, c("method", "time_point", "macro_f1")], idvar = "method", timevar = "time_point", direction = "wide")
+w <- w[match(names(lab), w$method), ]
+tt(data.frame(
+  Méthode = unname(lab),
+  `48 h` = ifelse(is.na(w$macro_f1.48h), "NA", fr(w$macro_f1.48h, 3)),
+  `72 h` = fr(w$macro_f1.72h, 3), `96 h` = fr(w$macro_f1.96h, 3),
+  check.names = FALSE
+))
+```
+
+Les modèles logistiques pénalisés et XGBoost atteignent un macro-F1 de
+0,78 à 0,91 à 72 et 96 h. À 48 h, le déséquilibre rend l'exactitude
+trompeuse : [prédire toujours « épiblaste » donnerait environ 97 % de bonnes
+classifications]{.cle} (10 590 cellules sur 10 891), sans jamais
+reconnaître les deux populations rares. D'où le macro-F1, l'exactitude
+équilibrée et le rappel par population.
+
+**Lire le chevauchement entre méthodes.** Un fort chevauchement entre notre
+sélection et celle d'un classifieur est un argument de convergence. Un
+chevauchement faible ne condamne pas notre méthode : sur cinq gènes
+corrélés d'un même programme, le test peut retenir les cinq, et le LASSO
+[@tibshiraniRegressionShrinkageSelection1996] un seul, les autres
+n'apportant presque rien de plus pour prédire. Pour `DeCovarT`, qui
+exploite ces co-expressions, mieux vaut comparer aussi les sélections au
+niveau des modules.
+
+Source : [classifieurs](`r book`02-feature-selection.html#sec-fs-classifiers).
+
+## Validations à ajouter {#sec-validations-futures}
+
+**Calibration sur plusieurs centaines de simulations.** Faire varier le
+déséquilibre, la taille des populations rares (10 à 100 cellules),
+l'hétéroscédasticité, la loi (Poisson, NB, Poisson log-normale, mélanges),
+la profondeur, la taille d'effet, la corrélation entre gènes, les effets de
+lot et les erreurs d'annotation. Mesurer l'erreur de type I, le FDR, la
+puissance et l'identification de la population responsable, en comparant
+Welch à edgeR QL [@chenEdgerV4Powerful2025], limma-voom
+[@lawVoomPrecisionWeights2014], MAST [@finakMASTFlexibleStatistical2015] et
+à des modèles à dispersion propre à chaque population.
+
+**Contrôle des erreurs après la *presence gate*.** [C'est sans doute la
+principale limite statistique actuelle.]{.cle} Le filtre global (20
+cellules) n'utilise pas les étiquettes, mais la condition par type (2
+cellules dans chaque population) les utilise : ce n'est pas un filtre
+indépendant de la statistique de test au sens de
+@bourgonIndependentFilteringIncreases2010. Il faut recalibrer le pipeline
+complet (filtre global seul, filtre complet, filtre appris sur des cellules
+indépendantes, permutations conditionnelles au filtre), et pas seulement le
+test une fois la liste fixée.
+
+**Hypothèses nulles partielles.** Les permutations globales des étiquettes
+ne donnent pas forcément la loi nulle d'un contraste quand certaines
+populations diffèrent et d'autres non. Simuler par exemple A = B et C
+différent, ou A égal à la moyenne de B et C alors que B et C diffèrent,
+pour vérifier le contrôle d'erreur de toute la procédure hiérarchique.
+
+**Stabilité par sous-échantillonnage.** Répéter la sélection sur des
+sous-échantillons de cellules, en faisant varier la place des populations
+majoritaires, et mesurer la fréquence de sélection, la stabilité du signe,
+du classement, l'indice de Jaccard entre panels et la stabilité des voies.
+
+**Pseudoréplication.** Des milliers de cellules d'un même spécimen ne sont
+pas des milliers de réplicats biologiques
+[@zimmermanPracticalSolutionPseudoreplication2021 ;
+@squairConfrontingFalseDiscoveries2021]. Notre procédure dit quels gènes
+distinguent les populations de **ce** référentiel, pas que ces différences
+se reproduisent dans d'autres gastruloïdes. [La référence single-cell est
+une seule série de spécimens, et la lignée est confondue avec le temps :
+B-S et SBR à 48 h, SBR seule à 72 h, B-S seule à 96 h.]{.cle} Toute
+comparaison entre temps compare donc aussi des lignées. Avec des réplicats
+indépendants, une validation pseudobulk par spécimen et par type (edgeR ou
+DESeq2) serait possible.
+
+**Validation par la déconvolution elle-même.** C'est la validation la plus
+directe pour `DeCovarT` : comparer, avec le même algorithme, les mêmes
+données de test et le même protocole de régularisation, des panels de
+**même taille** (tous les gènes éligibles, HVG, marqueurs seuls, LR ou QL,
+Welch, Elastic Net [@zouRegularizationVariableSelection2005], Welch plus
+marqueurs, Welch plus cohérence interplateforme, tirage aléatoire), avec la
+RMSE, la distance d'Aitchison, l'erreur par type et la stabilité.
+
+# Régularisation des covariances et choix de λ {#sec-lambda}
+
+## Pourquoi régulariser ? {#sec-lambda-pourquoi}
+
+On estime souvent les relations entre des milliers de gènes à partir de
+quelques dizaines de cellules (29 pour le *somite differentiation front*).
+La covariance empirique est alors singulière ou très mal conditionnée. Nous
+utilisons le *shrinkage* de @schäferShrinkageApproachLargescale2005 :
+
+$$
+\hat{\boldsymbol{\Sigma}}_{W,j}(\lambda)=(1-\lambda)\hat{\boldsymbol{\Sigma}}_{W,j}+\lambda\boldsymbol{\Delta}_j,
+\qquad
+\boldsymbol{R}_j(\lambda)=(1-\lambda)\boldsymbol{R}_j+\lambda\mathbf{I},
+$$ {#eq-shrinkage}
+
+avec $\boldsymbol{\Delta}_j$ la diagonale des variances et $\boldsymbol{R}_j$
+la corrélation empirique. Les variances sont conservées, les corrélations
+réduites d'un facteur $1-\lambda$. Si $\omega_r$ sont les valeurs propres de
+$\boldsymbol{R}_j$, celles de $\boldsymbol{R}_j(\lambda)$ sont
+
+$$
+\omega_r(\lambda)=(1-\lambda)\,\omega_r+\lambda .
+$$ {#eq-spectre-shrink}
+<!-- chk: V49e -->
+
+Toutes deviennent strictement positives dès que $\lambda>0$ : la matrice
+est inversible. À $\lambda=0$ on garde toute la structure empirique, bruit
+compris ; à $\lambda=1$ toutes les corrélations disparaissent
+(@fig-shrinkage).
+
+::: {#fig-shrinkage}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof shr = Inputs.form({
+  lambda: Inputs.range([0, 1], {value: 0.25, step: 0.01, label: "Intensité λ"}),
+  cells: Inputs.range([10, 400], {value: 30, step: 5, label: "Cellules (spectre)"})
+})
+```
+
+```{ojs}
+//| echo: false
+shrHeat = {
+  const R0 = [[1, .8, .6, .1, 0], [.8, 1, .7, .2, .1], [.6, .7, 1, .1, 0], [.1, .2, .1, 1, -.5], [0, .1, 0, -.5, 1]];
+  const genes = ["g1", "g2", "g3", "g4", "g5"];
+  return R0.flatMap((row, i) => row.map((v, k) => ({a: genes[i], b: genes[k], v: i === k ? 1 : (1 - shr.lambda) * v})));
+}
+```
+
+```{ojs}
+//| echo: false
+shrSpec = {
+  // Illustrative spectrum of a sample correlation: G = 300 genes, rank
+  // cells - 1, eigenvalues decaying as r^-1.2, rescaled to trace G.
+  const G = 300, rk = Math.min(shr.cells - 1, G);
+  const raw = d3.range(1, rk + 1).map(r => r ** -1.2), s = d3.sum(raw);
+  const om = raw.map(v => v * G / s).concat(Array(G - rk).fill(0));
+  return d3.range(0, 1.0001, 0.01).map(l => {
+    const w = om.map(o => (1 - l) * o + l), tot = d3.sum(w);
+    const pr = tot * tot / d3.sum(w, x => x * x);
+    const ent = Math.exp(-d3.sum(w, x => x > 0 ? x / tot * Math.log(x / tot) : 0));
+    return {lambda: l, pr: pr / G, ent: ent / G, kappa: d3.max(w) / d3.min(w)};
+  });
+}
+```
+
+```{ojs}
+//| echo: false
+html`<div style="display:flex;flex-wrap:wrap;gap:1em;align-items:flex-start">${Plot.plot({
+  width: 260, height: 240, marginLeft: 30, padding: 0.05,
+  x: {label: null}, y: {label: null},
+  color: {type: "diverging", domain: [-1, 1], scheme: "rdbu", legend: false},
+  marks: [Plot.cell(shrHeat, {x: "b", y: "a", fill: "v"}), Plot.text(shrHeat, {x: "b", y: "a", text: d => d.v.toFixed(2), fill: d => Math.abs(d.v) > 0.6 ? "white" : "black"})]
+})}${Plot.plot({
+  width: 380, height: 240, marginLeft: 50,
+  x: {label: "λ"}, y: {label: "Rang effectif / G", domain: [0, 1]},
+  color: {legend: true, domain: ["participation ratio", "rang entropique"], range: [colMain, colSecond]},
+  marks: [Plot.line(shrSpec, {x: "lambda", y: "pr", stroke: () => "participation ratio", strokeWidth: 2}),
+          Plot.line(shrSpec, {x: "lambda", y: "ent", stroke: () => "rang entropique", strokeWidth: 2}),
+          Plot.ruleX([shr.lambda], {stroke: "#1c2b24", strokeDasharray: "4 3"})]
+})}</div>`
+```
+
+```{ojs}
+//| echo: false
+{
+  const at = shrSpec[Math.round(shr.lambda * 100)];
+  return html`<span style="color:#3d4a42">À λ = ${shr.lambda.toFixed(2)} : corrélations hors diagonale gardées à ${(100 * (1 - shr.lambda)).toFixed(0)} %, conditionnement κ = ${isFinite(at.kappa) ? at.kappa.toPrecision(3) : "∞ (matrice singulière)"}.</span>`;
+}
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3.2
+R0 <- matrix(c(1, .8, .6, .1, 0, .8, 1, .7, .2, .1, .6, .7, 1, .1, 0, .1, .2, .1, 1, -.5, 0, .1, 0, -.5, 1), 5)
+heat <- do.call(rbind, lapply(c(0, 0.25, 0.75), function(l) {
+  R <- (1 - l) * R0; diag(R) <- 1
+  data.frame(a = rep(paste0("g", 1:5), 5), b = rep(paste0("g", 1:5), each = 5), v = as.vector(R), lambda = paste("λ =", fr(l)))
+}))
+ggplot(heat, aes(b, a, fill = v)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = fr(v)), size = 2.6, family = family, colour = ifelse(abs(heat$v) > 0.6, "white", "black")) +
+  facet_wrap(~lambda) +
+  scale_fill_distiller(palette = "RdBu", limits = c(-1, 1), direction = 1, name = "corrélation") +
+  coord_equal() + labs(x = NULL, y = NULL) +
+  theme_slide(10)
+```
+:::
+Effet du *shrinkage* (@eq-shrinkage). À gauche (HTML) ou en facettes
+(PDF) : corrélation de cinq gènes fictifs, deux modules ; la diagonale ne
+bouge pas, les corrélations sont multipliées par $1-\lambda$. À droite
+(HTML) : rangs effectifs (@eq-rangs) d'un spectre illustratif de 300 gènes
+estimé sur $n$ cellules (rang $n-1$, valeurs propres décroissant comme
+$r^{-1{,}2}$), selon $\lambda$ ; tirets : λ courant.
+:::
+
+## Deux façons de choisir λ {#sec-lambda-choix}
+
+Nous avons d'abord choisi λ sur les seules données single-cell, par
+validation croisée imbriquée : la valeur qui prédit le mieux de nouvelles
+cellules. L'approche actuelle choisit λ en maximisant la vraisemblance
+profilée (@eq-loglik-profil) des bulks, sommée sur les trois réplicats d'un
+temps (@tbl-lambda-criteres).
+
+```{r}
+#| label: tbl-lambda-criteres
+#| tbl-cap: "Deux critères pour choisir λ."
+tt(width = 1, data.frame(
+  Critère = c("Objet optimisé", "Utilise le bulk", "Utilise les vraies compositions", "Adaptation au changement de plateforme", "Objectif"),
+  `Validation croisée single-cell` = c("Loi de nouvelles cellules", "non", "non", "indirecte", "Moments single-cell"),
+  `Vraisemblance bulk` = c("Loi des profils bulk", "oui", "non", "directe", "Modèle de déconvolution"),
+  check.names = FALSE
+))
+```
+
+[Une covariance optimale pour décrire des cellules isolées n'est pas
+forcément optimale pour un agrégat de milliers de cellules mesuré par une
+autre technologie.]{.cle}
+
+## Est-ce du *data leakage* ? {#sec-leakage}
+
+Les vraies proportions ne servent jamais à choisir λ : elles n'interviennent
+qu'après coup, pour mesurer l'erreur. Il n'y a donc pas de fuite de la
+variable cible. Mais les bulks sur lesquels porte l'inférence servent à
+régler un hyperparamètre. [C'est une adaptation non supervisée au domaine
+cible, défendable dans un cadre de maximum de vraisemblance, pas une
+validation indépendante :]{.cle} une meilleure vraisemblance sur ces bulks
+ne prouve pas la généralisation. Un seul λ commun aux types d'un temps
+limite les degrés de liberté et le risque de surajustement, sans le
+supprimer.
+
+## Des stratégies proches dans d'autres méthodes {#sec-autres-methodes}
+
+Plusieurs méthodes ne traitent pas la référence single-cell comme une
+vérité fixe (@tbl-adaptation) : RNA-Sieve
+[@erdmann-phamLikelihoodbasedDeconvolutionBulk2021], Bisque
+[@jewAccurateEstimationCell2020], DeMixSC
+[@guoDeMixSCDeconvolutionFramework2023], DWLS
+[@tsoucasAccurateEstimationCelltype2019], MuSiC [@wangBulkTissueCell2019]
+et ReDeconv [@luTranscriptomeSizeMatters2025].
+
+```{r}
+#| label: tbl-adaptation
+#| tbl-cap: "Méthodes de déconvolution qui adaptent la référence au bulk."
+tt(width = 1, data.frame(
+  Méthode = c("RNA-Sieve", "Bisque", "DeMixSC", "DWLS", "MuSiC", "ReDeconv", "DeCovarT"),
+  Adaptation = c(
+    "Optimisation alternée qui raffine les moyennes de référence avec les compositions",
+    "Transformation de l'expression propre à chaque gène, pour corriger la technologie",
+    "Correction interplateforme sur données appariées, puis mise à jour itérative des poids",
+    "Mise à jour itérative des poids des gènes selon les expressions estimées",
+    "Pondération des gènes selon leur stabilité, poids mis à jour sur le mélange",
+    "Taille du transcriptome, longueur des gènes, variance d'expression",
+    "Niveau global de régularisation de la covariance choisi par la vraisemblance bulk"
+  )
+))
+```
+
+Ces méthodes ne sont pas équivalentes, mais elles montrent que se servir
+du bulk pour améliorer l'estimation est un principe établi. RNA-Sieve est
+le précédent le plus proche de notre approche probabiliste.
+
+## Résultats empiriques {#sec-lambda-resultats}
+
+```{r}
+#| label: fig-lambda-rmse
+#| fig-cap: "RMSE des proportions selon λ, panel Welch, *shrinkage* brut à échelles libres, protocole Wnt standard (3 réplicats bulk par temps). Points pleins : λ choisi par la vraisemblance bulk ; cercles : minimum de RMSE sur la grille (repère *oracle*, inaccessible sans composition connue). Échelle log en ordonnée, pour voir 72 h et 96 h ensemble. Source : `deconvolution/lambda_selection.csv`."
+#| fig-height: 3.6
+lr <- dat("lambda_rmse.csv")
+best <- do.call(rbind, lapply(split(lr, lr$time), function(d) d[which.min(d$rmse), ]))
+sel <- lr[lr$selected_profile, ]
+ends <- lr[lr$tuning == max(lr$tuning), ]
+ggplot(lr, aes(tuning, rmse, colour = time)) +
+  geom_line(linewidth = 1) +
+  geom_point(data = best, shape = 21, size = 4, stroke = 1, fill = "white") +
+  geom_point(data = sel, size = 2.6) +
+  geom_text(data = ends, aes(label = time), hjust = -0.3, family = family, show.legend = FALSE) +
+  scale_y_log10() +
+  scale_x_continuous(limits = c(0.1, 1.08), breaks = c(0.1, 0.25, 0.5, 0.75, 1)) +
+  scale_colour_manual(values = c("48h" = "#9a9a9a", "72h" = col_main, "96h" = col_second), guide = "none") +
+  labs(x = "λ", y = "RMSE (échelle log)") +
+  theme_slide()
+```
+
+```{r}
+#| label: tbl-lambda
+#| tbl-cap: "λ choisi par la vraisemblance bulk et RMSE correspondante, contre le minimum de la grille (0,1 ; 0,25 ; 0,375 ; 0,5 ; 0,625 ; 0,75 ; 0,9 ; 1). Les choix sur les bulks Wnt précoces (sans composition de référence) sont identiques aux trois temps."
+fam <- dat("family_rmse.csv")
+s <- fam[fam$family == "shrinkage", ]
+s <- s[order(s$time), ]
+tt(data.frame(
+  Temps = s$time, `λ choisi` = fr(s$tuning_selected, 3), `RMSE au λ choisi` = fr(s$rmse_selected, 4),
+  `λ oracle` = fr(s$tuning_best, 3), `RMSE minimale` = fr(s$rmse_best, 4), check.names = FALSE
+))
+```
+
+- À 96 h, le choix par la vraisemblance (λ = 0,5) est quasi optimal
+  (0,0335 contre 0,0333 à λ = 0,375). Une régularisation trop faible y est
+  catastrophique : 0,437 à λ = 0,1.
+- À 72 h, l'écart est net : 0,0431 au λ choisi contre 0,0262 à λ = 0,1. La
+  vraisemblance n'est pas un substitut parfait de l'erreur de composition.
+- Les λ choisis indépendamment sur les bulks Wnt standard et précoces sont
+  identiques aux trois temps. Sans composition de référence pour le
+  protocole précoce, on ne peut pas en conclure à une bonne exactitude dans
+  ce protocole.
+
+::: {.cle}
+**Attention à 48 h.** La RMSE vaut 0,0213 pour tous les λ et toutes les
+familles de covariance, parce que toutes les variantes prédisent
+pratiquement 100 % d'épiblaste (BayesPrism compris : 0,99999). Avec les
+proportions observées 0,972 / 0,024 / 0,003, on retrouve
+$\sqrt{[(1-0{,}972)^{2}+0{,}024^{2}+0{,}003^{2}]/3}\approx0{,}0213$. Le
+« λ optimal » à 48 h ne dit donc rien du choix de λ.
+:::
+
+@Fig-suppinger montre l'application complète : sélection, enrichissement,
+benchmark et comparaison des deux protocoles Wnt.
+
+::: {#fig-suppinger}
+Figure 4 du manuscrit : `DeCovarT` sur les gastruloïdes de
+@suppingerMultimodalCharacterizationMurine2023. (a) Pipeline ; (b) plan
+expérimental ; (c) gènes retirés par règle ; (d) filtre et classement
+($G$ de Welch permuté) ; (e) gènes confirmés ; (f) thèmes
+d'enrichissement ; (g) UMAP ; (h) corrélation de Kendall des profils
+moyens ; (i) benchmark sur l'échelle des modèles ; (j) Wnt précoce contre
+standard.
+[Vecteur du manuscrit](../article/figs/fig04_suppinger.pdf) ;
+[aperçu PNG](figures/fig04_suppinger.png).
+:::
+
+Sources : [choix de λ](`r book`04-deconvolution-pipeline.html#sec-deconv-selection),
+[stratégie retenue](`r book`04-deconvolution-pipeline.html#sec-deconv-strategy-ranking).
+
+## Pourquoi une régularisation intermédiaire fonctionne-t-elle ? {#sec-lambda-spectre}
+
+Mon hypothèse : les gènes ne forment pas des milliers de dimensions
+biologiques indépendantes, mais des programmes transcriptionnels, des voies
+et des modules de co-expression. Deux outils permettent de l'étudier.
+
+**Le conditionnement.** Pour une matrice définie positive,
+
+$$
+\kappa=\frac{\omega_{\max}}{\omega_{\min}} .
+$$ {#eq-kappa}
+
+Un $\kappa$ élevé signifie que certaines directions varient énormément et
+d'autres presque pas. En inversant la covariance, les directions de très
+faible variance reçoivent des poids démesurés, et le modèle devient
+sensible aux erreurs d'estimation. À $\lambda=0$, $\kappa$ est infini pour
+tous les types sauf l'épiblaste à 48 h (2 341).
+
+**Le rang effectif.** Il mesure combien de directions portent réellement la
+variance. Deux définitions coexistent, avec $\pi_r=\omega_r/\sum_s\omega_s$ :
+
+$$
+r_{\mathrm{PR}}=\frac{\left(\sum_r\omega_r\right)^{2}}{\sum_r\omega_r^{2}},
+\qquad
+r_{\mathrm{H}}=\exp\Bigl(-\sum_r\pi_r\log\pi_r\Bigr).
+$$ {#eq-rangs}
+<!-- chk: V49f -->
+
+Le script du livre utilise le *participation ratio* $r_{\mathrm{PR}}$, pas
+le rang entropique $r_{\mathrm{H}}$ cité dans le brouillon. Les deux valent
+$G$ quand toutes les valeurs propres sont égales et 1 quand une seule
+domine, mais $r_{\mathrm{PR}}$ est dominé par les plus grandes valeurs
+propres, alors que $r_{\mathrm{H}}$ compte aussi la masse des petites
+(voir aussi l'entropie spectrale de la
+[vignette 3.1](`r vig`03-1-feature-selection.html#sec-fs-vn-entropy)).
+
+::: {.claude}
+**Désaccord de Claude Code : comparer le rang effectif à un rang « nul »,
+pas au nombre de gènes.**
+
+Le brouillon lisait un rang effectif d'environ 5 % des gènes comme le signe
+d'un espace biologique de faible dimension. Deux corrections :
+
+1. Avec $n_j$ cellules, la corrélation empirique a au plus $n_j-1$ valeurs
+   propres non nulles : 29 cellules donnent au plus 28 directions. Pour
+   des gènes **indépendants**, $\sum_r\omega_r=G$ et
+   $\mathbb{E}\lVert\boldsymbol{R}_j\rVert_F^{2}\approx G+G(G-1)/(n_j-1)$,
+   d'où un *participation ratio* nul
+   $$
+   r_{\mathrm{PR}}^{0}\approx\frac{G}{1+(G-1)/(n_j-1)} .
+   $$ {#eq-pr-nul}
+   <!-- chk: V49g -->
+   Le bon repère est ce rang nul (formule, ou permutation de chaque gène
+   dans son type), pas $G$.
+2. Les deux définitions racontent des histoires différentes
+   (@fig-rang-effectif, @tbl-rang-nul). Pour les populations de plus de
+   1 000 cellules, le *participation ratio* observé ne vaut que 2 à 7 % du
+   rang nul : une poignée de directions domine. Le rang entropique, lui,
+   vaut encore 44 à 59 % de son rang nul : la masse des petites directions
+   reste. Pour les populations de moins de 300 cellules, les deux mesures
+   sont surtout limitées par $n_j$ (23 à 86 % du nul).
+
+[Le spectre est calculé sur les comptes bruts, où le premier axe est celui
+de la taille cellulaire (@sec-covariance-technique) : une seule direction
+très forte suffit à faire chuter le *participation ratio*.]{.cle} « Faible
+dimension » décrit donc surtout cet axe dominant, pas un petit nombre de
+programmes biologiques.
+:::
+
+```{r}
+#| label: fig-rang-effectif
+#| fig-cap: "Rang effectif observé à λ = 0, rapporté au rang nul obtenu en permutant chaque gène dans son type (3 permutations), pour les deux définitions de @eq-rangs. Un rapport de 1 : aucune structure au-delà de ce qu'imposent le nombre de cellules et de gènes. Types classés par nombre de cellules. Recalcul sur `scored_slots.rds` (copie locale, à laquelle manquent 2, 35 et 39 gènes du panel Welch à 48, 72 et 96 h) ; le *participation ratio* recalculé retrouve celui de `regularisation_spectra.csv`."
+#| fig-height: 4.2
+er <- dat("effective_rank.csv")
+z <- er[er$lambda == 0, ]
+z$label <- paste0(z$cell_type, " (", z$time, ", ", fr(z$cells, 0), ")")
+d <- rbind(
+  data.frame(label = z$label, cells = z$cells, ratio = z$participation / z$participation_null, mesure = "participation ratio"),
+  data.frame(label = z$label, cells = z$cells, ratio = z$entropy / z$entropy_null, mesure = "rang entropique")
+)
+d$label <- stats::reorder(d$label, d$cells)
+ggplot(d, aes(ratio, label)) +
+  geom_line(aes(group = label), colour = "#d9d3c7", linewidth = 1.2) +
+  geom_point(aes(colour = mesure), size = 2.8) +
+  geom_vline(xintercept = 1, linetype = 2, colour = col_guide) +
+  scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +
+  scale_colour_manual(values = c(col_main, col_second), name = NULL) +
+  labs(x = "Rang effectif observé / rang nul", y = NULL) +
+  theme_slide(11)
+```
+
+```{r}
+#| label: tbl-rang-nul
+#| tbl-cap: "Rangs effectifs à λ = 0 : observés, nuls par permutation, et *participation ratio* nul de @eq-pr-nul."
+z <- z[order(z$time, -z$cells), ]
+tt(width = 1, data.frame(
+  Temps = z$time, Type = z$cell_type, Cellules = fr(z$cells, 0), Gènes = fr(z$genes, 0),
+  `PR observé` = fr(z$participation, 1), `PR nul` = fr(z$participation_null, 1),
+  `PR nul (formule)` = fr(z$participation_null_formula, 1),
+  `Entropique observé` = fr(z$entropy, 1), `Entropique nul` = fr(z$entropy_null, 1),
+  check.names = FALSE
+))
+```
+
+Le *shrinkage* agit comme un compromis spectral : un λ faible garde la
+structure mais laisse les petites valeurs propres instables ; un λ
+intermédiaire stabilise le spectre tout en gardant les grandes directions ;
+à $\lambda=1$, la corrélation devient l'identité et le rang effectif vaut
+mécaniquement $G$, sans que le modèle ait « découvert » de nouvelles
+dimensions.
+
+Source : [spectres de régularisation](`r book`04-deconvolution-pipeline.html#fig-deconv-reg-spectra).
+
+## Variabilité technique et biologique extrinsèque {#sec-covariance-technique}
+
+@fangExtrinsicBiologicalStochasticity2025 distinguent la variabilité
+intrinsèque de chaque gène et la variabilité **extrinsèque**, qui touche
+beaucoup de gènes à la fois et peut être biologique (cycle cellulaire,
+taille du transcriptome, différenciation) ou technique (capture,
+profondeur, préparation des librairies). Si une cellule est capturée avec
+une efficacité $s$ plus élevée, beaucoup de gènes ont plus de comptes à la
+fois, même sans co-régulation. Avec $X_g=sY_g$ et $s$ indépendant de
+$\boldsymbol{Y}$,
+
+$$
+\operatorname{Cov}(X_g,X_h)=\mathbb{E}(s^{2})\operatorname{Cov}(Y_g,Y_h)
++\operatorname{Var}(s)\,\mu_g\mu_h ,
+$$ {#eq-capture}
+<!-- chk: V49h -->
+
+avec $\mu_g=\mathbb{E}(Y_g)$. Le second terme est de rang 1 et peut créer
+une direction dominante du spectre (@fig-capture).
+
+::: {#fig-capture}
+::: {.content-visible when-format="html"}
+```{ojs}
+//| echo: false
+viewof cap = Inputs.form({
+  nu: Inputs.range([0, 1], {value: 0.3, step: 0.05, label: "Variance de la capture Var(s)"}),
+  seed: Inputs.button("Nouveau tirage", {value: 1, reduce: s => s + 1})
+})
+```
+
+```{ojs}
+//| echo: false
+capData = {
+  // 500 cells, two genes with independent Poisson counts given s;
+  // s ~ Gamma(mean 1, variance nu).
+  let a = 977 * cap.seed >>> 0;
+  const rand = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const norm = () => Math.sqrt(-2 * Math.log(rand() + 1e-300)) * Math.cos(2 * Math.PI * rand());
+  const gamma = k => { if (k < 1) return gamma(k + 1) * rand() ** (1 / k); const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = norm(); v = 1 + c * x; } while (v <= 0); v = v ** 3; const u = rand(); if (Math.log(u) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v; } };
+  const pois = m => { let L = Math.exp(-m), k = 0, p = 1; do { k++; p *= rand(); } while (p > L); return k - 1; };
+  const mu = [8, 12];
+  return d3.range(500).map(() => {
+    const s = cap.nu === 0 ? 1 : gamma(1 / cap.nu) * cap.nu;
+    return {x: pois(s * mu[0]), y: pois(s * mu[1])};
+  });
+}
+```
+
+```{ojs}
+//| echo: false
+{
+  const r = d3.mean(capData, d => (d.x - d3.mean(capData, e => e.x)) * (d.y - d3.mean(capData, e => e.y))) / (d3.deviation(capData, d => d.x) * d3.deviation(capData, d => d.y));
+  const th = cap.nu * 8 * 12 / Math.sqrt((8 + cap.nu * 64) * (12 + cap.nu * 144));
+  return html`${Plot.plot({
+    width: 420, height: 320, marginLeft: 50, grid: true,
+    x: {label: "Comptes du gène g"}, y: {label: "Comptes du gène h"},
+    marks: [Plot.dot(capData, {x: "x", y: "y", fill: colMain, fillOpacity: 0.35, r: 2.5})]
+  })}<br><span style="color:#3d4a42">Corrélation empirique ${r.toFixed(2)} ; théorique ${th.toFixed(2)}, alors que les deux gènes sont indépendants à capture fixée.</span>`;
+}
+```
+:::
+::: {.content-visible when-format="pdf"}
+```{r}
+#| fig-height: 3.2
+set.seed(20261125)
+sims <- do.call(rbind, lapply(c(0, 0.3), function(nu) {
+  s <- if (nu == 0) rep(1, 500) else rgamma(500, shape = 1 / nu, scale = nu)
+  data.frame(x = rpois(500, 8 * s), y = rpois(500, 12 * s), nu = nu)
+}))
+lab <- vapply(split(sims, sims$nu), function(d) paste0("Var(s) = ", fr(d$nu[1]), ", corrélation ", fr(cor(d$x, d$y))), "")
+sims$panel <- lab[as.character(sims$nu)]
+ggplot(sims, aes(x, y)) +
+  geom_point(colour = col_main, alpha = 0.35, size = 1.2) +
+  facet_wrap(~panel) +
+  labs(x = "Comptes du gène g", y = "Comptes du gène h") +
+  theme_slide(11)
+```
+:::
+Deux gènes indépendants à capture fixée (Poisson de moyennes $8s$ et
+$12s$, 500 cellules), avec une efficacité de capture $s$ de moyenne 1 et de
+variance $\operatorname{Var}(s)$. Une capture variable suffit à créer une
+corrélation positive (@eq-capture).
+:::
+
+La technologie bulk n'a pas cette étape de capture cellule par cellule. Une
+régularisation intermédiaire pourrait donc atténuer des corrélations peu
+transférables. [Mais le *shrinkage* ne distingue pas corrélations
+biologiques et techniques : il atténue les deux.]{.cle}
+
+::: {.claude}
+**Désaccord de Claude Code : ce que disent les analyses factorielles
+locales.**
+
+Le brouillon suggérait que le bulk « agrège » les fluctuations de capture.
+Dans @eq-sc-model, la variance du bulk est linéaire en $\boldsymbol{p}$ :
+un terme $\operatorname{Var}(s)\boldsymbol{\mu}\boldsymbol{\mu}^{\top}$ par
+cellule s'additionne comme la covariance biologique, l'agrégation ne
+l'efface pas. Le bon argument est que l'étape de capture n'existe pas en
+bulk : ce terme n'est à transférer que s'il est biologique (taille du
+transcriptome, @luTranscriptomeSizeMatters2025).
+
+Les sorties locales permettent de le confronter (@tbl-familles) :
+
+1. **Le terme de taille est confirmé.** Sur les comptes bruts, le premier
+   facteur est l'axe de taille cellulaire : à 48 h, son cosinus avec le
+   profil moyen standardisé de l'épiblaste vaut 0,99, donc
+   $\boldsymbol{\Sigma}_j\approx\nu_j\boldsymbol{\mu}_{\cdot j}\boldsymbol{\mu}_{\cdot j}^{\top}+\boldsymbol{\Delta}_j$
+   ([livre, *factor arm*](`r book`04-deconvolution-pipeline.html#sec-deconv-scale-positivity)).
+2. **Le corriger ne fait pas mieux pour l'instant.** Sur les vrais bulks,
+   la covariance normalisée par la taille donne 0,046 et 0,035 de RMSE à 72
+   et 96 h, contre 0,043 et 0,034 pour le *shrinkage* brut. La famille
+   factorielle choisit le rang 12, au bord de la grille, et fait nettement
+   moins bien (0,051 et 0,164). Sur les pseudo-bulks, même conclusion :
+   *shrinkage* brut 0,032, factoriel brut 0,044, *shrinkage* normalisé
+   0,044.
+3. **Mais le choix du rang est en cause.** Avec le meilleur rang a
+   posteriori, le modèle factoriel atteint 0,007 à 48 h et 0,010 à 72 h,
+   mieux que le meilleur *shrinkage* (0,021 et 0,026), et 0,145 à 96 h.
+
+Les données disent donc que le terme de taille domine la covariance brute,
+pas encore s'il est technique, ni qu'un modèle factoriel corrige mieux,
+faute d'un bon critère de rang.
+:::
+
+```{r}
+#| label: tbl-familles
+#| tbl-cap: "RMSE des proportions par famille de covariance, panel Welch, protocole Wnt standard : au réglage choisi par la vraisemblance bulk, et au meilleur réglage de la grille (oracle). Réglage : λ pour le *shrinkage*, rang pour l'analyse factorielle. Source : `deconvolution/lambda_selection.csv`."
+fam <- dat("family_rmse.csv")
+keep <- c("shrinkage" = "*shrinkage* brut", "size-normalised shrinkage, free scales" = "*shrinkage* normalisé par la taille", "factor" = "analyse factorielle par type", "two_param" = "*shrinkage* à deux paramètres")
+f <- fam[fam$family %in% names(keep), ]
+f$Famille <- keep[f$family]
+f <- f[order(match(f$family, names(keep)), f$time), ]
+tt(width = 1, data.frame(
+  Famille = f$Famille, Temps = f$time,
+  `Réglage choisi` = fr(f$tuning_selected, 3), `RMSE choisie` = fr(f$rmse_selected, 4),
+  `Réglage oracle` = fr(f$tuning_best, 3), `RMSE oracle` = fr(f$rmse_best, 4),
+  check.names = FALSE
+)) |> format_tt(markdown = TRUE)
+```
+
+## Renforcer la justification de λ {#sec-lambda-perspectives}
+
+- Pour chaque temps, choisir λ sur deux réplicats bulk et l'appliquer au
+  troisième, puis tourner (il n'y a que trois réplicats par temps et par
+  protocole).
+- Fixer λ sur le protocole Wnt standard et l'appliquer tel quel au
+  protocole précoce, puis comparer à une réoptimisation.
+- Comparer à une covariance diagonale, pour chiffrer ce que les covariances
+  apportent face aux méthodes qui ne pondèrent que gène par gène.
+- Décomposer la covariance en trois termes (ci-dessous).
+
+**Une covariance en trois termes.** Plutôt qu'un *shrinkage* uniforme, on
+peut séparer l'axe de taille, les programmes biologiques et un résidu :
+
+$$
+\boldsymbol{\Sigma}_{W,j}=\nu_j\,\boldsymbol{\mu}_{\cdot j}\boldsymbol{\mu}_{\cdot j}^{\top}
++\boldsymbol{B}_j\boldsymbol{B}_j^{\top}+\boldsymbol{\Psi}_j,
+\qquad
+\boldsymbol{B}_j^{\top}\boldsymbol{\Delta}_j^{-1/2}\boldsymbol{\mu}_{\cdot j}=\mathbf{0},
+$$ {#eq-trois-termes}
+
+où $\nu_j\boldsymbol{\mu}_{\cdot j}\boldsymbol{\mu}_{\cdot j}^{\top}$ est le
+terme de taille (rang 1, direction fixée par le profil moyen),
+$\boldsymbol{B}_j$ porte $q_j$ facteurs biologiques et
+$\boldsymbol{\Psi}_j$ est un résidu diagonal positif. La contrainte
+d'orthogonalité rend la décomposition identifiable : sans elle, la part de
+$\boldsymbol{\mu}_{\cdot j}$ contenue dans les facteurs se confondrait avec
+$\nu_j$. L'estimation peut être séquentielle avec le code existant : une
+taille par cellule
+$\hat s_c=\boldsymbol{\mu}^{\top}\boldsymbol{H}\boldsymbol{x}_c/\boldsymbol{\mu}^{\top}\boldsymbol{H}\boldsymbol{\mu}$
+($\boldsymbol{H}$ diagonale de poids), $\hat\nu_j$ sa variance, puis une
+analyse factorielle par EM de $\boldsymbol{x}_c-\hat s_c\boldsymbol{\mu}_{\cdot j}$
+(`fit_factor_types()` du livre), le rang $q_j$ étant choisi par
+validation croisée. Côté bulk, un seul scalaire $\theta\in[0,1]$ dose le
+terme de taille :
+
+$$
+\boldsymbol{S}_W(\boldsymbol{p})=\sum_j p_j\bigl(\theta\,\nu_j\boldsymbol{\mu}_{\cdot j}\boldsymbol{\mu}_{\cdot j}^{\top}
++\boldsymbol{B}_j\boldsymbol{B}_j^{\top}+\boldsymbol{\Psi}_j\bigr),
+$$ {#eq-bulk-theta}
+
+choisi par la vraisemblance bulk comme λ aujourd'hui. $\theta=1$ redonne la
+covariance brute, $\theta=0$ la covariance normalisée par la taille : les
+deux variantes déjà testées sont des cas particuliers. Deux limites : les
+données single-cell seules ne séparent pas taille technique et taille
+biologique, c'est $\theta$, estimé sur le bulk, qui tranche ; et le choix du
+rang a échoué dans le benchmark actuel. Rien de cela n'est encore
+implémenté.
+
+# Questions techniques et biologiques pour Marielle {#sec-marielle}
+
+## Gènes mitochondriaux absents {#sec-mito}
+
+Les gènes mitochondriaux, ribosomaux et `Gm` ont été retirés du jeu
+déposé, comptes bruts compris. Les auteurs avaient d'abord gardé les
+cellules à plus de 1 800 gènes détectés et moins de 10 % de comptes
+mitochondriaux. Je ne peux donc pas recalculer le pourcentage
+mitochondrial ; après le retrait de ces gènes, 39, 8 et 18 cellules
+retenues (48, 72, 96 h) affichent même 1 800 gènes ou moins. Je propose de
+ne pas repartir des FASTQ et d'écrire dans les Methods que le QC des auteurs
+n'a pas pu être réévalué, après avoir vérifié si les métadonnées
+cellulaires d'origine conservent ces informations.
+
+## Seuils de présence {#sec-seuils-marielle}
+
+Il n'existe pas de seuil universel : il dépend du modèle, de la profondeur
+et de l'objectif. Notre choix s'inspire des pratiques de QC et de
+RNA-Sieve [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021] et DeMixSC
+[@guoDeMixSCDeconvolutionFramework2023] ; la variance positive dans chaque
+type est propre à notre approche multivariée. Je propose une analyse de
+sensibilité avec 2, 5 et 10 cellules positives minimum par population.
+
+## Comptes fractionnaires {#sec-fractionnaires}
+
+Marielle, as-tu aussi rencontré des valeurs non entières dans les comptes
+bruts ? Dans nos données, 12,8 % des entrées non nulles sont
+fractionnaires. Elles viennent de Salmon/Alevin 1.1.0
+[@srivastavaAlevinEfficientlyEstimates2019], qui répartit entre plusieurs
+gènes les UMI multi-alignés (loci multicopies, pseudogènes, histones,
+familles de gènes très similaires). Je garde ces valeurs, avec des modèles
+qui les acceptent (`glmGamPoi`, ou edgeR v4,
+@chenEdgerV4Powerful2025). Arrondir modifierait les taux de détection, les
+moyennes, les variances et les covariances (@tbl-arrondi).
+
+```{r}
+#| label: tbl-arrondi
+#| tbl-cap: "Effet d'un arrondi à l'entier le plus proche."
+tt(data.frame(
+  `Compte initial` = c("0,25", "0,33", "0,49", "0,67", "0,80"),
+  `Arrondi` = c(0, 0, 0, 1, 1),
+  check.names = FALSE
+))
+```
+
+[Pour `DeCovarT`, la répartition d'une même molécule entre plusieurs gènes
+crée des corrélations artificielles entre eux.]{.cle} Je propose de comparer
+comptes fractionnaires, comptes arrondis et exclusion des gènes les plus
+touchés.
+
+Source : [comptes fractionnaires](`r vig`03-1-feature-selection.html#sec-fs-fractional).
+
+## Faut-il retirer les gènes sexuels, ribosomaux ou du cycle cellulaire ? {#sec-cycle}
+
+Certaines méthodes les retirent, comme sources de variabilité sans lien
+avec l'identité cellulaire. Je ne souhaite pas forcément le faire : dans un
+système développemental, prolifération, métabolisme et cycle cellulaire
+font partie de l'état des cellules, et
+@fangExtrinsicBiologicalStochasticity2025 montrent que la normalisation peut
+effacer à la fois du bruit technique et de la variabilité biologique
+extrinsèque. Les gènes mitochondriaux, certains ribosomaux et `Gm` ne sont
+de toute façon plus disponibles.
+
+**Une perspective : des archétypes.** Plutôt que de retirer les gènes
+responsables de l'hétérogénéité intra-population, on pourrait la modéliser :
+séparer l'identité cellulaire d'états transcriptionnels partagés entre
+populations, avec cNMF [@kotliarIdentifyingGeneExpression2019], l'analyse
+factorielle ou l'analyse d'archétypes
+[@hartInferringBiologicalTasks2015 ; @wangNonLinearArchetypalAnalysis2022].
+`DeCovarT` pourrait alors estimer à la fois les proportions et l'activité
+de ces programmes, à condition qu'ils restent identifiables depuis le bulk.
+
+## Couleurs et nomenclature {#sec-palette}
+
+Marielle, faut-il harmoniser couleurs et, quand c'est justifié, noms des
+populations avec ceux d'Ornella ? Sa figure est déjà organisée par grandes
+lignées. @fig-palettes compare sa palette, à valider ensemble, avec celle
+qu'utilisent aujourd'hui nos figures
+(`data/dictionaries/suppinger_celltype_colours.csv`).
+
+```{r}
+#| label: fig-palettes
+#| fig-cap: "Palettes par population : proposition inspirée de la figure d'Ornella (à gauche, à valider) et palette actuelle des figures du livre (à droite). Cases vides : population absente de l'une des deux listes."
+#| fig-height: 4.6
+orn <- data.frame(
+  type = c("Epiblast", "Caudal epiblast", "Primitive streak", "Anterior primitive streak/Def. endoderm",
+           "Naïve pluripotency", "Exiting naïve pluripotency", "Ectopic pluripotency",
+           "Caudal mesoderm", "Pre-somitic mesoderm", "Somite differentiation front", "Gut", "Progéniteurs ectodermiques"),
+  colour = c("#595959", "#c9c9c9", "#369b7d", "#74c0a8", "#8270b3", "#a59acb", "#c879b8",
+             "#c7212c", "#e9753f", "#ed9b70", "#f4c85e", "#4a94c7")
+)
+cur <- dat("palette.csv")
+cur <- data.frame(type = cur$celltypeannotation, colour = cur$colour)
+pal <- rbind(data.frame(orn, palette = "Proposition (Ornella)"), data.frame(cur, palette = "Palette actuelle"))
+pal$palette <- factor(pal$palette, levels = c("Proposition (Ornella)", "Palette actuelle"))
+lev <- unique(c(orn$type, cur$type))
+pal$type <- factor(pal$type, levels = rev(lev))
+ggplot(pal, aes(palette, type, fill = colour)) +
+  geom_tile(colour = "white", linewidth = 1) +
+  geom_text(aes(label = colour), size = 2.6, family = family, colour = "white") +
+  scale_fill_identity() +
+  labs(x = NULL, y = NULL) +
+  theme_slide(10) + theme(panel.grid = element_blank())
+```
+
+Une palette commune assurerait la continuité visuelle entre compositions,
+UMAP, enrichissements et déconvolution. Je propose de ne pas fusionner ni
+renommer des populations seulement parce que leurs noms se ressemblent, et
+d'établir un dictionnaire de correspondance entre les annotations de
+Suppinger et celles d'Ornella, en particulier pour les états de
+pluripotence et les sous-populations mésodermiques.
+
+# Points prioritaires avant publication {#sec-priorites}
+
+```{r}
+#| label: tbl-priorites
+#| tbl-cap: "Points méthodologiques à consolider avant soumission."
+tt(width = 1, data.frame(
+  Point = c(
+    "Calibration du pipeline Welch complet", "Validation indépendante de la déconvolution",
+    "Pseudoréplication et circularité des annotations", "Validation du choix de λ",
+    "Covariance technique et biologique", "Enrichissement Reactome",
+    "Stabilité et sensibilité du panel", "Harmonisation des figures"
+  ),
+  Priorité = c("très haute", "très haute", "très haute", "haute", "haute", "haute", "haute", "modérée"),
+  Action = c(
+    "Simulations répétées : hétéroscédasticité, autres lois, presence gate, hypothèses nulles partielles",
+    "Comparer des panels de même taille sur des pseudobulks et des spécimens indépendants",
+    "Vérifier si les mêmes gènes ont défini les clusters puis démontré leur spécificité ; lignée confondue avec le temps",
+    "Laisser un bulk de côté ; transfert du protocole standard au précoce sans réoptimisation",
+    "Comptes bruts, normalisation par la taille, modèle à trois termes, covariance diagonale",
+    "ORA sur un univers bien défini, GSEA en sensibilité, examen des gènes responsables",
+    "Seuils de présence, comptes fractionnaires, sous-échantillonnage, marqueurs parfaits",
+    "Nomenclature, palette commune, correspondances avec Ornella"
+  )
+))
+```
+
+# Conclusion {#sec-conclusion}
+
+`DeCovarT` cherche à dépasser une déconvolution fondée sur les seules
+signatures moyennes, en combinant l'information discriminante des
+moyennes, la variabilité intra-population, la covariance entre gènes, la
+transférabilité entre technologies et les connaissances biologiques. La
+sélection par Welch permuté vise une meilleure calibration face à
+l'hétéroscédasticité et au déséquilibre des populations ; la régularisation
+des covariances, une structure informative sans instabilité numérique.
+L'enrichissement, la comparaison à des classifieurs et la qualité de la
+déconvolution sont trois niveaux de validation complémentaires.
+[Notre hypothèse centrale reste à démontrer : qu'une sélection cohérente,
+discriminante et stable, combinée à une régularisation adaptée au bulk,
+rende la déconvolution plus robuste.]{.cle}
+
+# Références {.unnumbered}
+
+::: {#refs}
+:::

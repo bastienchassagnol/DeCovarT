@@ -47,7 +47,9 @@
       rownames(truth),
       unique(unlist(lapply(intervals, function(x) rownames(x[[method]]))))
     )
-    padded <- lapply(intervals, function(x) .pad_bounds(x[[method]], parameters))
+    padded <- lapply(intervals, function(x) {
+      .pad_bounds(x[[method]], parameters)
+    })
     purrr::map_dfr(parameters, function(parameter) {
       bound <- function(side) {
         vapply(padded, function(m) m[parameter, side], numeric(1))

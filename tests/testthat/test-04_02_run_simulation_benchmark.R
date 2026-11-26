@@ -200,7 +200,14 @@ test_that("a scenario run alone with its seed reproduces the full run", {
     simulate(mean, Sigma, theta, n)
   }
   run <- function(...) {
-    run_simulation_benchmark(config, fns, n = 4, likelihood = lik, seed = 7L, ...)
+    run_simulation_benchmark(
+      config,
+      fns,
+      n = 4,
+      likelihood = lik,
+      seed = 7L,
+      ...
+    )
   }
   full <- run()
 
@@ -212,7 +219,9 @@ test_that("a scenario run alone with its seed reproduces the full run", {
   })
 
   # Elapsed time and memory are measurements of the process, not results.
-  results_only <- function(x) x[setdiff(names(x), c("elapsed_sec", "memory_bytes"))]
+  results_only <- function(x) {
+    x[setdiff(names(x), c("elapsed_sec", "memory_bytes"))]
+  }
   alone <- run(scenarios = 2L)
   expect_equal(
     results_only(alone$optimisation),

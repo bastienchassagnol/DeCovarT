@@ -27,20 +27,6 @@ repos:
       - id: deps-in-desc
         exclude: '^(scripts/|vignettes/)'
 
-  # Local lintr (warn-only). DeCovarT does not use renv; this entry disables
-  # renv autoload/sync checks so the hook environment does not spam
-  # “project is out-of-sync”.
-  - repo: local
-    hooks:
-      - id: lintr
-        name: lintr
-        entry: Rscript scripts/curate_bibliography/lintr_precommit.R
-        language: system
-        files: '\.[rR]$'
-        exclude: '^(vignettes/)'
-        pass_filenames: true
-        verbose: true
-
   # Scripts and vignettes use the exported API only: a function they need
   # is exported (@export) and documented, never reached with ::: or
   # asNamespace(). pkgcheck does not see scripts/ (.Rbuildignore).
