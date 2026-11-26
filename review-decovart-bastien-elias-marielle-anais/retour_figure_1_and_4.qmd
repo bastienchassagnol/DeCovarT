@@ -27,8 +27,7 @@ filters:
   - highlight-text
 format:
   html:
-    embed-resources: false
-    fig-embed: false
+    embed-resources: true
     self-contained-math: true
     toc: true
     toc-depth: 2
@@ -129,7 +128,7 @@ position fixe.
   visibles pour qu'on en discute.
 
 Les équations nouvelles sont recalculées dans le registre SymPy du dépôt
-(`answer-cardamomOT/verification/`, identifiants V49a à V49l, tous validés ;
+(`answer-cardamomOT/verification/`, identifiants V49a à V49l et V50a à V50d, tous validés ;
 V49b confirme l'erreur du brouillon sur le modèle Gamma–Poisson).
 
 # Philosophie générale du pipeline {#sec-intro}
@@ -685,9 +684,178 @@ mesure. Un modèle bayésien hiérarchique, avec des a priori sur les
 moyennes, les dispersions et les efficacités de capture, s'y prête bien.
 Un plancher de variance ou une vraisemblance pénalisée resteraient des
 options fréquentistes. Je préfère développer cette extension plus tard
-plutôt que d'ajouter des pseudocomptes sans justification probabiliste.
+plutôt que d'ajouter des *pseudocomptes* sans justification probabiliste.
 
-## Seuils de présence {#sec-seuils}
+::: {.callout-note title="Ce que fait DESeq2 quand un groupe est entièrement nul"}
+DESeq2 [@loveModeratedEstimationFold2014a] traite ce cas courant en bulk
+(gène éteint par un *knock-out*, gène propre à un tissu) en empruntant de
+l'information aux autres gènes. Avec $g$ le gène, $c$ l'échantillon et
+$x_{cr}$ la matrice du plan,
+
+$$
+K_{gc}\sim\mathrm{NB}(\mu_{gc},\alpha_g),\qquad
+\mu_{gc}=s_{c}\,q_{gc},\qquad
+\log_2 q_{gc}=\sum_r x_{cr}\beta_{gr},
+$$ {#eq-deseq2-modele}
+
+où $\alpha_g=1/\psi_g$ est la dispersion de @eq-nb-var. [Cette dispersion
+est commune à tous les groupes d'un gène : un groupe sans variance ne la
+rend pas dégénérée tant que les autres groupes varient.]{.cle} Elle est
+ensuite rétrécie vers une tendance commune aux gènes de même expression
+moyenne $\bar\mu_g$ :
+
+$$
+\log\alpha_g\sim\mathcal{N}\bigl(\log\alpha_{\mathrm{tr}}(\bar\mu_g),\,\sigma_d^{2}\bigr),
+\qquad
+\alpha_{\mathrm{tr}}(\bar\mu)=a_0+\frac{a_1}{\bar\mu},
+$$ {#eq-deseq2-dispersion}
+
+avec une estimation gène par gène par vraisemblance profilée ajustée de
+Cox–Reid [@coxParameterOrthogonalityApproximate1987], puis le maximum a
+posteriori. Un gène dont l'estimation dépasse la tendance de plus de deux
+écarts-types résiduels garde son estimation propre ; un plancher de
+$10^{-8}$ empêche une dispersion nulle. C'est une procédure de Bayes
+empirique (@def-bayes-empirique).
+
+::: {#def-bayes-empirique}
+## Bayes empirique
+
+Soit des paramètres $\beta_1,\ldots,\beta_G$, un par gène, observés à
+travers des estimations $\hat\beta_g$ de loi $p(\hat\beta_g\mid\beta_g)$, et
+une loi a priori $g(\cdot\,;\eta)$ commune, d'hyperparamètre $\eta$
+inconnu. L'approche **bayésienne empirique** estime $\eta$ sur l'ensemble
+des gènes, en maximisant la vraisemblance marginale
+
+$$
+\hat\eta=\arg\max_{\eta}\ \prod_{g=1}^{G}\int p(\hat\beta_g\mid\beta)\,g(\beta;\eta)\,\mathrm{d}\beta ,
+$$ {#eq-bayes-empirique}
+
+puis applique la règle de Bayes à chaque gène avec $g(\cdot\,;\hat\eta)$
+[@efronSteinSEstimation1973]. L'information est empruntée **entre gènes**,
+pas entre groupes d'un même gène.
+:::
+
+**Premier cas : contraste entre deux populations (test de Wald).** Pour un
+groupe entièrement nul, l'estimateur du maximum de vraisemblance de son
+coefficient diverge vers $-\infty$. DESeq2 n'ajoute pas de pseudocompte :
+par défaut, les coefficients sont ajustés sous un a priori normal très
+large (écart-type de 1 000 sur le $\log_2$ *fold change*), qui garde
+l'estimation finie mais énorme, avec une erreur standard énorme. Le $z$ de
+Wald et le LFC ne disent alors plus rien ; `results()` ne met le LFC à 0
+que si **les deux** groupes comparés sont nuls. Trois rétrécissements du
+LFC, tous bayésiens empiriques, sont proposés :
+
+- `normal`, la version de 2014 :
+  $\beta_{gr}\sim\mathcal{N}(0,\sigma_r^{2})$, avec $\sigma_r$ ajusté sur le
+  quantile supérieur à 5 % des $\lvert\hat\beta_{gr}\rvert$ ;
+- `apeglm` [@zhuHeavyTailedPrior2019], un a priori de Cauchy à queues
+  lourdes, et le mode a posteriori :
+  $$
+  \beta_{gk}\sim\mathrm{Cauchy}(0,S_k),
+  \qquad
+  \tilde{\boldsymbol\beta}_g=\arg\max_{\boldsymbol\beta}\Bigl\{\ell_g(\boldsymbol\beta)+\sum_k\log p(\beta_k;S_k)\Bigr\},
+  $$ {#eq-apeglm}
+  où $\ell_g$ est la log-vraisemblance NB du gène et l'échelle $S_k$ est
+  estimée sur les estimations de tous les gènes. Une approximation de
+  Laplace donne l'écart-type a posteriori. Les queues lourdes laissent
+  presque intact un grand effet bien estimé et ramènent vers 0 un effet
+  mal estimé ;
+- `ashr` [@stephensFalseDiscoveryRates2016], qui n'utilise que
+  l'estimation $\hat\beta_g$ et son erreur standard $\hat s_g$, avec un a
+  priori unimodal en 0, mélange d'une masse en 0 et de gaussiennes
+  centrées sur une grille fixe $\sigma_1<\cdots<\sigma_K$ :
+  $$
+  \begin{aligned}
+  \hat\beta_g\mid\beta_g&\sim\mathcal{N}(\beta_g,\hat s_g^{2}),
+  \qquad
+  g(\cdot\,;\boldsymbol\pi)=\pi_0\,\delta_0+\sum_{k=1}^{K}\pi_k\,\mathcal{N}(0,\sigma_k^{2}),\\
+  \hat{\boldsymbol\pi}&=\arg\max_{\boldsymbol\pi}\prod_{g}\sum_{k=0}^{K}\pi_k\,\mathcal{N}\bigl(\hat\beta_g;0,\sigma_k^{2}+\hat s_g^{2}\bigr)
+  \quad(\sigma_0=0),\\
+  \mathbb{E}(\beta_g\mid\hat\beta_g)&=\sum_{k=1}^{K}w_{gk}\,\frac{\sigma_k^{2}}{\sigma_k^{2}+\hat s_g^{2}}\,\hat\beta_g,
+  \qquad
+  w_{gk}\propto\hat\pi_k\,\mathcal{N}\bigl(\hat\beta_g;0,\sigma_k^{2}+\hat s_g^{2}\bigr).
+  \end{aligned}
+  $$ {#eq-ashr}
+  <!-- chk: V50a -->
+  Les poids $w_{gk}$ sont normalisés sur $k=0,\ldots,K$ (la masse en 0 ne
+  contribue pas à la moyenne). Le taux local de faux signe vaut
+  $\mathrm{lfsr}_g=\min\{\Pr(\beta_g\ge0\mid\hat\beta_g),\Pr(\beta_g\le0\mid\hat\beta_g)\}$.
+
+Pour un groupe nul, $\hat s_g$ explose : le facteur
+$\sigma_k^{2}/(\sigma_k^{2}+\hat s_g^{2})$ tend vers 0, et le LFC est ramené
+vers 0. [Le rétrécissement rend le contraste fini en le déclarant
+incertain ; il n'exploite pas l'information « absent de ce type » que porte
+un marqueur parfait.]{.cle}
+
+**Second cas : test omnibus par rapport de vraisemblance (LRT).** Pour
+savoir si un gène change dans au moins un des $k$ groupes, comme une ANOVA
+à un facteur, DESeq2 compare le modèle complet au modèle réduit à
+l'intercept, à la même dispersion :
+
+$$
+D_g=2\bigl\{\ell_g(\text{complet})-\ell_g(\text{réduit})\bigr\}
+\ \underset{H_0}{\sim}\ \chi^{2}_{k-1}.
+$$ {#eq-deseq2-lrt}
+<!-- chk: V50b, V50c -->
+
+Les degrés de liberté sont la différence des degrés de liberté résiduels
+des deux modèles, soit $k-1$ ici. Un groupe nul ne gêne pas ce test : la
+contribution d'un zéro à la vraisemblance,
+$\log\Pr(K=0)=-\alpha^{-1}\log(1+\alpha\mu)$, tend vers 0 quand $\mu\to0$ et
+reste finie. Un gène nul dans un groupe et exprimé ailleurs reçoit donc
+une petite p-value. La colonne `log2FoldChange` affichée avec un LRT ne
+montre qu'un coefficient (le dernier du plan) et n'a pas de lien avec la
+p-value.
+
+**Possibilité complémentaire : modéliser les zéros à part.** Plutôt que de
+rétrécir un LFC infini, on peut séparer l'origine des zéros. Deux familles
+existent, ici pour le type $j$ et une loi de comptage $f$ (NB ou Poisson).
+
+- Le **mélange à inflation de zéros** [@lambertZeroInflatedPoisson1992]
+  ajoute des zéros « structurels » de probabilité $\pi_j$ :
+  $$
+  \Pr(K=0)=\pi_j+(1-\pi_j)f(0;\mu_j),
+  \qquad
+  \Pr(K=k)=(1-\pi_j)f(k;\mu_j)\quad(k\ge1).
+  $$ {#eq-zinb}
+  Pour un groupe entièrement nul, la vraisemblance est maximale au bord
+  ($\pi_j=1$ ou $\mu_j=0$), et les deux paramètres ne se séparent plus à
+  partir de ce groupe.
+- Le **modèle à obstacle** (*hurdle*) [@mullahySpecificationTestingSome1986]
+  fait venir tous les zéros d'une partie binaire, et les comptes positifs
+  d'une loi **tronquée en zéro** :
+  $$
+  \Pr(K=0)=\pi_j,
+  \qquad
+  \Pr(K=k)=(1-\pi_j)\,\frac{f(k;\mu_j)}{1-f(0;\mu_j)}\quad(k\ge1).
+  $$ {#eq-hurdle}
+  <!-- chk: V50d -->
+  Il sépare deux questions. La détection (part de cellules positives par
+  type) reste définie et très informative pour un marqueur parfait. Le
+  niveau, mesuré sur les seules cellules positives, n'est pas défini pour
+  un type sans cellule positive. MAST [@finakMASTFlexibleStatistical2015]
+  suit cette logique, avec une gaussienne sur les positifs.
+
+[Suggestion de Claude Code : exiger au moins deux cellules positives par
+type, comme notre *presence gate*, est exactement ce qu'il faut pour
+estimer la moyenne et la variance de la partie positive d'un modèle à
+obstacle. Un tel modèle garderait les marqueurs parfaits dans la partie
+détection, sans LFC infini.]{.cle} Une limite : sur des données UMI de type
+*droplet*, les zéros s'expliquent en grande partie par l'échantillonnage NB,
+sans inflation [@svenssonDropletScRNAseqNot2020]. Le modèle à obstacle se
+justifie alors par la question posée (présence contre niveau) plutôt que
+par un excès de zéros.
+
+**Transposition à `DeCovarT`.** Nos tests portent sur les cellules d'un seul
+spécimen, avec une dispersion par gène sans rétrécissement pour le rapport
+de vraisemblance et le Welch (le $F$ de quasi-vraisemblance, lui, rétrécit).
+Refuser le rétrécissement des LFC impose la *presence gate* au stade
+post-hoc. Comme `ashr` n'a besoin que d'une estimation et de son erreur
+standard, il pourrait s'appliquer aux contrastes $\hat\Delta_j$
+(@eq-contraste) du test de Welch.
+:::
+
+# Seuils de présence de types cellulaires {#sec-seuils}
 
 Le filtre est appliqué à chaque temps (@tbl-seuils).
 
@@ -701,7 +869,7 @@ tt(data.frame(
     "Variance empirique dans chaque type",
     "Cellules pour conserver une population"
   ),
-  Seuil = c("≥ 20", "≥ 2", "strictement positive", "≥ 20")
+  Seuil = c("au moins 20", "au moins 2", "strictement positive", "au moins 20")
 ))
 ```
 
