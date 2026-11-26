@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='504.00pt' height='129.60pt' viewBox='0 0 504.00 129.60'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: #FFFFFF;'/>
+<defs>
+  <clipPath id='cpMC4wMHw1MDQuMDB8MC4wMHwxMjkuNjA='>
+    <rect x='0.00' y='0.00' width='504.00' height='129.60' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwxMjkuNjA=)'>
+<rect x='0.00' y='0.000000000000028' width='504.00' height='129.60' style='stroke-width: 1.16; stroke: none; fill: #FFFFFF;' />
+</g>
+<defs>
+  <clipPath id='cpOTQuMDh8NDk4LjAyfDIzLjQwfDk0LjY1'>
+    <rect x='94.08' y='23.40' width='403.95' height='71.24' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpOTQuMDh8NDk4LjAyfDIzLjQwfDk0LjY1)'>
+<rect x='94.08' y='23.40' width='403.95' height='71.24' style='stroke-width: 1.16; stroke: none; fill: #FFFFFF;' />
+<polyline points='94.08,75.22 498.02,75.22 ' style='stroke-width: 1.16; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='94.08,42.83 498.02,42.83 ' style='stroke-width: 1.16; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='112.44,94.65 112.44,23.40 ' style='stroke-width: 1.16; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='234.85,94.65 234.85,23.40 ' style='stroke-width: 1.16; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='357.25,94.65 357.25,23.40 ' style='stroke-width: 1.16; stroke: #E6E1D8; stroke-linecap: butt;' />
+<polyline points='479.66,94.65 479.66,23.40 ' style='stroke-width: 1.16; stroke: #E6E1D8; stroke-linecap: butt;' />
+<rect x='112.44' y='33.12' width='122.41' height='19.43' style='stroke-width: 1.16; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #D9D3C7;' />
+<rect x='112.44' y='65.50' width='367.22' height='19.43' style='stroke-width: 1.16; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #1D4E89;' />
+<text x='238.96' y='47.12' style='font-size: 12.00px; font-family: "Noto Sans";' textLength='13.72px' lengthAdjust='spacingAndGlyphs'>10</text>
+<text x='483.78' y='79.50' style='font-size: 12.00px; font-family: "Noto Sans";' textLength='13.72px' lengthAdjust='spacingAndGlyphs'>30</text>
+</g>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwxMjkuNjA=)'>
+<text x='88.70' y='78.64' text-anchor='end' style='font-size: 9.60px;fill: #4D4D4D; font-family: "Noto Sans";' textLength='35.95px' lengthAdjust='spacingAndGlyphs'>observé</text>
+<text x='88.70' y='46.26' text-anchor='end' style='font-size: 9.60px;fill: #4D4D4D; font-family: "Noto Sans";' textLength='82.72px' lengthAdjust='spacingAndGlyphs'>attendu au hasard</text>
+<text x='112.44' y='106.88' text-anchor='middle' style='font-size: 9.60px;fill: #4D4D4D; font-family: "Noto Sans";' textLength='5.48px' lengthAdjust='spacingAndGlyphs'>0</text>
+<text x='234.85' y='106.88' text-anchor='middle' style='font-size: 9.60px;fill: #4D4D4D; font-family: "Noto Sans";' textLength='10.97px' lengthAdjust='spacingAndGlyphs'>10</text>
+<text x='357.25' y='106.88' text-anchor='middle' style='font-size: 9.60px;fill: #4D4D4D; font-family: "Noto Sans";' textLength='10.97px' lengthAdjust='spacingAndGlyphs'>20</text>
+<text x='479.66' y='106.88' text-anchor='middle' style='font-size: 9.60px;fill: #4D4D4D; font-family: "Noto Sans";' textLength='10.97px' lengthAdjust='spacingAndGlyphs'>30</text>
+<text x='296.05' y='120.74' text-anchor='middle' style='font-size: 12.00px;fill: #1C2B24; font-family: "Noto Sans";' textLength='161.52px' lengthAdjust='spacingAndGlyphs'>Gènes de la voie dans la liste</text>
+<text x='94.08' y='14.55' style='font-size: 12.00px; font-family: "Noto Sans";' textLength='219.28px' lengthAdjust='spacingAndGlyphs'>Facteur 3, p hypergéométrique 5.7e-08</text>
+</g>
+</g>
+</svg>

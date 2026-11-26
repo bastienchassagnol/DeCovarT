@@ -44,18 +44,6 @@ repos:
         files: '(\.[rR]profile|\.R|\.Rmd|\.r|\.rmd)$'
         exclude: '^(scripts/|vignettes/)'
 
-  # Local lintr (warn-only).
-  - repo: local
-    hooks:
-      - id: lintr
-        name: lintr
-        entry: Rscript scripts/dev/lintr_precommit.R
-        language: system
-        files: '\.[rR]$'
-        exclude: '^(vignettes/)'
-        pass_filenames: true
-        verbose: true
-
   # Scripts and vignettes use the exported API only: a function they need
   # is exported (@export) and documented, never reached with ::: or
   # asNamespace(). pkgcheck does not see scripts/ (.Rbuildignore).
