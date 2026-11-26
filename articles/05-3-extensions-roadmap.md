@@ -641,7 +641,7 @@ Barillot, and Florence M. G. Cavalli. 2025. ‘Cell-Type Deconvolution
 Methods for Spatial Transcriptomics’. *Nature Reviews Genetics* 26.
 <https://doi.org/10.1038/s41576-025-00845-y>.
 
-Gortana, Luca, Loïc Chadoutaud, Raphaël Bourgade, Emmanuel Barillot, and
+Gortana, Luca, Loı̈c Chadoutaud, Raphaël Bourgade, Emmanuel Barillot, and
 Thomas Walter. 2026. *HEDeST: An Integrative Approach to Enhance Spatial
 Transcriptomic Deconvolution with Histology*. bioRxiv.
 <https://doi.org/10.64898/2026.01.06.697922>.
@@ -820,6 +820,6 @@ Learning-Based Common Deconvolution Framework for Various Omics Data’.
 <https://doi.org/10.1038/s41592-026-03007-y>.
 
 Zou, Zhiyi, Yuting Bai, Bo Wang, Wanwan Shi, Xiao Liang, and Jiawei Luo.
-2026. ‘HIDF: Integrating Tree‐structured scRNA‐seq Heterogeneity for
+2026. ‘HIDF: Integrating Tree-Structured scRNA-Seq Heterogeneity for
 Hierarchical Deconvolution of Spatial Transcriptomics’. *Advanced
 Science* 13 (12). <https://doi.org/10.1002/advs.202514073>.

@@ -501,11 +501,11 @@ methods ([Table 1](#tbl-fs-review)), not defaults of DeCovarT.
   et al. ([2022](#ref-chuCellTypeGeneExpression2022)), supplement
   pp. 14, 19). Genes detected in fewer than 20 % of the cells of every
   type (RNA-Sieve, supplement p. 3). Genes detected in fewer cells than
-  the smallest cluster of interest, for example 20
-  ([**lueckenCurrentBestPractices2019?**](#ref-lueckenCurrentBestPractices2019));
-  the threshold should scale with the number of cells and the downstream
-  analysis. A data-driven rule, `edgeR::filterByExpr()`, sets the
-  threshold from the smallest group size
+  the smallest cluster of interest, for example 20 ([Luecken and Theis
+  2019](#ref-lueckenCurrentBestPractices2019)); the threshold should
+  scale with the number of cells and the downstream analysis. A
+  data-driven rule, `edgeR::filterByExpr()`, sets the threshold from the
+  smallest group size
   ([**chenReadsGenesPathways2016?**](#ref-chenReadsGenesPathways2016)).
   A filter is safe for a later test only if it is independent of the
   test statistic under the null TODO-cite: Bourgon, Gentleman & Huber
@@ -565,15 +565,15 @@ with a hypergeometric tail, as the reproducibility book does.
 > \quad\text{and}\quad \min\_{j}v\_{gj}\>0, \tag{2}
 >
 > with N\_{\min} the size of the smallest type of interest (for example
-> 20, the rule of
-> ([**lueckenCurrentBestPractices2019?**](#ref-lueckenCurrentBestPractices2019)),
-> computed without labels) and n\_{\min}=2, both fixed before the ranks
-> are seen. The first condition is the usual single-cell gene filter.
-> The two per-type conditions are necessary conditions for a
-> non-singular within-type covariance and for an identifiable
-> \boldsymbol{p}; they are not sufficient. They use the labels, so they
-> are not independent of a later test of the type effect
-> ([Section 2](#sec-fs-qc)). Two cases show what the gate excludes.
+> 20, the rule of Luecken and Theis
+> ([2019](#ref-lueckenCurrentBestPractices2019)), computed without
+> labels) and n\_{\min}=2, both fixed before the ranks are seen. The
+> first condition is the usual single-cell gene filter. The two per-type
+> conditions are necessary conditions for a non-singular within-type
+> covariance and for an identifiable \boldsymbol{p}; they are not
+> sufficient. They use the labels, so they are not independent of a
+> later test of the type effect ([Section 2](#sec-fs-qc)). Two cases
+> show what the gate excludes.
 >
 > - **Zero in every cell of type j.** Then v\_{gj}=0 and the whole row
 >   and column g of \boldsymbol{V}\_j are zero: \boldsymbol{V}\_j is
@@ -3231,6 +3231,10 @@ Lu, Songjian, Jiyuan Yang, Lei Yan, et al. 2025. ‘Transcriptome Size
 Matters for Single-Cell RNA-seq Normalization and Bulk Deconvolution’.
 *Nature Communications* 16 (1).
 <https://doi.org/10.1038/s41467-025-56623-1>.
+
+Luecken, Malte D, and Fabian J Theis. 2019. ‘Current Best Practices in
+Single-Cell RNA-Seq Analysis: A Tutorial’. *Molecular Systems Biology*
+15 (6): e8746. <https://doi.org/10.15252/msb.20188746>.
 
 Lund, Steven P., Dan Nettleton, Davis J. McCarthy, and Gordon K. Smyth.
 2012. ‘Detecting Differential Expression in RNA-Sequence Data Using
