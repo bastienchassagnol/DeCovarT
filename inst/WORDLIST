@@ -125,6 +125,7 @@ CSNet
 CT
 CTS
 cx
+cvxpy
 cytometric
 DAGs
 DataInterview
@@ -659,6 +660,7 @@ Thomson
 tibble
 Tibble
 tibbles
+TikZ
 tissueResolver
 TMM
 Toeplitz

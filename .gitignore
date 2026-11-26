@@ -145,6 +145,7 @@ suppinger_complete.pdf
 
 # CodeGraph local index
 .codegraph/
+codegraph.json
 # Elias review: only source and Ghostscript-compressed PDF are versioned.
 review-decovart-bastien-elias-marielle-anais/**
 !review-decovart-bastien-elias-marielle-anais/

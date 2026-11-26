@@ -173,3 +173,5 @@
 ^dev$
 ^review-decovart-bastien-elias-marielle-anais$
 ^\.codegraph$
+^\.codegraph/
+^codegraph\.json$
