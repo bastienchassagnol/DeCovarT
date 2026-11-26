@@ -5,16 +5,13 @@
 *.gz
 /build/
 simulations/*
-# Script simulation outputs: track PDF / PNG / SVG figures; ignore RDS and other
+# Script simulation outputs: track PDF / PNG figures; ignore SVG, RDS and other
 # bulky artefacts. Directories must be un-ignored first or Git will not
 # see the files inside `output/`.
 output/**
 !output/**/
 !output/**/*.pdf
 !output/**/*.png
-!output/**/*.svg
-# The fig05 dry run (FIG05_DRY_RUN=1) is a pipeline test, not a result.
-output/fig05_dry/
 # Generated RDS artefacts from simulation scripts
 data/synthetic_networks/*.rds
 

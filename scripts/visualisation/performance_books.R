@@ -1207,17 +1207,19 @@ plot_boundary_lrt <- function(data) {
       ggplot2::geom_text(
         data = dplyr::summarise(
           pooled,
-          upper = max(.data$upper),
           n = max(.data$n),
           .by = c("proportions", "n_cells", "truth")
         ),
+        # Bulk counts in a band under the data, clear of the points.
         ggplot2::aes(
           factor(.data$n_cells),
-          .data$upper,
-          label = paste("n =", .data$n)
+          -0.09,
+          label = paste(
+            format(.data$n, big.mark = ","),
+            ifelse(.data$n == 1, "bulk", "bulks")
+          )
         ),
         inherit.aes = FALSE,
-        vjust = -0.7,
         size = 2.8,
         colour = "grey30"
       ) +
@@ -1238,7 +1240,10 @@ plot_boundary_lrt <- function(data) {
         values = arm_palette,
         labels = c(oracle = "oracle n", nominal = "nominal n")
       ) +
-      ggplot2::scale_y_continuous(limits = c(0, 1)) +
+      ggplot2::scale_y_continuous(
+        limits = c(-0.14, 1),
+        breaks = seq(0, 1, 0.25)
+      ) +
       ggplot2::labs(
         x = "Nominal cells per bulk n",
         y = "Rejection rate of p2 = 0 at 5%",
@@ -1246,7 +1251,7 @@ plot_boundary_lrt <- function(data) {
         subtitle = "Newton-Raphson at known scales, chi-bar-square calibration",
         caption = paste(
           "Small dots: one scenario (9 x 9 correlations); point and bar: pooled rate",
-          "with its Wilson 95% interval; n: bulks pooled.\nSize: bulks with no type-2 cell;",
+          "with its Wilson 95% interval; grey counts: bulks pooled.\nSize: bulks with no type-2 cell;",
           "dashed line at 5%."
         )
       ) +

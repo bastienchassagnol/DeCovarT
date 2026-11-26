@@ -361,21 +361,19 @@ if (
       )
     ))
 ) {
-  # Run size and output. FIG05_DRY_RUN=1 runs N = 5 bulks into
-  # output/fig05_dry/ to test the pipeline end to end;
-  # FIG05_POSTPROCESS_ONLY=1 redraws the figures from the saved benchmark.
-  DRY_RUN <- identical(Sys.getenv("FIG05_DRY_RUN"), "1")
-  N_REPLICATES <- if (DRY_RUN) 5L else 200L
-  N_REFERENCE <- if (DRY_RUN) 20L else 200L
+  # Run size and output. FIG05_POSTPROCESS_ONLY=1 redraws the figures from
+  # the saved benchmark.
+  N_REPLICATES <- 200L
+  N_REFERENCE <- 200L
   N_CELLS_REFERENCE <- 20L
-  N_BOOT <- if (DRY_RUN) 19L else 199L
+  N_BOOT <- 199L
   CORES <- (parallel::detectCores() %/% 2L) %/% 3L
   POSTPROCESS_ONLY <- identical(Sys.getenv("FIG05_POSTPROCESS_ONLY"), "1")
   # DWLS chooses its dampening constant on random halves of the genes; with
   # G = 2 a half is one gene and DWLS 0.1.0 stops ("variable lengths
   # differ") on every bulk, so it is not run (TRUE to retry).
   RUN_DWLS <- FALSE
-  OUT_DIR <- file.path("output", if (DRY_RUN) "fig05_dry" else "fig05")
+  OUT_DIR <- file.path("output", "fig05")
   BENCHMARK_FILE <- file.path(OUT_DIR, "fig05_benchmark.rds")
   SEED <- 20261125L
   ITMAX <- 100L
@@ -500,24 +498,22 @@ if (
   saveRDS(plot_data, file.path(OUT_DIR, "fig05_plot_data.rds"))
   render_figure_books(plot_data, OUT_DIR)
   # Pages shown in vignettes/R3-bivariate-single-cell.qmd (pkgdown only).
-  if (!DRY_RUN) {
-    shown <- c(
-      "density_visualisations/loglik_mean_shift_slice/balanced",
-      "density_visualisations/loglik_correlation_slice/moderately_unbalanced",
-      "performance_visualisations/heatmap_rmse/balanced_n_100",
-      "performance_visualisations/heatmap_rmse/balanced_n_1000",
-      "performance_visualisations/heatmap_rmse/moderately_unbalanced_n_1000",
-      "performance_visualisations/ci_width_forest/balanced_n_1000_sb90_ba_n1e3",
-      "performance_visualisations/ci_width_forest/balanced_n_100_sb9_ba_n1e2",
-      "performance_visualisations/boundary_lrt"
-    )
-    target <- file.path("vignettes", "figures", "fig05")
-    dir.create(target, showWarnings = FALSE, recursive = TRUE)
-    file.copy(
-      file.path(OUT_DIR, paste0(shown, ".svg")),
-      file.path(target, paste0(gsub("/", "__", shown, fixed = TRUE), ".svg")),
-      overwrite = TRUE
-    )
-  }
+  shown <- c(
+    "density_visualisations/loglik_mean_shift_slice/balanced",
+    "density_visualisations/loglik_correlation_slice/moderately_unbalanced",
+    "performance_visualisations/heatmap_rmse/balanced_n_100",
+    "performance_visualisations/heatmap_rmse/balanced_n_1000",
+    "performance_visualisations/heatmap_rmse/moderately_unbalanced_n_1000",
+    "performance_visualisations/ci_width_forest/balanced_n_1000_sb90_ba_n1e3",
+    "performance_visualisations/ci_width_forest/balanced_n_100_sb9_ba_n1e2",
+    "performance_visualisations/boundary_lrt/boundary_lrt"
+  )
+  target <- file.path("vignettes", "figures", "fig05")
+  dir.create(target, showWarnings = FALSE, recursive = TRUE)
+  file.copy(
+    file.path(OUT_DIR, paste0(shown, ".svg")),
+    file.path(target, paste0(gsub("/", "__", shown, fixed = TRUE), ".svg")),
+    overwrite = TRUE
+  )
   cli::cli_alert_success("Figure 05 written to {.file {OUT_DIR}}.")
 }
