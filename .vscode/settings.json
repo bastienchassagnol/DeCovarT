@@ -110,5 +110,6 @@
   },
   "workbench.editorAssociations": {
     "*.pdf": "latex-workshop-pdf-hook"
-  }
+  },
+  "liveServer.settings.port": 5501
 }
