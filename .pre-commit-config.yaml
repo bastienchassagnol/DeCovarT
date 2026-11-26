@@ -17,19 +17,34 @@ repos:
     hooks:
       - id: air-format
 
-  # R-specific hooks from {precommit}
-  - repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.4.3.9030
+  # R hooks of {precommit}, run from the user library (no renv: this
+  # package does not use one, and `language: r` hooks always build a renv
+  # environment). Needs the {precommit} R package installed.
+  - repo: local
     hooks:
       - id: parsable-R
+        name: parsable-R
+        entry: scripts/dev/precommit_hook.sh parsable-R
+        language: system
+        files: '\.[rR](md)?$'
       - id: no-browser-statement
+        name: no-browser-statement
+        entry: scripts/dev/precommit_hook.sh no-browser-statement
+        language: system
+        files: '\.[rR]$'
       - id: use-tidy-description
+        name: use-tidy-description
+        entry: scripts/dev/precommit_hook.sh use-tidy-description
+        language: system
+        files: '^DESCRIPTION$'
       - id: deps-in-desc
+        name: deps-in-desc
+        entry: scripts/dev/precommit_hook.sh deps-in-desc
+        language: system
+        files: '(\.[rR]profile|\.R|\.Rmd|\.r|\.rmd)$'
         exclude: '^(scripts/|vignettes/)'
 
-  # Local lintr (warn-only). DeCovarT does not use renv; this entry disables
-  # renv autoload/sync checks so the hook environment does not spam
-  # “project is out-of-sync”.
+  # Local lintr (warn-only).
   - repo: local
     hooks:
       - id: lintr

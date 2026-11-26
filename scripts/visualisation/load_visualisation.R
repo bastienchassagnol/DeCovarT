@@ -291,7 +291,11 @@ figure_plot_data <- function(
       10,
       9
     )
-    books <- .split_books_by_page(books)
+    # Drawn page by page: one SVG per page (local) and one PDF per stem.
+    books <- lapply(books, function(book) {
+      book$format <- "pages"
+      book
+    })
   }
   if (identical(figure, "fig06")) {
     books$ci_width_forest_nuisance <- .book(
@@ -312,58 +316,68 @@ figure_plot_data <- function(
   books
 }
 
-# One entry per page: every table of the entry that has a `page` column is
-# cut to that page (and, for the interval forests, to one scenario). The
-# key is `<stem>/<page slug>`; entries without pages are kept whole. All
-# entries are drawn as SVG.
-.split_books_by_page <- function(books) {
+# Pages of one book: every table that has a `page` column is cut to one
+# page (and, for the interval forests, to one scenario). Returns a list of
+# books named by page slug (the book's own stem when it has no pages), with
+# a `pages` attribute (`page_id`, `page`, `ID`) to find a page by name.
+.split_book_by_page <- function(book, stem) {
   slug <- function(x) {
     x <- gsub(",", "", tolower(as.character(x)), fixed = TRUE)
     x <- sub(" cells per bulk$", "", x)
     gsub("^_|_$", "", gsub("[^a-z0-9]+", "_", x))
   }
-  out <- list()
-  for (stem in names(books)) {
-    book <- books[[stem]]
-    book$format <- "svg"
-    tables <- if (is.data.frame(book$data)) list(book$data) else book$data
-    has_page <- vapply(
-      tables,
-      function(t) is.data.frame(t) && "page" %in% names(t),
-      logical(1)
-    )
-    if (!any(has_page)) {
-      out[[stem]] <- book
-      next
-    }
-    by <- if (identical(stem, "ci_width_forest")) c("page", "ID") else "page"
-    keys <- unique(tables[[which(has_page)[[1L]]]][by])
-    for (k in seq_len(nrow(keys))) {
-      cut <- function(t) {
-        if (!is.data.frame(t) || !all(by %in% names(t))) {
-          return(t)
-        }
-        keep <- Reduce(`&`, lapply(by, function(b) t[[b]] == keys[[b]][[k]]))
-        t[keep, , drop = FALSE]
-      }
-      page_book <- book
-      page_book$data <- if (is.data.frame(book$data)) {
-        cut(book$data)
-      } else {
-        lapply(book$data, cut)
-      }
-      key <- paste(
-        vapply(by, function(b) slug(keys[[b]][[k]]), ""),
-        collapse = "_"
-      )
-      out[[paste0(stem, "/", key)]] <- page_book
-    }
+  tables <- if (is.data.frame(book$data)) list(book$data) else book$data
+  has_page <- vapply(
+    tables,
+    function(t) is.data.frame(t) && "page" %in% names(t),
+    logical(1)
+  )
+  if (!any(has_page)) {
+    out <- stats::setNames(list(book), stem)
+    attr(out, "pages") <- data.frame(page_id = stem, page = NA, ID = NA)
+    return(out)
   }
+  by <- if (identical(stem, "ci_width_forest")) c("page", "ID") else "page"
+  keys <- unique(as.data.frame(tables[[which(has_page)[[1L]]]])[by])
+  out <- list()
+  for (k in seq_len(nrow(keys))) {
+    cut <- function(t) {
+      if (!is.data.frame(t) || !all(by %in% names(t))) {
+        return(t)
+      }
+      keep <- Reduce(`&`, lapply(by, function(b) t[[b]] == keys[[b]][[k]]))
+      t[keep, , drop = FALSE]
+    }
+    page_book <- book
+    page_book$data <- if (is.data.frame(book$data)) {
+      cut(book$data)
+    } else {
+      lapply(book$data, cut)
+    }
+    key <- paste(
+      vapply(by, function(b) slug(keys[[b]][[k]]), ""),
+      collapse = "_"
+    )
+    out[[key]] <- page_book
+  }
+  attr(out, "pages") <- data.frame(
+    page_id = names(out),
+    page = as.character(keys$page),
+    ID = if ("ID" %in% by) keys$ID else NA
+  )
   out
 }
 
-render_figure_from_data <- function(stem, plot_data, out_dir) {
-  book <- plot_data[[stem]]
+# Draw one book. A "pages" book (fig05) writes every page to
+# `<folder>/<stem>/<page_id>.svg` (kept locally), all pages to one
+# `<folder>/<stem>.pdf`, and the book itself, in long format with its page
+# table, to `<folder>/<stem>.rds`; `page` redraws a single page (SVG only).
+render_figure_from_data <- function(stem, plot_data, out_dir, page = NULL) {
+  book <- if (is.list(plot_data) && is.null(plot_data$builder)) {
+    plot_data[[stem]]
+  } else {
+    plot_data
+  }
   if (is.null(book)) {
     stop("No book `", stem, "` in the plot data.", call. = FALSE)
   }
@@ -377,33 +391,57 @@ render_figure_from_data <- function(stem, plot_data, out_dir) {
       )
     ))
   }
-  pages <- do.call(book$builder, c(list(book$data), book$arguments))
-  width <- book$width
-  height <- book$height
-  if (is.na(width)) {
-    width <- pages[[1L]]$width
-    height <- pages[[1L]]$height
+  draw <- function(b) {
+    pages <- Filter(
+      Negate(is.null),
+      do.call(b$builder, c(list(b$data), b$arguments))
+    )
+    width <- b$width
+    height <- b$height
+    if (is.na(width)) {
+      width <- pages[[1L]]$width
+      height <- pages[[1L]]$height
+    }
+    list(pages = pages, width = width, height = height)
   }
-  if (identical(book$format, "svg")) {
-    # One SVG per page, with the plot data of the entry next to it.
-    pages <- Filter(Negate(is.null), pages)
+  if (identical(book$format, "pages")) {
+    parts <- .split_book_by_page(book, stem)
+    index <- attr(parts, "pages")
+    if (!is.null(page)) {
+      if (!page %in% names(parts)) {
+        stop("No page `", page, "` in `", stem, "`.", call. = FALSE)
+      }
+      parts <- parts[page]
+    }
     base <- file.path(out_dir, book$folder, stem)
-    files <- if (length(pages) == 1L) {
-      paste0(base, ".svg")
-    } else {
-      sprintf("%s_%d.svg", base, seq_along(pages))
+    all_pages <- list()
+    files <- character()
+    for (id in names(parts)) {
+      d <- draw(parts[[id]])
+      f <- if (length(d$pages) == 1L) {
+        file.path(base, paste0(id, ".svg"))
+      } else {
+        file.path(base, sprintf("%s_%d.svg", id, seq_along(d$pages)))
+      }
+      for (k in seq_along(d$pages)) {
+        .save_pages(d$pages[k], f[[k]], d$width, d$height)
+      }
+      all_pages <- c(all_pages, d$pages)
+      files <- c(files, f)
     }
-    for (k in seq_along(pages)) {
-      .save_pages(pages[k], files[[k]], width, height)
+    if (is.null(page)) {
+      .save_pages(all_pages, paste0(base, ".pdf"), d$width, d$height)
+      book$pages <- index
+      saveRDS(book, paste0(base, ".rds"))
     }
-    saveRDS(book, paste0(base, ".rds"))
     return(invisible(files))
   }
+  d <- draw(book)
   .save_pages(
-    pages,
+    d$pages,
     file.path(out_dir, book$folder, paste0(stem, ".pdf")),
-    width,
-    height
+    d$width,
+    d$height
   )
 }
 
