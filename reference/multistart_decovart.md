@@ -18,6 +18,7 @@ multistart_decovart(
   solver = deconvolute_ratios_Newton_Raphson,
   loglik_tol = 1e-04,
   dirichlet_alpha = 1,
+  initial_p = NULL,
   ...
 )
 ```
@@ -41,12 +42,18 @@ multistart_decovart(
 
 - n_starts:
 
-  Number of Dirichlet restarts (in addition to the equi-balanced start).
+  Number of Dirichlet restarts (in addition to the first start).
 
 - solver:
 
-  Solver accepting `initial_p` and `return_model`; defaults to
+  Solver accepting `y`, `mean_signature_matrix`, `Sigma` and
+  `initial_p`, and returning `coefficients` (population solvers, called
+  with `return_model = TRUE`) or `p` (as
+  [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md))
+  together with `loglik`. Defaults to
   [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md).
+  With `solver = deconvolute_single_cell` the single-cell Newton fit is
+  restarted; pass `optimiser` through `...` to change it.
 
 - loglik_tol:
 
@@ -58,6 +65,13 @@ multistart_decovart(
   Concentration for those random starts (default `1`). See
   [`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md).
 
+- initial_p:
+
+  First start: `NULL` (default) for the barycentre, a length-\\J\\
+  numeric vector (for example the estimate of another method), or
+  `"qp"`; see
+  [`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md).
+
 - ...:
 
   Passed to `solver` (e.g. `epsilon`, `itmax`).
@@ -65,7 +79,9 @@ multistart_decovart(
 ## Value
 
 A list with `coefficients` (best fit), `loglik`, `loglik_range`,
-`starts` (matrix of per-start estimates), `logliks`, and `multimodal`.
+`starts` (matrix of per-start estimates), `logliks`, `multimodal`,
+`best_start` (index of the best start, 1 for the first) and `fit` (the
+full solver output of the best start).
 
 ## See also
 
@@ -102,4 +118,7 @@ y <- drop(mu %*% c(0.6, 0.4))
 set.seed(1)
 multistart_decovart(y, mu, Sigma, n_starts = 3L)$multimodal
 #> [1] FALSE
+# First start supplied by the user, e.g. another method's estimate
+multistart_decovart(y, mu, Sigma, n_starts = 2L, initial_p = c(0.5, 0.5))$loglik
+#> [1] 0.9812718
 ```

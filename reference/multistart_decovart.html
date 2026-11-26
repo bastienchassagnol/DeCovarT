@@ -106,6 +106,7 @@ a second, equally good or better mode.</p>
 <span>  solver <span class="op">=</span> <span class="va">deconvolute_ratios_Newton_Raphson</span>,</span>
 <span>  loglik_tol <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  dirichlet_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  initial_p <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -131,12 +132,17 @@ a second, equally good or better mode.</p>
 
 <dt id="arg-n-starts">n_starts<a class="anchor" aria-label="anchor" href="#arg-n-starts"></a></dt>
 <dd><p>Number of Dirichlet restarts (in addition to the
-equi-balanced start).</p></dd>
+first start).</p></dd>
 
 
 <dt id="arg-solver">solver<a class="anchor" aria-label="anchor" href="#arg-solver"></a></dt>
-<dd><p>Solver accepting <code>initial_p</code> and <code>return_model</code>;
-defaults to <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code>.</p></dd>
+<dd><p>Solver accepting <code>y</code>, <code>mean_signature_matrix</code>, <code>Sigma</code>
+and <code>initial_p</code>, and returning <code>coefficients</code> (population solvers,
+called with <code>return_model = TRUE</code>) or <code>p</code> (as
+<code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code>) together with <code>loglik</code>. Defaults to
+<code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code>. With
+<code>solver = deconvolute_single_cell</code> the single-cell Newton fit is
+restarted; pass <code>optimiser</code> through <code>...</code> to change it.</p></dd>
 
 
 <dt id="arg-loglik-tol">loglik_tol<a class="anchor" aria-label="anchor" href="#arg-loglik-tol"></a></dt>
@@ -149,6 +155,12 @@ log-likelihoods differ by less than this amount.</p></dd>
 <code>1</code>). See <code><a href="starting_simplex.html">starting_simplex()</a></code>.</p></dd>
 
 
+<dt id="arg-initial-p">initial_p<a class="anchor" aria-label="anchor" href="#arg-initial-p"></a></dt>
+<dd><p>First start: <code>NULL</code> (default) for the barycentre, a
+length-\(J\) numeric vector (for example the estimate of another
+method), or <code>"qp"</code>; see <code><a href="starting_simplex.html">starting_simplex()</a></code>.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Passed to <code>solver</code> (e.g. <code>epsilon</code>, <code>itmax</code>).</p></dd>
 
@@ -157,7 +169,8 @@ log-likelihoods differ by less than this amount.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with <code>coefficients</code> (best fit), <code>loglik</code>,
 <code>loglik_range</code>, <code>starts</code> (matrix of per-start estimates),
-<code>logliks</code>, and <code>multimodal</code>.</p>
+<code>logliks</code>, <code>multimodal</code>, <code>best_start</code> (index of the best start, 1
+for the first) and <code>fit</code> (the full solver output of the best start).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -192,6 +205,9 @@ log-likelihoods differ by less than this amount.</p></dd>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">multistart_decovart</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span>, n_starts <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span><span class="op">$</span><span class="va">multimodal</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-in"><span><span class="co"># First start supplied by the user, e.g. another method's estimate</span></span></span>
+<span class="r-in"><span><span class="fu">multistart_decovart</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span>, n_starts <span class="op">=</span> <span class="fl">2L</span>, initial_p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">loglik</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9812718</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

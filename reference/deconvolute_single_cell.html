@@ -226,8 +226,15 @@ them at their start values.</p></dd>
 
 
 <dt id="arg-initial-p">initial_p<a class="anchor" aria-label="anchor" href="#arg-initial-p"></a></dt>
-<dd><p>Optional open-simplex start. <code>NULL</code> uses the free-scale
-least-squares start.</p></dd>
+<dd><p>Optional start. <code>NULL</code> uses the free-scale
+least-squares start; a length-\(J\) numeric vector is moved into
+the open simplex with <code><a href="repair_simplex.html">repair_simplex()</a></code>; <code>"lbfgsb"</code> first fits the
+model with <code>optimiser = "lbfgsb"</code> (same scales and tolerances) and
+starts from that fit. Newton is sensitive to its start: from the
+least-squares start it can stop early at a lower likelihood, while a
+warm start from L-BFGS-B polishes that optimum with second-order
+steps. <code><a href="multistart_decovart.html">multistart_decovart()</a></code> with
+<code>solver = deconvolute_single_cell</code> refits from several starts.</p></dd>
 
 
 <dt id="arg-mean-scale-variance-scale">mean_scale, variance_scale<a class="anchor" aria-label="anchor" href="#arg-mean-scale-variance-scale"></a></dt>

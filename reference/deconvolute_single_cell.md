@@ -94,8 +94,16 @@ deconvolute_single_cell(
 
 - initial_p:
 
-  Optional open-simplex start. `NULL` uses the free-scale least-squares
-  start.
+  Optional start. `NULL` uses the free-scale least-squares start; a
+  length-\\J\\ numeric vector is moved into the open simplex with
+  [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md);
+  `"lbfgsb"` first fits the model with `optimiser = "lbfgsb"` (same
+  scales and tolerances) and starts from that fit. Newton is sensitive
+  to its start: from the least-squares start it can stop early at a
+  lower likelihood, while a warm start from L-BFGS-B polishes that
+  optimum with second-order steps.
+  [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md)
+  with `solver = deconvolute_single_cell` refits from several starts.
 
 - mean_scale, variance_scale:
 

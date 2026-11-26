@@ -79,6 +79,13 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.7.0" id="decovart-270">DeCovarT 2.7.0<a class="anchor" aria-label="anchor" href="#decovart-270"></a></h2>
 <div class="section level3">
+<h3 id="starting-points-of-the-newton-fit-2-7-0">Starting points of the Newton fit<a class="anchor" aria-label="anchor" href="#starting-points-of-the-newton-fit-2-7-0"></a></h3>
+<ul><li>
+<code>multistart_decovart(initial_p =)</code> sets the first start (barycentre by default, or a numeric estimate such as that of another method, or <code>"qp"</code>), and <code>solver = deconvolute_single_cell</code> restarts the single-cell fit. The result also returns <code>best_start</code> and <code>fit</code>, the full solver output of the best start.</li>
+<li>
+<code>deconvolute_single_cell(initial_p = "lbfgsb")</code> starts Newton from the L-BFGS-B fit. On the Suppinger gastruloid bulks, Newton from its default start stopped below the L-BFGS-B likelihood in most fits at 96 h; from six starts or from the L-BFGS-B fit it never did.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="single-cell-model-at-known-scales-2-7-0">Single-cell model at known scales<a class="anchor" aria-label="anchor" href="#single-cell-model-at-known-scales-2-7-0"></a></h3>
 <ul><li>
 <code><a href="../reference/deconvolute_single_cell.html">deconvolute_single_cell()</a></code>, <code>vcov_single_cell(scales_known = TRUE)</code>, <code><a href="../reference/fit_firth_single_cell.html">fit_firth_single_cell()</a></code>, <code><a href="../reference/bootstrap_single_cell.html">bootstrap_single_cell()</a></code>, <code><a href="../reference/confint_profile_single_cell.html">confint_profile_single_cell()</a></code>, <code><a href="../reference/restricted_mle_single_cell.html">restricted_mle_single_cell()</a></code> and <code><a href="../reference/lrt_single_cell.html">lrt_single_cell()</a></code> accept known scales (<code>mean_scale</code>, <code>variance_scale</code>). With known scales only the composition is estimated, so G = J genes suffice; with profiled scales the fit still needs G &gt; J. <code><a href="../reference/simulate_bulk_from_cells.html">simulate_bulk_from_cells()</a></code> no longer requires G &gt; J.</li>

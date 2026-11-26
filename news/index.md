@@ -2,6 +2,18 @@
 
 ## DeCovarT 2.7.0
 
+### Starting points of the Newton fit
+
+- `multistart_decovart(initial_p =)` sets the first start (barycentre by
+  default, or a numeric estimate such as that of another method, or
+  `"qp"`), and `solver = deconvolute_single_cell` restarts the
+  single-cell fit. The result also returns `best_start` and `fit`, the
+  full solver output of the best start.
+- `deconvolute_single_cell(initial_p = "lbfgsb")` starts Newton from the
+  L-BFGS-B fit. On the Suppinger gastruloid bulks, Newton from its
+  default start stopped below the L-BFGS-B likelihood in most fits at 96
+  h; from six starts or from the L-BFGS-B fit it never did.
+
 ### Single-cell model at known scales
 
 - [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md),
