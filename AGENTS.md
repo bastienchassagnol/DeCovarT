@@ -35,7 +35,9 @@ from the bundle rules.
 - **pre-commit.** `pre-commit clean`, stage everything,
   `pre-commit run`, re-stage autofixes, commit. Autofix hooks fail once
   by design. No `--no-verify` unless asked. The project does not use
-  `renv`; lintr hooks set `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`.
+  `renv`: the R hooks are local `language: system` hooks running the
+  scripts of the `precommit` R package
+  (`scripts/dev/precommit_hook.sh`), so that package must be installed.
   `slides/_extensions/` is excluded from the whitespace hooks.
 - **Diagrams (TikZ).** Sources stay in the vignette inside
   `::: {.content-hidden}`; the SVG is pre-compiled locally with

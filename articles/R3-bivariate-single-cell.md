@@ -148,8 +148,9 @@ In practice n_i is not known. Each such method therefore runs twice. The
 oracle arm receives the true n_i of the bulk, the best case. The nominal
 arm receives the design value n, the realistic case, whose error has a
 coefficient of variation of 30%. A wrong c moves \boldsymbol y/c along
-(1,1), orthogonal to the segment between the two signatures, and a wrong
-\phi rescales the covariance.
+\tilde{\boldsymbol\mu}\boldsymbol p^\star, which is orthogonal to the
+segment between the two signatures only for the balanced composition,
+and a wrong \phi rescales the covariance.
 
 ### Information in the mean and in the covariance
 
@@ -335,8 +336,8 @@ type-2 cell measure its size; the others its power.
 | `RUN_DWLS` | run DWLS | `FALSE` (fails at G=2) |
 
 Table 5: Run-size constants at the top of
-`scripts/fig05_bivariate_single_cell.R`; `FIG05_DRY_RUN=1` runs N=5 into
-`output/fig05_dry/`, `FIG05_POSTPROCESS_ONLY=1` redraws the figures.
+`scripts/fig05_bivariate_single_cell.R`; `FIG05_POSTPROCESS_ONLY=1`
+redraws the figures.
 
 Show the code
 
@@ -349,18 +350,22 @@ dplyr::filter(benchmark$intervals, parameter == "celltype_1") |>
 
 ## Results
 
-Each figure page is one SVG with, next to it, the RDS of the data that
-drew it, under `output/fig05/density_visualisations/<stem>/` and
-`output/fig05/performance_visualisations/<stem>/`. A page is redrawn
-from its RDS alone:
+Each figure stem is one multi-page PDF,
+`output/fig05/{density,performance}_visualisations/<stem>.pdf`, with the
+RDS of the data that drew it next to it (`<stem>.rds`). The RDS holds
+the tables in long format and a `pages` table that names each page
+(`page_id`, the page label and, for the interval forests, the scenario
+`ID`). One page is redrawn from that RDS alone, as an SVG under
+`<stem>/<page_id>.svg`:
 
 Show the code
 
 ``` r
 
 source("scripts/visualisation/load_visualisation.R")
-plot_data <- readRDS("output/fig05/fig05_plot_data.rds")
-render_figure_from_data("heatmap_rmse/balanced_n_1000", plot_data, "output/fig05")
+book <- readRDS("output/fig05/performance_visualisations/heatmap_rmse.rds")
+book$pages
+render_figure_from_data("heatmap_rmse", book, "output/fig05", page = "balanced_n_1000")
 ```
 
 | Stem | Description |
@@ -384,11 +389,313 @@ Table 6: Figure books of the bivariate single-cell scenario. There is no
 
 ### Results description
 
-\[RESULTS-PLACEHOLDER\]
+The full run used N=200 bulks per scenario (commit `9014f90`, 25
+November 2026, 12,769 s on 14 workers). No method failed numerically on
+any bulk. Unless stated otherwise, a number below is the median over the
+81 correlation pairs of a page of the per-scenario root mean squared
+error (RMSE) of \hat p_1, or the mean over those pairs of the coverage
+of a nominal 95% interval. The values are printed by
+`Rscript scripts/fig05_summary_numbers.R` from
+`output/fig05/fig05_benchmark.rds`.
+
+#### Point estimates
+
+| Composition | n | `lsei` | Newton | Marquardt | Firth | Newton, nominal n | `lsei`, nominal n | NNLS | RNA-Sieve |
+|----|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| balanced | 100 | 0.414 | 0.429 | 0.395 | 0.390 | 0.460 | 0.409 | 0.414 | 0.410 |
+| balanced | 1,000 | 0.243 | 0.249 | 0.242 | 0.187 | 0.397 | 0.238 | 0.244 | 0.249 |
+| balanced | 10,000 | 0.081 | 0.082 | 0.082 | 0.076 | 0.378 | 0.078 | 0.081 | 0.106 |
+| moderately unbalanced | 100 | 0.424 | 0.445 | 0.423 | 0.419 | 0.435 | 0.422 | 0.424 | 0.432 |
+| moderately unbalanced | 1,000 | 0.201 | 0.200 | 0.199 | 0.215 | 0.188 | 0.195 | 0.201 | 0.207 |
+| moderately unbalanced | 10,000 | 0.080 | 0.080 | 0.080 | 0.079 | 0.142 | 0.107 | 0.080 | 0.103 |
+| highly unbalanced | 100 | 0.457 | 0.455 | 0.436 | 0.453 | 0.459 | 0.456 | 0.458 | 0.447 |
+| highly unbalanced | 1,000 | 0.179 | 0.182 | 0.182 | 0.236 | 0.199 | 0.191 | 0.179 | 0.179 |
+| highly unbalanced | 10,000 | 0.061 | 0.061 | 0.061 | 0.093 | 0.099 | 0.105 | 0.061 | 0.047 |
+
+Table 7: RMSE of \hat p_1, median over the 81 correlation pairs. Columns
+without “nominal n” use the true n_i (oracle arm) or need no cell count
+(NNLS, RNA-Sieve).
+
+With the true n_i, the three DeCovarT solvers, `lsei`, NNLS and DeCovarT
+diagonal are within 0.035 of each other on every page
+([Table 7](#tbl-scb-rmse)). DeCovarT diagonal returns the `lsei` RMSE to
+within 0.002 everywhere; ReDeconv returns the NNLS RMSE to four. The
+standard errors announced by [Table 1](#tbl-scb-fcov) for uncorrelated
+genes (0.79, 0.25 and 0.079 at n=100, 1,000 and 10^4) set the scale: at
+n=100 every method is close to a random guess on (0,1), and at n=10^4
+every method is at or below that standard error.
+
+Along the correlation grid, the full-covariance Newton fit differs from
+`lsei` by at most 15% in median RMSE ([Fig. 3](#fig-scb-heatmap)). Its
+RMSE ratio to `lsei` rises with \|\varrho_1-\varrho_2\| for the balanced
+composition at n=100 (1.12 at \|\varrho_1-\varrho_2\|=1.6) and falls
+with it for the highly unbalanced composition at n=1000 (0.85 at 1.6).
+Over the 243 scenarios of each n, Newton beats `lsei` by more than 5% in
+18%, 15% and 3% of them at n=100, 1,000 and 10^4, and loses by more than
+5% in 36%, 10% and 0%.
+
+![Grid of 15 heatmaps, one per method and arm, with the correlation of
+cell type 1 on the x axis and of cell type 2 on the y axis. In the
+oracle row all methods show similar colours, RMSE near 0.2 to 0.3. In
+the nominal row Newton-Raphson, L-BFGS-B and Firth are lighter (higher
+RMSE) everywhere except on the diagonal where the two correlations are
+equal, while lsei and DeCovarT diagonal look like their oracle
+panels.](figures/fig05/performance_visualisations__heatmap_rmse__balanced_n_1000.svg)
+
+Figure 3: RMSE of \hat p_1 on the (\varrho_1,\varrho_2) grid, balanced
+composition, n=1000. Top row: oracle arm; middle row: nominal arm;
+bottom row: methods without a plug-in. One \log\_{10} colour scale for
+every page of the book.
+
+The plug-in cell count matters more than the correlation. With the
+nominal n, the Newton RMSE grows by a median factor of 1.06, 1.58 and
+4.44 at n=100, 1,000 and 10^4 for the balanced composition, and of 1.69
+and 2.20 at n=10^4 for the highly and moderately unbalanced ones (90th
+percentiles up to 8.2). The loss sits off the diagonal
+\varrho_1=\varrho_2 ([Fig. 3](#fig-scb-heatmap), middle row): at
+(\varrho_1,\varrho_2)=(0,0) the balanced RMSE at n=10^4 is 0.081 with
+the true n_i and 0.079 with the nominal n; at (-0.8,0.8) it is 0.082 and
+0.330. `lsei` and DeCovarT diagonal keep their oracle RMSE for the
+balanced composition (ratio 0.96 to 0.99) but lose a factor of about 1.4
+(moderately unbalanced) and 1.6 to 1.8 (highly unbalanced) at n=10^4.
+
+#### Solvers
+
+With the true n_i, Newton–Raphson, L-BFGS-B and Marquardt–Levenberg
+return the same \hat p_1 to within 10^{-5} in the median bulk at every
+n. They part at n=100: \|\hat p_1^{\mathrm{NR}}-\hat
+p_1^{\mathrm{ML}}\|\>0.01 in 16% to 20% of the bulks and \|\hat
+p_1^{\mathrm{NR}}-\hat p_1^{\mathrm{L\text{-}BFGS\text{-}B}}\|\>0.01 in
+6% to 10%. L-BFGS-B stops on a face of the simplex in 51% to 63% of the
+bulks at n=100, and in 44% to 50% of the highly unbalanced bulks at
+n=1000 and 10^4. The two ILR solvers never return a face. The
+log-likelihood of the truth exceeds that of the estimate by more than
+10^{-3} in 4.6%, 1.1% and 0.2% of the Newton fits at n=100, 1,000 and
+10^4 (Marquardt–Levenberg: 4.3%, 1.0%, 0.09%; L-BFGS-B: 0.2%, 0.006%,
+0%). Median times per bulk are 2 ms (L-BFGS-B), 3 ms (Newton), 4 to 9 ms
+(Marquardt–Levenberg), 11 ms (Firth) and 130 ms (RNA-Sieve).
+
+Firth’s penalty lowers the balanced RMSE at n=1000 from 0.249 to 0.187
+and raises the highly unbalanced one from 0.182 to 0.236, with a median
+bias of -0.16 there.
+
+#### Intervals
+
+| Composition | n | Wald | ILR | profile | oracle | Wald, nominal n | profile, nominal n | RNA-Sieve Godambe |
+|----|---:|---:|---:|---:|---:|---:|---:|---:|
+| balanced | 100 | 0.78 | 1.00 | 0.99 | 0.99 | 0.51 | 0.80 | 0.66 |
+| balanced | 1,000 | 0.95 | 1.00 | 0.95 | 0.95 | 0.43 | 0.46 | 0.89 |
+| balanced | 10,000 | 0.95 | 0.97 | 0.95 | 0.95 | 0.29 | 0.29 | 0.97 |
+| moderately unbalanced | 100 | 0.76 | 1.00 | 0.99 | 0.99 | 0.48 | 0.85 | 0.75 |
+| moderately unbalanced | 1,000 | 0.92 | 0.94 | 0.97 | 1.00 | 0.40 | 0.57 | 0.91 |
+| moderately unbalanced | 10,000 | 0.96 | 0.94 | 0.95 | 0.94 | 0.28 | 0.30 | 0.94 |
+| highly unbalanced | 100 | 0.83 | 0.71 | 0.98 | 0.98 | 0.57 | 0.87 | 0.80 |
+| highly unbalanced | 1,000 | 0.90 | 0.57 | 0.97 | 1.00 | 0.35 | 0.80 | 0.94 |
+| highly unbalanced | 10,000 | 0.93 | 0.66 | 0.97 | 1.00 | 0.21 | 0.60 | 0.99 |
+
+Table 8: Coverage of nominal 95% intervals for p_1 around
+Newton–Raphson, mean over the 81 correlation pairs (interior targets
+only). Columns without “nominal n” use the true n_i.
+
+With the true n_i, the profile interval covers at 0.95 to 0.99 on every
+page ([Table 8](#tbl-scb-coverage)). The Wald interval under-covers at
+n=100 (0.76 to 0.83) and reaches 0.90 to 0.96 from n=1000. The ILR
+interval reaches 1.00 at n=100 for the balanced and moderately
+unbalanced compositions, and for the balanced one at n=1000, because its
+mean width is then 0.78 to 1.00; it covers 0.57 to 0.71 for the highly
+unbalanced composition. With the nominal n, every construction falls:
+Wald to 0.21–0.57, profile to 0.29–0.87, lowest at n=10^4. The Firth ILR
+interval covers 0.04 for the highly unbalanced composition at n\ge1000.
+RNA-Sieve’s Fisher interval is the whole of \[0,1\] on every page (width
+1.00); its Godambe interval covers 0.66 to 0.80 at n=100.
+
+![Forest plot of interval methods grouped by solver and arm. In the
+oracle arm the bars are centred near the dashed target at 0.5 and
+coverages range from 0.84 to 1. In the nominal arm the Newton-Raphson,
+L-BFGS-B, Marquardt-Levenberg and Firth bars are centred near 0.2, far
+left of the target, with coverages 0.16 to 0.43. DeCovarT diagonal stays
+centred on the target in both
+arms.](figures/fig05/performance_visualisations__ci_width_forest__balanced_n_1000_sb90_ba_n1e3.svg)
+
+Figure 4: Intervals for p_1, balanced composition, n=1000,
+(\varrho_1,\varrho_2)=(-0.8,0.8) (`SB90_Ba_n1e3`). Bar: mean bounds over
+the 200 bulks; point: mean estimate; dashed: mean target; left column:
+coverage with its Wilson 95% interval and mean width w.
+
+The bootstrap sub-study separates the two correlation corners. At (0,0),
+every construction covers 0.94 to 1.00 in both arms, except the
+nominal-arm Wald interval (0.88 balanced at n=100, 0.86 moderately
+unbalanced at n=1000). At (-0.8,0.8) with the true n_i, the Wald
+interval covers 0.44 to 0.85, the parametric bootstrap 0.79 to 0.92 and
+the profile interval 0.93 to 0.985. With the nominal n at (-0.8,0.8),
+the mean Newton estimate for the balanced composition at n=1000 moves
+from 0.46 to 0.19, against a mean target of 0.50, while DeCovarT
+diagonal stays at 0.49 in both arms ([Fig. 4](#fig-scb-forest)), and
+coverage falls to 0.05–0.25 (Wald), 0.28–0.69 (profile) and 0.38–0.79
+(bootstrap). Redrawing n from its log-normal law in each bootstrap
+replicate lowers coverage in all four of these scenarios, to 0.17–0.67.
+
+#### Boundary test
+
+Of the 16,200 highly unbalanced bulks at n=100, 6,130 hold no type-2
+cell. On them the boundary test rejects p_2=0 in 3.7% of the bulks with
+the true n_i and in 16.1% with the nominal n
+([Fig. 5](#fig-scb-boundary)). When type 2 is present at p_2=0.01, the
+test rejects in 4.4%, 5.5% and 6.9% of the bulks at n=100, 1,000 and
+10^4 with the true n_i, close to the 5% level. Power reaches 0.64 at
+p_2=0.15 and 0.9994 at p_2=0.5, both at n=10^4. With the nominal n, the
+rejection rate at p_2=0.01 rises to 0.15 to 0.25 and the power at
+p_2=0.5, n=10^4 falls to 0.81.
+
+![Grid of rejection rates by composition (rows) and by whether cell type
+2 is present (columns), against the nominal cells per bulk on a log
+axis. Power rises with n for the balanced composition to 1 at n = 10,000
+with the true n, less with the nominal n. For the highly unbalanced
+composition the oracle rate stays near 0.05 at all n while the nominal-n
+rate is 0.15 to 0.25. Size at n = 100 is about 0.04 with the true n and
+0.16 with the nominal
+n.](figures/fig05/performance_visualisations__boundary_lrt__boundary_lrt.svg)
+
+Figure 5: Rejection rate of the boundary likelihood-ratio test of p_2=0
+at the 5% level. Left: bulks that hold type 2 (power); right: bulks with
+no type-2 cell (size). Small dots: one scenario; large point and bar:
+pooled rate with its Wilson 95% interval; grey counts: bulks pooled.
+
+#### Likelihood geometry
+
+The expected log-likelihood keeps its maximiser at p_1^\star along both
+slices ([Fig. 6](#fig-scb-slice); ledger V49d). Moving the mean of type
+1 onto that of type 2 removes the mean part of the information. With
+(\varrho_1,\varrho_2)=(0.8,-0.8) the covariance part, 2.56 at every n
+for the balanced composition, then carries the curvature; with (0,0) it
+is zero and the surface flattens as t\to1.
+
+![Two-row figure. Top: heat maps of relative expected log-likelihood
+over p1 and the mean-shift t, for n = 100, 1,000 and 10,000 and two
+correlation pairs; all panels are maximal along p1 = 0.5 and flatten as
+t grows or n falls. Bottom: Fisher information against t; the mean part
+falls to zero as t approaches 1, the covariance part is flat, near 5 for
+opposite correlations and near zero for uncorrelated genes, so the total
+follows the covariance part only when correlations
+differ.](figures/fig05/density_visualisations__loglik_mean_shift_slice__balanced.svg)
+
+Figure 6: Expected log-likelihood of p_1 at the balanced composition
+while the mean of type 1 moves towards that of type 2 (t=0: design
+means; t\to1: equal means). Top: \log\_{10}(L/\max L) over (p_1,t),
+white contour at the expected 95% likelihood-ratio region, dashed line
+at p_1^\star. Bottom: Fisher information of p_1 at p_1^\star and its
+mean and covariance parts ([Eq. 2](#eq-scb-fisher)), log scale.
 
 ### Discussion and interpretation of relative deconvolution performance
 
-\[DISCUSSION-PLACEHOLDER\]
+#### The covariance part of the information is hard to use from one bulk
+
+[Table 1](#tbl-scb-fcov) gives the covariances up to 97% of the Fisher
+information at n=100, yet the full-covariance fit is no more accurate
+than `lsei` there and is worse in 36% of the scenarios. We read this as
+a consequence of the design (inference, not tested separately): each
+estimate rests on one bulk, and the covariance part of
+[Eq. 2](#eq-scb-fisher) is the information that a single draw of two
+genes carries about its own spread. The mean part averages n cells and
+grows with n; the covariance part does not, and a single draw is far
+from the regime where the maximum likelihood estimator attains the
+Fisher bound. The Wald interval, built from the observed curvature,
+under-covers at n=100 (0.76 to 0.83) and at the opposite-sign corner
+(0.44 to 0.85), while the profile interval, which does not rely on the
+quadratic approximation, holds its level. The full-covariance fit gains
+where the mean part is already informative and the covariance share is
+still large: highly unbalanced, n=1000, where f\_{\mathrm{cov}} reaches
+0.76 and Newton’s RMSE is 15% below `lsei`’s at
+\|\varrho_1-\varrho_2\|=1.6.
+
+DeCovarT diagonal reproduces `lsei` by construction in this design. Both
+cell types have per-cell variance 500 on both genes, so the diagonal
+\boldsymbol S_W(\boldsymbol p) is 500\\\boldsymbol I for every
+\boldsymbol p, and its likelihood is least squares on \boldsymbol y/c
+under the sum-to-one constraint. The comparison with the full model
+therefore isolates the gene–gene correlation, as intended, but says
+nothing about gene-specific variances.
+
+#### The cell count, not the correlation, limits accuracy
+
+A 30% error in n_i costs more than the correlation gains, and the cost
+grows with n. With the nominal n, the scaled bulk is \boldsymbol
+y/n=(n_i/n)\\\tilde{\boldsymbol\mu}\boldsymbol p^\star plus noise of
+standard deviation about \sqrt{500/n} per gene: the misfit along
+\tilde{\boldsymbol\mu}\boldsymbol p^\star is about 0.3\times21\approx6
+against a noise of 0.22 at n=10^4. How much of that misfit reaches \hat
+p_1 depends on the geometry:
+
+- `lsei` projects \boldsymbol y/n onto the segment between the
+  signatures in the Euclidean metric. For the balanced composition,
+  \tilde{\boldsymbol\mu}\boldsymbol p^\star=(21,21) is orthogonal to
+  \boldsymbol d=(-2,2) and the misfit leaves \hat p_1 unchanged; for the
+  unbalanced compositions it is not orthogonal, which matches the loss
+  by a factor of 1.4 to 1.8 at n=10^4.
+- The full-covariance fit projects in the \boldsymbol S_W(\boldsymbol
+  p)^{-1} metric, and when \varrho_1\ne\varrho_2 its covariance depends
+  on \boldsymbol p, so the fit also moves \hat{\boldsymbol p} to match a
+  spread that a wrong \phi has rescaled. On the diagonal
+  \varrho_1=\varrho_2, \boldsymbol S_W does not depend on \boldsymbol p
+  and (1,1) is one of its eigenvectors, so the balanced fit stays
+  unbiased there: the darker diagonal of the nominal row of
+  [Fig. 3](#fig-scb-heatmap).
+
+None of the interval constructions repairs this, because the failure is
+a bias of the point estimate, not an underestimated variance. Redrawing
+n in the bootstrap makes it worse: each replicate is refitted at the
+nominal n around an already biased \hat p_1, so its percentiles probably
+carry the bias twice (not checked).
+
+In practice n_i is unknown, and at G=2 it cannot be estimated
+([Sec. 1](#sec-scb-generative)). Two routes avoid the plug-in. A
+scale-free fit (NNLS with a free scale, renormalised; ReDeconv returns
+the same estimates here) matched the oracle `lsei` on every page without
+any cell count. With G\>J genes, the scales enter the likelihood and can
+be profiled
+([§2.5](https://bastienchassagnol.github.io/DeCovarT/articles/R4-single-cell-hierarchical.md)).
+The covariance-aware fit at a plugged-in n is worth its cost only when
+n_i is measured, for instance from nuclei counts.
+
+#### Choice of solver
+
+The three DeCovarT solvers agree in the interior; they differ when the
+maximum lies on, or near, a face. L-BFGS-B works on the closed simplex,
+reaches the face and returns the highest log-likelihood most often
+(truth above the estimate in at most 0.2% of bulks, against 4.6% for
+Newton at n=100). The ILR solvers cannot reach a face, and they are the
+ones whose Hessian feeds the Wald, ILR and profile intervals. A
+practical sequence is L-BFGS-B for the point estimate and the face
+diagnosis, then Newton–Raphson from that point for the intervals when
+the estimate is interior; the benchmark did not run that sequence. At
+n=100, Marquardt–Levenberg and Newton–Raphson differ by more than 0.01
+in 16% to 20% of the bulks, and Marquardt–Levenberg has the lower RMSE
+on all three compositions (by 0.02 to 0.03). Both stop where the
+gradient vanishes, so the gap points to several local maxima, reached
+from the same start by different step sequences.
+
+Firth’s penalty pulls \hat p_1 towards 1/2: it lowers the balanced RMSE
+by a quarter at n=1000 and biases the highly unbalanced estimate by
+-0.16, with ILR coverage 0.04. It is not a safe default when a cell type
+may be rare.
+
+#### Detecting a rare cell type
+
+With the true n_i, the chi-bar-square boundary test keeps its size (3.7%
+at the 5% level). With these signatures, two genes and a mean gap of 2
+counts per cell, it cannot detect a type at 1% even at n=10^4. With the
+nominal n, it rejects p_2=0 in 16% of the bulks that hold no type-2
+cell, so a wrong cell count turns into false detections.
+
+#### RNA-Sieve
+
+RNA-Sieve, with the corrected update, matched DeCovarT within 0.025 in
+RMSE on every page; it was better for the highly unbalanced composition
+at n=10^4 (0.047 against 0.061) and worse for the balanced one (0.106
+against 0.081). It fits the cohort of N bulks jointly and estimates the
+reference from the panel; which of the two drives these gaps is not
+separated here. Its Fisher interval spans \[0,1\] and carries no
+information; its Godambe interval under-covers at n=100 (0.66 to 0.80).
 
 ## Caveats
 

@@ -209,7 +209,7 @@ n_i\boldsymbol S_W(\boldsymbol p_{\cdot i})\bigr),
 <section class="level2"><h3 id="why-the-scales-are-given">Why the scales are given<a class="anchor" aria-label="anchor" href="#why-the-scales-are-given"></a>
 </h3>
 <p>With <span class="math inline">G=2</span> genes, one bulk cannot identify <span class="math inline">c_i</span> or <span class="math inline">\phi_i</span>. The mean <span class="math inline">c\,\tilde{\boldsymbol\mu}\boldsymbol p</span> has two free parameters, <span class="math inline">c</span> and <span class="math inline">p_1</span>, for two observations, so it fits any bulk inside the cone of the two signatures exactly. The residual is then zero, the closed-form <span class="math inline">\hat\phi=\boldsymbol r^\top\boldsymbol W\boldsymbol r/G</span> is zero, and the profiled log-likelihood has no maximum. The REML degrees of freedom are <span class="math inline">\nu=G-J=0</span>. Every scale-dependent fit therefore receives <span class="math inline">c_i</span> and <span class="math inline">\phi_i</span> (<code>mean_scale</code>, <code>variance_scale</code>), and only <span class="math inline">p_1</span> is estimated. <code><a href="../reference/deconvolute_single_cell.html">deconvolute_single_cell()</a></code> accepts <span class="math inline">G=J</span> only on that path.</p>
-<p>In practice <span class="math inline">n_i</span> is not known. Each such method therefore runs twice. The oracle arm receives the true <span class="math inline">n_i</span> of the bulk, the best case. The nominal arm receives the design value <span class="math inline">n</span>, the realistic case, whose error has a coefficient of variation of 30%. A wrong <span class="math inline">c</span> moves <span class="math inline">\boldsymbol y/c</span> along <span class="math inline">(1,1)</span>, orthogonal to the segment between the two signatures, and a wrong <span class="math inline">\phi</span> rescales the covariance.</p>
+<p>In practice <span class="math inline">n_i</span> is not known. Each such method therefore runs twice. The oracle arm receives the true <span class="math inline">n_i</span> of the bulk, the best case. The nominal arm receives the design value <span class="math inline">n</span>, the realistic case, whose error has a coefficient of variation of 30%. A wrong <span class="math inline">c</span> moves <span class="math inline">\boldsymbol y/c</span> along <span class="math inline">\tilde{\boldsymbol\mu}\boldsymbol p^\star</span>, which is orthogonal to the segment between the two signatures only for the balanced composition, and a wrong <span class="math inline">\phi</span> rescales the covariance.</p>
 </section><section class="level2"><h3 id="information-in-the-mean-and-in-the-covariance">Information in the mean and in the covariance<a class="anchor" aria-label="anchor" href="#information-in-the-mean-and-in-the-covariance"></a>
 </h3>
 <p>At known scales, the Fisher information of <span class="math inline">p_1</span> at <span class="math inline">\boldsymbol p^\star</span> splits into a mean part and a covariance part (<!-- chk: V49c -->ledger V49c):</p>
@@ -520,7 +520,7 @@ Table 4: Interval menu (<a href="01-2-population-inference.html#sec-recap">popu
 </h3>
 <div id="tbl-scb-run-size" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-scb-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 5: Run-size constants at the top of <code>scripts/fig05_bivariate_single_cell.R</code>; <code>FIG05_DRY_RUN=1</code> runs <span class="math inline">N=5</span> into <code>output/fig05_dry/</code>, <code>FIG05_POSTPROCESS_ONLY=1</code> redraws the figures.
+Table 5: Run-size constants at the top of <code>scripts/fig05_bivariate_single_cell.R</code>; <code>FIG05_POSTPROCESS_ONLY=1</code> redraws the figures.
 </figcaption><div aria-describedby="tbl-scb-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -577,12 +577,13 @@ Table 5: Run-size constants at the top of <code>scripts/fig05_bivariate_single_
 <div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-scb-results">Results<a class="anchor" aria-label="anchor" href="#sec-scb-results"></a>
 </h2>
-<p>Each figure page is one SVG with, next to it, the RDS of the data that drew it, under <code>output/fig05/density_visualisations/&lt;stem&gt;/</code> and <code>output/fig05/performance_visualisations/&lt;stem&gt;/</code>. A page is redrawn from its RDS alone:</p>
+<p>Each figure stem is one multi-page PDF, <code>output/fig05/{density,performance}_visualisations/&lt;stem&gt;.pdf</code>, with the RDS of the data that drew it next to it (<code>&lt;stem&gt;.rds</code>). The RDS holds the tables in long format and a <code>pages</code> table that names each page (<code>page_id</code>, the page label and, for the interval forests, the scenario <code>ID</code>). One page is redrawn from that RDS alone, as an SVG under <code>&lt;stem&gt;/&lt;page_id&gt;.svg</code>:</p>
 <div class="cell">
 <details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
-<span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_plot_data.rds"</span><span class="op">)</span></span>
-<span><span class="fu">render_figure_from_data</span><span class="op">(</span><span class="st">"heatmap_rmse/balanced_n_1000"</span>, <span class="va">plot_data</span>, <span class="st">"output/fig05"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">book</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/performance_visualisations/heatmap_rmse.rds"</span><span class="op">)</span></span>
+<span><span class="va">book</span><span class="op">$</span><span class="va">pages</span></span>
+<span><span class="fu">render_figure_from_data</span><span class="op">(</span><span class="st">"heatmap_rmse"</span>, <span class="va">book</span>, <span class="st">"output/fig05"</span>, page <span class="op">=</span> <span class="st">"balanced_n_1000"</span><span class="op">)</span></span></code></pre></div>
 </details>
 </div>
 <div id="tbl-scb-books" class="quarto-float quarto-figure quarto-figure-center">
@@ -681,12 +682,367 @@ Table 6: Figure books of the bivariate single-cell scenario. There is no 3D sur
 </div>
 <section class="level2"><h3 id="sec-scb-results-description">Results description<a class="anchor" aria-label="anchor" href="#sec-scb-results-description"></a>
 </h3>
-<p>[RESULTS-PLACEHOLDER]</p>
-</section><section class="level2"><h3 id="sec-scb-discussion">Discussion and interpretation of relative deconvolution performance<a class="anchor" aria-label="anchor" href="#sec-scb-discussion"></a>
+<p>The full run used <span class="math inline">N=200</span> bulks per scenario (commit <code>9014f90</code>, 25 November 2026, 12,769 s on 14 workers). No method failed numerically on any bulk. Unless stated otherwise, a number below is the median over the 81 correlation pairs of a page of the per-scenario root mean squared error (RMSE) of <span class="math inline">\hat p_1</span>, or the mean over those pairs of the coverage of a nominal 95% interval. The values are printed by <code>Rscript scripts/fig05_summary_numbers.R</code> from <code>output/fig05/fig05_benchmark.rds</code>.</p>
+<section class="level3"><h4 id="point-estimates">Point estimates<a class="anchor" aria-label="anchor" href="#point-estimates"></a>
+</h4>
+<div id="tbl-scb-rmse" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-scb-rmse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 7: RMSE of <span class="math inline">\hat p_1</span>, median over the 81 correlation pairs. Columns without “nominal <span class="math inline">n</span>” use the true <span class="math inline">n_i</span> (oracle arm) or need no cell count (NNLS, RNA-Sieve).
+</figcaption><div aria-describedby="tbl-scb-rmse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top" style="width:100%;">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+</colgroup>
+<thead><tr class="header">
+<th>Composition</th>
+<th style="text-align: right;"><span class="math inline">n</span></th>
+<th style="text-align: right;"><code>lsei</code></th>
+<th style="text-align: right;">Newton</th>
+<th style="text-align: right;">Marquardt</th>
+<th style="text-align: right;">Firth</th>
+<th style="text-align: right;">Newton, nominal <span class="math inline">n</span>
+</th>
+<th style="text-align: right;">
+<code>lsei</code>, nominal <span class="math inline">n</span>
+</th>
+<th style="text-align: right;">NNLS</th>
+<th style="text-align: right;">RNA-Sieve</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>balanced</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.414</td>
+<td style="text-align: right;">0.429</td>
+<td style="text-align: right;">0.395</td>
+<td style="text-align: right;">0.390</td>
+<td style="text-align: right;">0.460</td>
+<td style="text-align: right;">0.409</td>
+<td style="text-align: right;">0.414</td>
+<td style="text-align: right;">0.410</td>
+</tr>
+<tr class="even">
+<td>balanced</td>
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.243</td>
+<td style="text-align: right;">0.249</td>
+<td style="text-align: right;">0.242</td>
+<td style="text-align: right;">0.187</td>
+<td style="text-align: right;">0.397</td>
+<td style="text-align: right;">0.238</td>
+<td style="text-align: right;">0.244</td>
+<td style="text-align: right;">0.249</td>
+</tr>
+<tr class="odd">
+<td>balanced</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: right;">0.081</td>
+<td style="text-align: right;">0.082</td>
+<td style="text-align: right;">0.082</td>
+<td style="text-align: right;">0.076</td>
+<td style="text-align: right;">0.378</td>
+<td style="text-align: right;">0.078</td>
+<td style="text-align: right;">0.081</td>
+<td style="text-align: right;">0.106</td>
+</tr>
+<tr class="even">
+<td>moderately unbalanced</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.424</td>
+<td style="text-align: right;">0.445</td>
+<td style="text-align: right;">0.423</td>
+<td style="text-align: right;">0.419</td>
+<td style="text-align: right;">0.435</td>
+<td style="text-align: right;">0.422</td>
+<td style="text-align: right;">0.424</td>
+<td style="text-align: right;">0.432</td>
+</tr>
+<tr class="odd">
+<td>moderately unbalanced</td>
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.201</td>
+<td style="text-align: right;">0.200</td>
+<td style="text-align: right;">0.199</td>
+<td style="text-align: right;">0.215</td>
+<td style="text-align: right;">0.188</td>
+<td style="text-align: right;">0.195</td>
+<td style="text-align: right;">0.201</td>
+<td style="text-align: right;">0.207</td>
+</tr>
+<tr class="even">
+<td>moderately unbalanced</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.079</td>
+<td style="text-align: right;">0.142</td>
+<td style="text-align: right;">0.107</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.103</td>
+</tr>
+<tr class="odd">
+<td>highly unbalanced</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.457</td>
+<td style="text-align: right;">0.455</td>
+<td style="text-align: right;">0.436</td>
+<td style="text-align: right;">0.453</td>
+<td style="text-align: right;">0.459</td>
+<td style="text-align: right;">0.456</td>
+<td style="text-align: right;">0.458</td>
+<td style="text-align: right;">0.447</td>
+</tr>
+<tr class="even">
+<td>highly unbalanced</td>
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.179</td>
+<td style="text-align: right;">0.182</td>
+<td style="text-align: right;">0.182</td>
+<td style="text-align: right;">0.236</td>
+<td style="text-align: right;">0.199</td>
+<td style="text-align: right;">0.191</td>
+<td style="text-align: right;">0.179</td>
+<td style="text-align: right;">0.179</td>
+</tr>
+<tr class="odd">
+<td>highly unbalanced</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: right;">0.061</td>
+<td style="text-align: right;">0.061</td>
+<td style="text-align: right;">0.061</td>
+<td style="text-align: right;">0.093</td>
+<td style="text-align: right;">0.099</td>
+<td style="text-align: right;">0.105</td>
+<td style="text-align: right;">0.061</td>
+<td style="text-align: right;">0.047</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>With the true <span class="math inline">n_i</span>, the three DeCovarT solvers, <code>lsei</code>, NNLS and DeCovarT diagonal are within 0.035 of each other on every page (<a href="#tbl-scb-rmse" class="quarto-xref">Table 7</a>). DeCovarT diagonal returns the <code>lsei</code> RMSE to within 0.002 everywhere; ReDeconv returns the NNLS RMSE to four. The standard errors announced by <a href="#tbl-scb-fcov" class="quarto-xref">Table 1</a> for uncorrelated genes (0.79, 0.25 and 0.079 at <span class="math inline">n=100</span>, 1,000 and <span class="math inline">10^4</span>) set the scale: at <span class="math inline">n=100</span> every method is close to a random guess on <span class="math inline">(0,1)</span>, and at <span class="math inline">n=10^4</span> every method is at or below that standard error.</p>
+<p>Along the correlation grid, the full-covariance Newton fit differs from <code>lsei</code> by at most 15% in median RMSE (<a href="#fig-scb-heatmap" class="quarto-xref">Fig. 3</a>). Its RMSE ratio to <code>lsei</code> rises with <span class="math inline">|\varrho_1-\varrho_2|</span> for the balanced composition at <span class="math inline">n=100</span> (1.12 at <span class="math inline">|\varrho_1-\varrho_2|=1.6</span>) and falls with it for the highly unbalanced composition at <span class="math inline">n=1000</span> (0.85 at 1.6). Over the 243 scenarios of each <span class="math inline">n</span>, Newton beats <code>lsei</code> by more than 5% in 18%, 15% and 3% of them at <span class="math inline">n=100</span>, 1,000 and <span class="math inline">10^4</span>, and loses by more than 5% in 36%, 10% and 0%.</p>
+<div id="fig-scb-heatmap" class="quarto-float quarto-figure quarto-figure-center" alt="Grid of 15 heatmaps, one per method and arm, with the correlation of cell type 1 on the x axis and of cell type 2 on the y axis. In the oracle row all methods show similar colours, RMSE near 0.2 to 0.3. In the nominal row Newton-Raphson, L-BFGS-B and Firth are lighter (higher RMSE) everywhere except on the diagonal where the two correlations are equal, while lsei and DeCovarT diagonal look like their oracle panels.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-scb-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig05/performance_visualisations__heatmap_rmse__balanced_n_1000.svg" alt="Grid of 15 heatmaps, one per method and arm, with the correlation of cell type 1 on the x axis and of cell type 2 on the y axis. In the oracle row all methods show similar colours, RMSE near 0.2 to 0.3. In the nominal row Newton-Raphson, L-BFGS-B and Firth are lighter (higher RMSE) everywhere except on the diagonal where the two correlations are equal, while lsei and DeCovarT diagonal look like their oracle panels.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scb-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 3: RMSE of <span class="math inline">\hat p_1</span> on the <span class="math inline">(\varrho_1,\varrho_2)</span> grid, balanced composition, <span class="math inline">n=1000</span>. Top row: oracle arm; middle row: nominal arm; bottom row: methods without a plug-in. One <span class="math inline">\log_{10}</span> colour scale for every page of the book.
+</figcaption></figure>
+</div>
+<p>The plug-in cell count matters more than the correlation. With the nominal <span class="math inline">n</span>, the Newton RMSE grows by a median factor of 1.06, 1.58 and 4.44 at <span class="math inline">n=100</span>, 1,000 and <span class="math inline">10^4</span> for the balanced composition, and of 1.69 and 2.20 at <span class="math inline">n=10^4</span> for the highly and moderately unbalanced ones (90th percentiles up to 8.2). The loss sits off the diagonal <span class="math inline">\varrho_1=\varrho_2</span> (<a href="#fig-scb-heatmap" class="quarto-xref">Fig. 3</a>, middle row): at <span class="math inline">(\varrho_1,\varrho_2)=(0,0)</span> the balanced RMSE at <span class="math inline">n=10^4</span> is 0.081 with the true <span class="math inline">n_i</span> and 0.079 with the nominal <span class="math inline">n</span>; at <span class="math inline">(-0.8,0.8)</span> it is 0.082 and 0.330. <code>lsei</code> and DeCovarT diagonal keep their oracle RMSE for the balanced composition (ratio 0.96 to 0.99) but lose a factor of about 1.4 (moderately unbalanced) and 1.6 to 1.8 (highly unbalanced) at <span class="math inline">n=10^4</span>.</p>
+</section><section class="level3"><h4 id="solvers">Solvers<a class="anchor" aria-label="anchor" href="#solvers"></a>
+</h4>
+<p>With the true <span class="math inline">n_i</span>, Newton–Raphson, L-BFGS-B and Marquardt–Levenberg return the same <span class="math inline">\hat p_1</span> to within <span class="math inline">10^{-5}</span> in the median bulk at every <span class="math inline">n</span>. They part at <span class="math inline">n=100</span>: <span class="math inline">|\hat p_1^{\mathrm{NR}}-\hat
+p_1^{\mathrm{ML}}|&gt;0.01</span> in 16% to 20% of the bulks and <span class="math inline">|\hat p_1^{\mathrm{NR}}-\hat p_1^{\mathrm{L\text{-}BFGS\text{-}B}}|&gt;0.01</span> in 6% to 10%. L-BFGS-B stops on a face of the simplex in 51% to 63% of the bulks at <span class="math inline">n=100</span>, and in 44% to 50% of the highly unbalanced bulks at <span class="math inline">n=1000</span> and <span class="math inline">10^4</span>. The two ILR solvers never return a face. The log-likelihood of the truth exceeds that of the estimate by more than <span class="math inline">10^{-3}</span> in 4.6%, 1.1% and 0.2% of the Newton fits at <span class="math inline">n=100</span>, 1,000 and <span class="math inline">10^4</span> (Marquardt–Levenberg: 4.3%, 1.0%, 0.09%; L-BFGS-B: 0.2%, 0.006%, 0%). Median times per bulk are 2 ms (L-BFGS-B), 3 ms (Newton), 4 to 9 ms (Marquardt–Levenberg), 11 ms (Firth) and 130 ms (RNA-Sieve).</p>
+<p>Firth’s penalty lowers the balanced RMSE at <span class="math inline">n=1000</span> from 0.249 to 0.187 and raises the highly unbalanced one from 0.182 to 0.236, with a median bias of <span class="math inline">-0.16</span> there.</p>
+</section><section class="level3"><h4 id="intervals">Intervals<a class="anchor" aria-label="anchor" href="#intervals"></a>
+</h4>
+<div id="tbl-scb-coverage" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-scb-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 8: Coverage of nominal 95% intervals for <span class="math inline">p_1</span> around Newton–Raphson, mean over the 81 correlation pairs (interior targets only). Columns without “nominal <span class="math inline">n</span>” use the true <span class="math inline">n_i</span>.
+</figcaption><div aria-describedby="tbl-scb-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+</colgroup>
+<thead><tr class="header">
+<th>Composition</th>
+<th style="text-align: right;"><span class="math inline">n</span></th>
+<th style="text-align: right;">Wald</th>
+<th style="text-align: right;">ILR</th>
+<th style="text-align: right;">profile</th>
+<th style="text-align: right;">oracle</th>
+<th style="text-align: right;">Wald, nominal <span class="math inline">n</span>
+</th>
+<th style="text-align: right;">profile, nominal <span class="math inline">n</span>
+</th>
+<th style="text-align: right;">RNA-Sieve Godambe</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>balanced</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.66</td>
+</tr>
+<tr class="even">
+<td>balanced</td>
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.89</td>
+</tr>
+<tr class="odd">
+<td>balanced</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">0.97</td>
+</tr>
+<tr class="even">
+<td>moderately unbalanced</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.76</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">0.75</td>
+</tr>
+<tr class="odd">
+<td>moderately unbalanced</td>
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">0.94</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.57</td>
+<td style="text-align: right;">0.91</td>
+</tr>
+<tr class="even">
+<td>moderately unbalanced</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: right;">0.96</td>
+<td style="text-align: right;">0.94</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.94</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">0.30</td>
+<td style="text-align: right;">0.94</td>
+</tr>
+<tr class="odd">
+<td>highly unbalanced</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.83</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">0.57</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">0.80</td>
+</tr>
+<tr class="even">
+<td>highly unbalanced</td>
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">0.57</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.94</td>
+</tr>
+<tr class="odd">
+<td>highly unbalanced</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">0.99</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>With the true <span class="math inline">n_i</span>, the profile interval covers at 0.95 to 0.99 on every page (<a href="#tbl-scb-coverage" class="quarto-xref">Table 8</a>). The Wald interval under-covers at <span class="math inline">n=100</span> (0.76 to 0.83) and reaches 0.90 to 0.96 from <span class="math inline">n=1000</span>. The ILR interval reaches 1.00 at <span class="math inline">n=100</span> for the balanced and moderately unbalanced compositions, and for the balanced one at <span class="math inline">n=1000</span>, because its mean width is then 0.78 to 1.00; it covers 0.57 to 0.71 for the highly unbalanced composition. With the nominal <span class="math inline">n</span>, every construction falls: Wald to 0.21–0.57, profile to 0.29–0.87, lowest at <span class="math inline">n=10^4</span>. The Firth ILR interval covers 0.04 for the highly unbalanced composition at <span class="math inline">n\ge1000</span>. RNA-Sieve’s Fisher interval is the whole of <span class="math inline">[0,1]</span> on every page (width 1.00); its Godambe interval covers 0.66 to 0.80 at <span class="math inline">n=100</span>.</p>
+<div id="fig-scb-forest" class="quarto-float quarto-figure quarto-figure-center" alt="Forest plot of interval methods grouped by solver and arm. In the oracle arm the bars are centred near the dashed target at 0.5 and coverages range from 0.84 to 1. In the nominal arm the Newton-Raphson, L-BFGS-B, Marquardt-Levenberg and Firth bars are centred near 0.2, far left of the target, with coverages 0.16 to 0.43. DeCovarT diagonal stays centred on the target in both arms.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-scb-forest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig05/performance_visualisations__ci_width_forest__balanced_n_1000_sb90_ba_n1e3.svg" alt="Forest plot of interval methods grouped by solver and arm. In the oracle arm the bars are centred near the dashed target at 0.5 and coverages range from 0.84 to 1. In the nominal arm the Newton-Raphson, L-BFGS-B, Marquardt-Levenberg and Firth bars are centred near 0.2, far left of the target, with coverages 0.16 to 0.43. DeCovarT diagonal stays centred on the target in both arms.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scb-forest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 4: Intervals for <span class="math inline">p_1</span>, balanced composition, <span class="math inline">n=1000</span>, <span class="math inline">(\varrho_1,\varrho_2)=(-0.8,0.8)</span> (<code>SB90_Ba_n1e3</code>). Bar: mean bounds over the 200 bulks; point: mean estimate; dashed: mean target; left column: coverage with its Wilson 95% interval and mean width <span class="math inline">w</span>.
+</figcaption></figure>
+</div>
+<p>The bootstrap sub-study separates the two correlation corners. At <span class="math inline">(0,0)</span>, every construction covers 0.94 to 1.00 in both arms, except the nominal-arm Wald interval (0.88 balanced at <span class="math inline">n=100</span>, 0.86 moderately unbalanced at <span class="math inline">n=1000</span>). At <span class="math inline">(-0.8,0.8)</span> with the true <span class="math inline">n_i</span>, the Wald interval covers 0.44 to 0.85, the parametric bootstrap 0.79 to 0.92 and the profile interval 0.93 to 0.985. With the nominal <span class="math inline">n</span> at <span class="math inline">(-0.8,0.8)</span>, the mean Newton estimate for the balanced composition at <span class="math inline">n=1000</span> moves from 0.46 to 0.19, against a mean target of 0.50, while DeCovarT diagonal stays at 0.49 in both arms (<a href="#fig-scb-forest" class="quarto-xref">Fig. 4</a>), and coverage falls to 0.05–0.25 (Wald), 0.28–0.69 (profile) and 0.38–0.79 (bootstrap). Redrawing <span class="math inline">n</span> from its log-normal law in each bootstrap replicate lowers coverage in all four of these scenarios, to 0.17–0.67.</p>
+</section><section class="level3"><h4 id="boundary-test">Boundary test<a class="anchor" aria-label="anchor" href="#boundary-test"></a>
+</h4>
+<p>Of the 16,200 highly unbalanced bulks at <span class="math inline">n=100</span>, 6,130 hold no type-2 cell. On them the boundary test rejects <span class="math inline">p_2=0</span> in 3.7% of the bulks with the true <span class="math inline">n_i</span> and in 16.1% with the nominal <span class="math inline">n</span> (<a href="#fig-scb-boundary" class="quarto-xref">Fig. 5</a>). When type 2 is present at <span class="math inline">p_2=0.01</span>, the test rejects in 4.4%, 5.5% and 6.9% of the bulks at <span class="math inline">n=100</span>, 1,000 and <span class="math inline">10^4</span> with the true <span class="math inline">n_i</span>, close to the 5% level. Power reaches 0.64 at <span class="math inline">p_2=0.15</span> and 0.9994 at <span class="math inline">p_2=0.5</span>, both at <span class="math inline">n=10^4</span>. With the nominal <span class="math inline">n</span>, the rejection rate at <span class="math inline">p_2=0.01</span> rises to 0.15 to 0.25 and the power at <span class="math inline">p_2=0.5</span>, <span class="math inline">n=10^4</span> falls to 0.81.</p>
+<div id="fig-scb-boundary" class="quarto-float quarto-figure quarto-figure-center" alt="Grid of rejection rates by composition (rows) and by whether cell type 2 is present (columns), against the nominal cells per bulk on a log axis. Power rises with n for the balanced composition to 1 at n = 10,000 with the true n, less with the nominal n. For the highly unbalanced composition the oracle rate stays near 0.05 at all n while the nominal-n rate is 0.15 to 0.25. Size at n = 100 is about 0.04 with the true n and 0.16 with the nominal n.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-scb-boundary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig05/performance_visualisations__boundary_lrt__boundary_lrt.svg" alt="Grid of rejection rates by composition (rows) and by whether cell type 2 is present (columns), against the nominal cells per bulk on a log axis. Power rises with n for the balanced composition to 1 at n = 10,000 with the true n, less with the nominal n. For the highly unbalanced composition the oracle rate stays near 0.05 at all n while the nominal-n rate is 0.15 to 0.25. Size at n = 100 is about 0.04 with the true n and 0.16 with the nominal n.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scb-boundary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 5: Rejection rate of the boundary likelihood-ratio test of <span class="math inline">p_2=0</span> at the 5% level. Left: bulks that hold type 2 (power); right: bulks with no type-2 cell (size). Small dots: one scenario; large point and bar: pooled rate with its Wilson 95% interval; grey counts: bulks pooled.
+</figcaption></figure>
+</div>
+</section><section class="level3"><h4 id="likelihood-geometry">Likelihood geometry<a class="anchor" aria-label="anchor" href="#likelihood-geometry"></a>
+</h4>
+<p>The expected log-likelihood keeps its maximiser at <span class="math inline">p_1^\star</span> along both slices (<a href="#fig-scb-slice" class="quarto-xref">Fig. 6</a>; ledger V49d). Moving the mean of type 1 onto that of type 2 removes the mean part of the information. With <span class="math inline">(\varrho_1,\varrho_2)=(0.8,-0.8)</span> the covariance part, <span class="math inline">2.56</span> at every <span class="math inline">n</span> for the balanced composition, then carries the curvature; with <span class="math inline">(0,0)</span> it is zero and the surface flattens as <span class="math inline">t\to1</span>.</p>
+<div id="fig-scb-slice" class="quarto-float quarto-figure quarto-figure-center" alt="Two-row figure. Top: heat maps of relative expected log-likelihood over p1 and the mean-shift t, for n = 100, 1,000 and 10,000 and two correlation pairs; all panels are maximal along p1 = 0.5 and flatten as t grows or n falls. Bottom: Fisher information against t; the mean part falls to zero as t approaches 1, the covariance part is flat, near 5 for opposite correlations and near zero for uncorrelated genes, so the total follows the covariance part only when correlations differ.">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-scb-slice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig05/density_visualisations__loglik_mean_shift_slice__balanced.svg" alt="Two-row figure. Top: heat maps of relative expected log-likelihood over p1 and the mean-shift t, for n = 100, 1,000 and 10,000 and two correlation pairs; all panels are maximal along p1 = 0.5 and flatten as t grows or n falls. Bottom: Fisher information against t; the mean part falls to zero as t approaches 1, the covariance part is flat, near 5 for opposite correlations and near zero for uncorrelated genes, so the total follows the covariance part only when correlations differ.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scb-slice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 6: Expected log-likelihood of <span class="math inline">p_1</span> at the balanced composition while the mean of type 1 moves towards that of type 2 (<span class="math inline">t=0</span>: design means; <span class="math inline">t\to1</span>: equal means). Top: <span class="math inline">\log_{10}(L/\max L)</span> over <span class="math inline">(p_1,t)</span>, white contour at the expected 95% likelihood-ratio region, dashed line at <span class="math inline">p_1^\star</span>. Bottom: Fisher information of <span class="math inline">p_1</span> at <span class="math inline">p_1^\star</span> and its mean and covariance parts (<a href="#eq-scb-fisher" class="quarto-xref">Eq. 2</a>), log scale.
+</figcaption></figure>
+</div>
+</section></section><section class="level2"><h3 id="sec-scb-discussion">Discussion and interpretation of relative deconvolution performance<a class="anchor" aria-label="anchor" href="#sec-scb-discussion"></a>
 </h3>
-<p>[DISCUSSION-PLACEHOLDER]</p>
+<section class="level3"><h4 id="the-covariance-part-of-the-information-is-hard-to-use-from-one-bulk">The covariance part of the information is hard to use from one bulk<a class="anchor" aria-label="anchor" href="#the-covariance-part-of-the-information-is-hard-to-use-from-one-bulk"></a>
+</h4>
+<p><a href="#tbl-scb-fcov" class="quarto-xref">Table 1</a> gives the covariances up to 97% of the Fisher information at <span class="math inline">n=100</span>, yet the full-covariance fit is no more accurate than <code>lsei</code> there and is worse in 36% of the scenarios. We read this as a consequence of the design (inference, not tested separately): each estimate rests on one bulk, and the covariance part of <a href="#eq-scb-fisher" class="quarto-xref">Eq. 2</a> is the information that a single draw of two genes carries about its own spread. The mean part averages <span class="math inline">n</span> cells and grows with <span class="math inline">n</span>; the covariance part does not, and a single draw is far from the regime where the maximum likelihood estimator attains the Fisher bound. The Wald interval, built from the observed curvature, under-covers at <span class="math inline">n=100</span> (0.76 to 0.83) and at the opposite-sign corner (0.44 to 0.85), while the profile interval, which does not rely on the quadratic approximation, holds its level. The full-covariance fit gains where the mean part is already informative and the covariance share is still large: highly unbalanced, <span class="math inline">n=1000</span>, where <span class="math inline">f_{\mathrm{cov}}</span> reaches 0.76 and Newton’s RMSE is 15% below <code>lsei</code>’s at <span class="math inline">|\varrho_1-\varrho_2|=1.6</span>.</p>
+<p>DeCovarT diagonal reproduces <code>lsei</code> by construction in this design. Both cell types have per-cell variance 500 on both genes, so the diagonal <span class="math inline">\boldsymbol S_W(\boldsymbol p)</span> is <span class="math inline">500\,\boldsymbol I</span> for every <span class="math inline">\boldsymbol p</span>, and its likelihood is least squares on <span class="math inline">\boldsymbol y/c</span> under the sum-to-one constraint. The comparison with the full model therefore isolates the gene–gene correlation, as intended, but says nothing about gene-specific variances.</p>
+</section><section class="level3"><h4 id="the-cell-count-not-the-correlation-limits-accuracy">The cell count, not the correlation, limits accuracy<a class="anchor" aria-label="anchor" href="#the-cell-count-not-the-correlation-limits-accuracy"></a>
+</h4>
+<p>A 30% error in <span class="math inline">n_i</span> costs more than the correlation gains, and the cost grows with <span class="math inline">n</span>. With the nominal <span class="math inline">n</span>, the scaled bulk is <span class="math inline">\boldsymbol y/n=(n_i/n)\,\tilde{\boldsymbol\mu}\boldsymbol p^\star</span> plus noise of standard deviation about <span class="math inline">\sqrt{500/n}</span> per gene: the misfit along <span class="math inline">\tilde{\boldsymbol\mu}\boldsymbol p^\star</span> is about <span class="math inline">0.3\times21\approx6</span> against a noise of 0.22 at <span class="math inline">n=10^4</span>. How much of that misfit reaches <span class="math inline">\hat p_1</span> depends on the geometry:</p>
+<ul>
+<li>
+<code>lsei</code> projects <span class="math inline">\boldsymbol y/n</span> onto the segment between the signatures in the Euclidean metric. For the balanced composition, <span class="math inline">\tilde{\boldsymbol\mu}\boldsymbol p^\star=(21,21)</span> is orthogonal to <span class="math inline">\boldsymbol d=(-2,2)</span> and the misfit leaves <span class="math inline">\hat p_1</span> unchanged; for the unbalanced compositions it is not orthogonal, which matches the loss by a factor of 1.4 to 1.8 at <span class="math inline">n=10^4</span>.</li>
+<li>The full-covariance fit projects in the <span class="math inline">\boldsymbol S_W(\boldsymbol p)^{-1}</span> metric, and when <span class="math inline">\varrho_1\ne\varrho_2</span> its covariance depends on <span class="math inline">\boldsymbol p</span>, so the fit also moves <span class="math inline">\hat{\boldsymbol p}</span> to match a spread that a wrong <span class="math inline">\phi</span> has rescaled. On the diagonal <span class="math inline">\varrho_1=\varrho_2</span>, <span class="math inline">\boldsymbol S_W</span> does not depend on <span class="math inline">\boldsymbol p</span> and <span class="math inline">(1,1)</span> is one of its eigenvectors, so the balanced fit stays unbiased there: the darker diagonal of the nominal row of <a href="#fig-scb-heatmap" class="quarto-xref">Fig. 3</a>.</li>
+</ul>
+<p>None of the interval constructions repairs this, because the failure is a bias of the point estimate, not an underestimated variance. Redrawing <span class="math inline">n</span> in the bootstrap makes it worse: each replicate is refitted at the nominal <span class="math inline">n</span> around an already biased <span class="math inline">\hat p_1</span>, so its percentiles probably carry the bias twice (not checked).</p>
+<p>In practice <span class="math inline">n_i</span> is unknown, and at <span class="math inline">G=2</span> it cannot be estimated (<a href="#sec-scb-generative" class="quarto-xref">Sec. 1</a>). Two routes avoid the plug-in. A scale-free fit (NNLS with a free scale, renormalised; ReDeconv returns the same estimates here) matched the oracle <code>lsei</code> on every page without any cell count. With <span class="math inline">G&gt;J</span> genes, the scales enter the likelihood and can be profiled (<a href="R4-single-cell-hierarchical.html">§2.5</a>). The covariance-aware fit at a plugged-in <span class="math inline">n</span> is worth its cost only when <span class="math inline">n_i</span> is measured, for instance from nuclei counts.</p>
+</section><section class="level3"><h4 id="choice-of-solver">Choice of solver<a class="anchor" aria-label="anchor" href="#choice-of-solver"></a>
+</h4>
+<p>The three DeCovarT solvers agree in the interior; they differ when the maximum lies on, or near, a face. L-BFGS-B works on the closed simplex, reaches the face and returns the highest log-likelihood most often (truth above the estimate in at most 0.2% of bulks, against 4.6% for Newton at <span class="math inline">n=100</span>). The ILR solvers cannot reach a face, and they are the ones whose Hessian feeds the Wald, ILR and profile intervals. A practical sequence is L-BFGS-B for the point estimate and the face diagnosis, then Newton–Raphson from that point for the intervals when the estimate is interior; the benchmark did not run that sequence. At <span class="math inline">n=100</span>, Marquardt–Levenberg and Newton–Raphson differ by more than 0.01 in 16% to 20% of the bulks, and Marquardt–Levenberg has the lower RMSE on all three compositions (by 0.02 to 0.03). Both stop where the gradient vanishes, so the gap points to several local maxima, reached from the same start by different step sequences.</p>
+<p>Firth’s penalty pulls <span class="math inline">\hat p_1</span> towards <span class="math inline">1/2</span>: it lowers the balanced RMSE by a quarter at <span class="math inline">n=1000</span> and biases the highly unbalanced estimate by <span class="math inline">-0.16</span>, with ILR coverage 0.04. It is not a safe default when a cell type may be rare.</p>
+</section><section class="level3"><h4 id="detecting-a-rare-cell-type">Detecting a rare cell type<a class="anchor" aria-label="anchor" href="#detecting-a-rare-cell-type"></a>
+</h4>
+<p>With the true <span class="math inline">n_i</span>, the chi-bar-square boundary test keeps its size (3.7% at the 5% level). With these signatures, two genes and a mean gap of 2 counts per cell, it cannot detect a type at 1% even at <span class="math inline">n=10^4</span>. With the nominal <span class="math inline">n</span>, it rejects <span class="math inline">p_2=0</span> in 16% of the bulks that hold no type-2 cell, so a wrong cell count turns into false detections.</p>
+</section><section class="level3"><h4 id="rna-sieve">RNA-Sieve<a class="anchor" aria-label="anchor" href="#rna-sieve"></a>
+</h4>
+<p>RNA-Sieve, with the corrected update, matched DeCovarT within 0.025 in RMSE on every page; it was better for the highly unbalanced composition at <span class="math inline">n=10^4</span> (0.047 against 0.061) and worse for the balanced one (0.106 against 0.081). It fits the cohort of <span class="math inline">N</span> bulks jointly and estimates the reference from the panel; which of the two drives these gaps is not separated here. Its Fisher interval spans <span class="math inline">[0,1]</span> and carries no information; its Godambe interval under-covers at <span class="math inline">n=100</span> (0.66 to 0.80).</p>
 <div style="page-break-after: always;"></div>
-</section></section><section class="section level2"><h2 id="sec-scb-caveats">Caveats<a class="anchor" aria-label="anchor" href="#sec-scb-caveats"></a>
+</section></section></section><section class="section level2"><h2 id="sec-scb-caveats">Caveats<a class="anchor" aria-label="anchor" href="#sec-scb-caveats"></a>
 </h2>
 <ul>
 <li>A sum of Gaussian cells is Gaussian at any <span class="math inline">n_i</span>, and 17% of the per-cell values (the reference panel of RNA-Sieve) are negative; a count layer would be needed to test the central-limit step itself.</li>
