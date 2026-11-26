@@ -916,8 +916,15 @@ vcov_single_cell <- function(
 #'   (Marquardt-Levenberg in ILR coordinates).
 #' @param profile If `TRUE`, profile the two scales out; if `FALSE`, keep
 #'   them at their start values.
-#' @param initial_p Optional open-simplex start. `NULL` uses the free-scale
-#'   least-squares start.
+#' @param initial_p Optional start. `NULL` uses the free-scale
+#'   least-squares start; a length-\eqn{J} numeric vector is moved into
+#'   the open simplex with [repair_simplex()]; `"lbfgsb"` first fits the
+#'   model with `optimiser = "lbfgsb"` (same scales and tolerances) and
+#'   starts from that fit. Newton is sensitive to its start: from the
+#'   least-squares start it can stop early at a lower likelihood, while a
+#'   warm start from L-BFGS-B polishes that optimum with second-order
+#'   steps. [multistart_decovart()] with
+#'   `solver = deconvolute_single_cell` refits from several starts.
 #' @param mean_scale,variance_scale Optional fixed scales. Supply both
 #'   or neither.
 #' @param estimand `cellular` (default) interprets the fitted
@@ -996,6 +1003,26 @@ deconvolute_single_cell <- function(
   y <- checked$y
   mean_signature_matrix <- checked$mean
   nms <- colnames(mean_signature_matrix)
+  if (is.character(initial_p)) {
+    if (length(initial_p) != 1L || !identical(tolower(initial_p), "lbfgsb")) {
+      stop(
+        "`initial_p` must be NULL, a numeric vector, or \"lbfgsb\".",
+        call. = FALSE
+      )
+    }
+    # Warm start: the L-BFGS-B fit at the same scales and tolerances.
+    initial_p <- deconvolute_single_cell(
+      y,
+      mean_signature_matrix,
+      Sigma,
+      epsilon = epsilon,
+      itmax = itmax,
+      profile = profile,
+      mean_scale = mean_scale,
+      variance_scale = variance_scale,
+      optimiser = "lbfgsb"
+    )$composition
+  }
   ols_scale <- NA_real_
   if (is.null(initial_p) && fixed) {
     # The scales are known: only the free-scale start of p is needed.

@@ -12,6 +12,7 @@ multistart_decovart(
   solver = deconvolute_ratios_Newton_Raphson,
   loglik_tol = 1e-04,
   dirichlet_alpha = 1,
+  initial_p = NULL,
   ...
 )
 }
@@ -26,10 +27,15 @@ multistart_decovart(
 \eqn{\mathcal{M}_{G\times G\times J}}.}
 
 \item{n_starts}{Number of Dirichlet restarts (in addition to the
-equi-balanced start).}
+first start).}
 
-\item{solver}{Solver accepting \code{initial_p} and \code{return_model};
-defaults to \code{\link[=deconvolute_ratios_Newton_Raphson]{deconvolute_ratios_Newton_Raphson()}}.}
+\item{solver}{Solver accepting \code{y}, \code{mean_signature_matrix}, \code{Sigma}
+and \code{initial_p}, and returning \code{coefficients} (population solvers,
+called with \code{return_model = TRUE}) or \code{p} (as
+\code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}}) together with \code{loglik}. Defaults to
+\code{\link[=deconvolute_ratios_Newton_Raphson]{deconvolute_ratios_Newton_Raphson()}}. With
+\code{solver = deconvolute_single_cell} the single-cell Newton fit is
+restarted; pass \code{optimiser} through \code{...} to change it.}
 
 \item{loglik_tol}{Two starts count as reaching the same mode when their
 log-likelihoods differ by less than this amount.}
@@ -37,12 +43,17 @@ log-likelihoods differ by less than this amount.}
 \item{dirichlet_alpha}{Concentration for those random starts (default
 \code{1}). See \code{\link[=starting_simplex]{starting_simplex()}}.}
 
+\item{initial_p}{First start: \code{NULL} (default) for the barycentre, a
+length-\eqn{J} numeric vector (for example the estimate of another
+method), or \code{"qp"}; see \code{\link[=starting_simplex]{starting_simplex()}}.}
+
 \item{...}{Passed to \code{solver} (e.g. \code{epsilon}, \code{itmax}).}
 }
 \value{
 A list with \code{coefficients} (best fit), \code{loglik},
 \code{loglik_range}, \code{starts} (matrix of per-start estimates),
-\code{logliks}, and \code{multimodal}.
+\code{logliks}, \code{multimodal}, \code{best_start} (index of the best start, 1
+for the first) and \code{fit} (the full solver output of the best start).
 }
 \description{
 The realised DeCovarT log-likelihood is not globally concave, so a
@@ -59,6 +70,8 @@ Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu \%*\% c(0.6, 0.4))
 set.seed(1)
 multistart_decovart(y, mu, Sigma, n_starts = 3L)$multimodal
+# First start supplied by the user, e.g. another method's estimate
+multistart_decovart(y, mu, Sigma, n_starts = 2L, initial_p = c(0.5, 0.5))$loglik
 }
 \seealso{
 \code{\link[=boundary_diagnostics]{boundary_diagnostics()}}, \code{\link[=fit_decovart]{fit_decovart()}}

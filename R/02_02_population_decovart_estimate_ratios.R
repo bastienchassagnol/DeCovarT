@@ -575,18 +575,27 @@ starting_simplex <- function(
 #'
 #' @inheritParams loglik_multivariate
 #' @param n_starts Number of Dirichlet restarts (in addition to the
-#'   equi-balanced start).
+#'   first start).
+#' @param initial_p First start: `NULL` (default) for the barycentre, a
+#'   length-\eqn{J} numeric vector (for example the estimate of another
+#'   method), or `"qp"`; see [starting_simplex()].
 #' @param dirichlet_alpha Concentration for those random starts (default
 #'   `1`). See [starting_simplex()].
-#' @param solver Solver accepting `initial_p` and `return_model`;
-#'   defaults to [deconvolute_ratios_Newton_Raphson()].
+#' @param solver Solver accepting `y`, `mean_signature_matrix`, `Sigma`
+#'   and `initial_p`, and returning `coefficients` (population solvers,
+#'   called with `return_model = TRUE`) or `p` (as
+#'   [deconvolute_single_cell()]) together with `loglik`. Defaults to
+#'   [deconvolute_ratios_Newton_Raphson()]. With
+#'   `solver = deconvolute_single_cell` the single-cell Newton fit is
+#'   restarted; pass `optimiser` through `...` to change it.
 #' @param loglik_tol Two starts count as reaching the same mode when their
 #'   log-likelihoods differ by less than this amount.
 #' @param ... Passed to `solver` (e.g. `epsilon`, `itmax`).
 #'
 #' @return A list with `coefficients` (best fit), `loglik`,
 #'   `loglik_range`, `starts` (matrix of per-start estimates),
-#'   `logliks`, and `multimodal`.
+#'   `logliks`, `multimodal`, `best_start` (index of the best start, 1
+#'   for the first) and `fit` (the full solver output of the best start).
 #'
 #' @seealso [boundary_diagnostics()], [fit_decovart()]
 #' @family decovart_inference
@@ -598,6 +607,8 @@ starting_simplex <- function(
 #' y <- drop(mu %*% c(0.6, 0.4))
 #' set.seed(1)
 #' multistart_decovart(y, mu, Sigma, n_starts = 3L)$multimodal
+#' # First start supplied by the user, e.g. another method's estimate
+#' multistart_decovart(y, mu, Sigma, n_starts = 2L, initial_p = c(0.5, 0.5))$loglik
 multistart_decovart <- function(
   y,
   mean_signature_matrix,
@@ -606,6 +617,7 @@ multistart_decovart <- function(
   solver = deconvolute_ratios_Newton_Raphson,
   loglik_tol = 1e-4,
   dirichlet_alpha = 1,
+  initial_p = NULL,
   ...
 ) {
   n_celltypes <- ncol(mean_signature_matrix)
@@ -613,8 +625,11 @@ multistart_decovart <- function(
   starts <- vector("list", n_starts + 1L)
   starts[[1L]] <- starting_simplex(
     n_celltypes,
-    "barycentre",
-    colnames(mean_signature_matrix)
+    initial_p,
+    colnames(mean_signature_matrix),
+    y,
+    mean_signature_matrix,
+    dirichlet_alpha
   )
   for (s in seq_len(n_starts)) {
     starts[[s + 1L]] <- starting_simplex(
@@ -631,23 +646,39 @@ multistart_decovart <- function(
     dimnames = list(colnames(mean_signature_matrix), NULL)
   )
   logliks <- rep(NA_real_, length(starts))
+  fits <- vector("list", length(starts))
+  # Population solvers return the model only on request; the single-cell
+  # solver always does and has no such argument.
+  model_arg <- if ("return_model" %in% names(formals(solver))) {
+    list(return_model = TRUE)
+  }
   for (s in seq_along(starts)) {
     fit <- tryCatch(
-      suppressWarnings(solver(
-        y = y,
-        mean_signature_matrix = mean_signature_matrix,
-        Sigma = Sigma,
-        return_model = TRUE,
-        initial_p = starts[[s]],
-        ...
+      suppressWarnings(do.call(
+        solver,
+        c(
+          list(
+            y = y,
+            mean_signature_matrix = mean_signature_matrix,
+            Sigma = Sigma,
+            initial_p = starts[[s]]
+          ),
+          model_arg,
+          list(...)
+        )
       )),
       error = function(e) NULL
     )
-    if (is.null(fit)) {
+    if (is.null(fit) || !isTRUE(is.finite(fit$loglik))) {
       next
     }
-    estimates[, s] <- fit$coefficients
+    estimates[, s] <- if (is.null(fit$coefficients)) {
+      fit$p
+    } else {
+      fit$coefficients
+    }
     logliks[[s]] <- fit$loglik
+    fits[[s]] <- fit
   }
   if (!any(is.finite(logliks))) {
     stop("Every random start failed to converge.", call. = FALSE)
@@ -660,7 +691,9 @@ multistart_decovart <- function(
     loglik_range = loglik_range,
     starts = estimates,
     logliks = logliks,
-    multimodal = loglik_range > loglik_tol
+    multimodal = loglik_range > loglik_tol,
+    best_start = best,
+    fit = fits[[best]]
   )
 }
 

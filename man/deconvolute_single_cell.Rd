@@ -34,8 +34,15 @@ deconvolute_single_cell(
 \item{profile}{If \code{TRUE}, profile the two scales out; if \code{FALSE}, keep
 them at their start values.}
 
-\item{initial_p}{Optional open-simplex start. \code{NULL} uses the free-scale
-least-squares start.}
+\item{initial_p}{Optional start. \code{NULL} uses the free-scale
+least-squares start; a length-\eqn{J} numeric vector is moved into
+the open simplex with \code{\link[=repair_simplex]{repair_simplex()}}; \code{"lbfgsb"} first fits the
+model with \code{optimiser = "lbfgsb"} (same scales and tolerances) and
+starts from that fit. Newton is sensitive to its start: from the
+least-squares start it can stop early at a lower likelihood, while a
+warm start from L-BFGS-B polishes that optimum with second-order
+steps. \code{\link[=multistart_decovart]{multistart_decovart()}} with
+\code{solver = deconvolute_single_cell} refits from several starts.}
 
 \item{mean_scale, variance_scale}{Optional fixed scales. Supply both
 or neither.}

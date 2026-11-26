@@ -622,6 +622,63 @@ test_that("both single-cell optimisers are equivariant to the bulk scale", {
   expect_equal(lbfgsb$p, newton$p, tolerance = 1e-4)
 })
 
+test_that("Newton restarts and the L-BFGS-B warm start reach the L-BFGS-B optimum", {
+  moments <- withr::with_seed(
+    20261126L,
+    simulate_hierarchical_grn_moments(
+      n_genes = 12L,
+      n_celltypes = 3L,
+      mean_scale = 10,
+      target_cosine = 0.3,
+      nonnegative = TRUE,
+      precision_shift = 0.5,
+      precision_scale = 0.3,
+      graph_model = "erdos_renyi"
+    )
+  )
+  ref <- rescale_single_cell_moments(moments, cell_size = c(1, 1, 5))
+  y <- simulate_bulk_from_cells(
+    ref$generative_mean,
+    ref$generative_sigma,
+    p = c(0.5, 0.3, 0.2),
+    n_cells = 1000,
+    platform_scale = 5,
+    seed = 4L
+  )$Y[, 1]
+  mu <- ref$mean_signature_matrix
+  lbfgsb <- deconvolute_single_cell(y, mu, ref$Sigma, optimiser = "lbfgsb")
+  newton <- deconvolute_single_cell(y, mu, ref$Sigma)
+
+  warm <- deconvolute_single_cell(y, mu, ref$Sigma, initial_p = "lbfgsb")
+  expect_gte(warm$loglik, lbfgsb$loglik - 1e-6)
+  expect_equal(
+    unname(warm$p_start),
+    unname(lbfgsb$composition),
+    tolerance = 1e-8
+  )
+  expect_error(
+    deconvolute_single_cell(y, mu, ref$Sigma, initial_p = "qp"),
+    "initial_p"
+  )
+
+  # First start: the default Newton fit, so the best start cannot be worse.
+  restarts <- withr::with_seed(
+    5L,
+    multistart_decovart(
+      y,
+      mu,
+      ref$Sigma,
+      n_starts = 2L,
+      solver = deconvolute_single_cell,
+      initial_p = newton$p
+    )
+  )
+  expect_length(restarts$logliks, 3L)
+  expect_gte(restarts$loglik, newton$loglik - 1e-6)
+  expect_equal(restarts$fit$p, restarts$coefficients)
+  expect_identical(restarts$fit$fit_type, "profile")
+})
+
 test_that("the bivariate single-cell scenario script builds and runs", {
   skip_if_not_installed("MixSim")
   script <- file.path(

@@ -484,6 +484,38 @@ test_that("multistart_decovart explores several starts", {
   expect_equal(sum(restarts$coefficients), 1, tolerance = 1e-6)
 })
 
+test_that("multistart_decovart takes a user first start and keeps the best fit", {
+  setup <- .inference_setup()
+  y <- drop(setup$signature %*% c(0.45, 0.35, 0.20))
+
+  restarts <- withr::with_seed(
+    4L,
+    multistart_decovart(
+      y = y,
+      mean_signature_matrix = setup$signature,
+      Sigma = setup$Sigma,
+      n_starts = 2L,
+      initial_p = c(0.45, 0.35, 0.20),
+      itmax = 100
+    )
+  )
+
+  expect_identical(dim(restarts$starts), c(3L, 3L))
+  expect_true(restarts$best_start %in% 1:3)
+  expect_equal(restarts$loglik, max(restarts$logliks, na.rm = TRUE))
+  expect_equal(restarts$fit$coefficients, restarts$coefficients)
+  expect_error(
+    multistart_decovart(
+      y,
+      setup$signature,
+      setup$Sigma,
+      n_starts = 1L,
+      initial_p = c(0.5, 0.5)
+    ),
+    "initial_p"
+  )
+})
+
 
 test_that("repair_simplex renormalises and rejects invalid inputs", {
   p_near <- c(0.2, 0.3, 0.5 + 1e-12)
