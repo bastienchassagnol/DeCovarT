@@ -232,6 +232,7 @@ save_benchmark <- function(benchmark, config, meta, file) {
         "optimisation",
         "intervals",
         "boundary_lrt",
+        "paired",
         "data"
       ),
       names(benchmark)

@@ -14,15 +14,16 @@
   "L-BFGS-B" = "#56B4E9",
   "Marquardt-Levenberg" = "#7B3294",
   "Firth" = "#009E73",
+  "Scalar MLE" = "#000000",
   "DeCovarT diagonal" = "#B8860B",
   "MEAD" = "#CC79A7",
   "RNA-Sieve" = "#D55E00",
   "ReDeconv" = "#8C6D31"
 )
 
-# fig05 runs every scale-dependent method twice, with the true cell count
-# (oracle n) and with the design value (nominal n): same hue, the nominal
-# arm lighter.
+# Benchmarks that run a scale-dependent method twice, with the true cell
+# count (oracle n) and with the design value (nominal n), draw both arms in
+# the same hue, the nominal arm lighter. No current figure has two arms.
 .arm_suffix <- c(oracle = " (oracle n)", nominal = " (nominal n)")
 .base_method <- function(x) sub(" \\((oracle|nominal) n\\)$", "", x)
 # Oracle arm first, then the nominal arm, then methods without a plug-in,
@@ -90,6 +91,7 @@
   "ILR, mapped back" = "#56B4E9",
   "ILR, REML" = "#7FB8DA",
   "Profile likelihood" = "#009E73",
+  "LR inversion, known scales" = "#009E73",
   "Profile, REML" = "#66C2A5",
   "Parametric bootstrap" = "#E69F00",
   "Bootstrap, n redrawn" = "#F0C75E",
@@ -165,16 +167,18 @@
 .scenario_layout <- function(config, figure) {
   config <- tibble::as_tibble(config)
   if (identical(figure, "fig05")) {
-    # Pages: composition, then cells per bulk; panels as fig02.
+    # Pages: centroid gap, then composition (fig02 without the variance
+    # factor); panels as fig02.
     config$proportions <- factor(
       config$proportions,
       c("balanced", "moderately unbalanced", "highly unbalanced")
     )
-    config <- dplyr::arrange(config, .data$proportions, .data$n_cells)
-    config$page <- sprintf(
-      "%s / n = %s cells per bulk",
+    config$centroids <- factor(config$centroids, c("small_CLD", "large_CLD"))
+    config <- dplyr::arrange(config, .data$centroids, .data$proportions)
+    config$page <- paste(
+      sub("_CLD", " centroid gap", config$centroids),
       config$proportions,
-      formatC(config$n_cells, format = "d", big.mark = ",")
+      sep = " / "
     )
   }
   if (identical(figure, "fig02")) {

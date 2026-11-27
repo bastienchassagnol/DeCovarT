@@ -1,9 +1,9 @@
 {
   "meta": {
-    "date": "2026-11-26",
+    "date": "2026-11-27",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
-    "python": "3.14.3"
+    "python": "3.13.12"
   },
   "records": [
     {
@@ -373,8 +373,8 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{13125 \\cdot 2^{\\frac{5}{11}} \\cdot 3^{\\frac{8}{11}} \\cdot 5^{\\frac{17}{22}} \\cdot 7^{\\frac{19}{198}}}{16}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 13125*2**(5/11)*3**(8/11)*5**(17/22)*7**(19/198)/16; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{1545049}{36864}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 1545049/36864; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
@@ -854,7 +854,7 @@
       "kind": "numeric",
       "status": "pass",
       "detail": "Stationary point and closed form symbolic; MC seed 20261101: mean of $n=50$ NB($\\mu=3,r=2$), $2\\times10^5$ replicates, at $u=1$ tail 0.0080 vs bound 0.0584; range filter $K=3$, $\\mu_k=(1,3,6)$, $r=2$, $\\bm\\alpha=(0.98,0.01,0.01)$, $n=c_k=100$, $2\\times10^4$ replicates; first bound below 1 at $t=1.3$: 0.950 vs 0.0000",
-      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.679298686113857), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254736), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.0993283428761904), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.310608812975563), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
+      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.6792986861138575), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254735), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.099328342876186), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.3106088129755633), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
@@ -1927,15 +1927,15 @@
     },
     {
       "id": "V49a",
-      "claim": "With $\\boldsymbol\\Sigma_{W,j}=500\\,\\boldsymbol R_j$, $n=1000$ and $\\boldsymbol p=(1/2,1/2)$: $\\boldsymbol S_W(\\boldsymbol p)/n=\\sum_j p_j^2\\boldsymbol R_j$",
+      "claim": "With $\\boldsymbol\\Sigma_{W,j}=n\\boldsymbol R_j$ and $c=\\phi=n$: $\\mathrm{Var}(\\boldsymbol y/n)=p_1\\boldsymbol R_1+p_2\\boldsymbol R_2$ for every $n$",
       "kind": "exact",
       "status": "pass",
-      "detail": "symbolic in $\\varrho_1,\\varrho_2$; residual $\\boldsymbol 0$",
+      "detail": "symbolic in $p_1,n,\\varrho_1,\\varrho_2$; residual $\\boldsymbol 0$",
       "tex_line": "qmd",
-      "detail_full": "symbolic in $\\varrho_1,\\varrho_2$; residual $\\boldsymbol 0$",
+      "detail_full": "symbolic in $p_1,n,\\varrho_1,\\varrho_2$; residual $\\boldsymbol 0$",
       "script": "verification/sympy/check_V49_bivariate_single_cell.py",
       "qmd_lines": [
-        "R3-bivariate:141",
+        "R3-bivariate:94",
         "retour_figure_1_and_4:629"
       ]
     },
@@ -1958,12 +1958,9 @@
       "kind": "rational-sampling",
       "status": "pass",
       "detail": "minus the second derivative of V49b at $p_1=p_1^\\star$; 25 random rational models; largest residual $0$",
-      "tex_line": "qmd",
+      "tex_line": "not cited",
       "detail_full": "minus the second derivative of V49b at $p_1=p_1^\\star$; 25 random rational models; largest residual $0$",
-      "script": "verification/sympy/check_V49_bivariate_single_cell.py",
-      "qmd_lines": [
-        "R3-bivariate:173"
-      ]
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py"
     },
     {
       "id": "V49d",
@@ -1979,6 +1976,32 @@
       ]
     },
     {
+      "id": "V51a",
+      "claim": "For $\\boldsymbol y/n\\sim\\mathcal N(\\tilde{\\boldsymbol\\mu}\\boldsymbol p,\\boldsymbol V(p_1))$ with $\\boldsymbol V=\\sum_jp_j\\boldsymbol R_j$ or $\\sum_jp_j^2\\boldsymbol R_j$: $I(p_1^\\star)=\\boldsymbol d^\\top\\boldsymbol V^{-1}\\boldsymbol d+\\tfrac12\\mathrm{tr}[(\\boldsymbol V^{-1}\\boldsymbol V')^2]$",
+      "kind": "rational-sampling",
+      "status": "pass",
+      "detail": "minus the second derivative of the expected log-likelihood at $p_1^\\star$; 10 random rational models per law; largest residual $0$",
+      "tex_line": "qmd",
+      "detail_full": "minus the second derivative of the expected log-likelihood at $p_1^\\star$; 10 random rational models per law; largest residual $0$",
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py",
+      "qmd_lines": [
+        "R3-bivariate:144"
+      ]
+    },
+    {
+      "id": "V51b",
+      "claim": "With $\\boldsymbol R_1=\\boldsymbol R_2$ ($G=2$): covariance part $0$ under $\\sum_jp_j\\boldsymbol R_j$ and $4(2p_1-1)^2/\\{p_1^2+(1-p_1)^2\\}^2$ under $\\sum_jp_j^2\\boldsymbol R_j$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "symbolic in $p_1,\\varrho$; residuals $0$",
+      "tex_line": "qmd",
+      "detail_full": "symbolic in $p_1,\\varrho$; residuals $0$",
+      "script": "verification/sympy/check_V49_bivariate_single_cell.py",
+      "qmd_lines": [
+        "R3-bivariate:160"
+      ]
+    },
+    {
       "id": "V49a",
       "claim": "Gamma--Poisson, zero count: $\\mathrm{E}(r\\mid X=0)=\\alpha/(\\beta+L)$",
       "kind": "exact",
@@ -1988,7 +2011,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V49_retour_fig1_fig4.py",
       "qmd_lines": [
-        "R3-bivariate:141",
+        "R3-bivariate:94",
         "retour_figure_1_and_4:629"
       ]
     },
@@ -2012,11 +2035,8 @@
       "status": "pass",
       "detail": "symbolic $p_A$; $p_A=0.4$ gives $1/2$ and $4/3$",
       "detail_full": "symbolic $p_A$; $p_A=0.4$ gives $1/2$ and $4/3$",
-      "tex_line": "qmd",
-      "script": "verification/sympy/check_V49_retour_fig1_fig4.py",
-      "qmd_lines": [
-        "R3-bivariate:173"
-      ]
+      "tex_line": "not cited",
+      "script": "verification/sympy/check_V49_retour_fig1_fig4.py"
     },
     {
       "id": "V49d",

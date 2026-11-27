@@ -12,11 +12,13 @@
   opt <- benchmark$optimisation
   sample_index <- as.integer(sub("sample_", "", opt$sample_id))
   estimate <- as.matrix(opt[cts])
-  truth <- t(mapply(
-    function(id, s) benchmark$data[[id]]$truth[cts, s],
-    opt$ID,
-    sample_index
-  ))
+  truth <- matrix(NA_real_, nrow(opt), length(cts))
+  for (rows in split(seq_len(nrow(opt)), opt$ID)) {
+    id <- opt$ID[[rows[[1L]]]]
+    truth[rows, ] <- t(
+      benchmark$data[[id]]$truth[cts, sample_index[rows], drop = FALSE]
+    )
+  }
   opt$rmse <- sqrt(rowMeans((estimate - truth)^2))
   opt$aitchison <- vapply(
     seq_len(nrow(opt)),
@@ -294,10 +296,12 @@ plot_rmse_aitchison_dots <- function(
       .base_method(intervals$algorithm) == "Newton-Raphson",
   ]
   intervals$algorithm <- .method_factor(intervals$algorithm)
-  intervals$ci_label <- factor(
-    .ci_labels[intervals$ci_method],
-    unname(.ci_labels)
-  )
+  labels <- .ci_labels
+  if (identical(figure, "fig05")) {
+    # No nuisance parameter is profiled at known scales.
+    labels[["profile"]] <- "LR inversion, known scales"
+  }
+  intervals$ci_label <- factor(labels[intervals$ci_method], unname(labels))
   intervals <- .with_layout(intervals, layout)
   intervals[intervals$corner, ]
 }
@@ -954,11 +958,14 @@ plot_kkt_raincloud <- function(data) {
       df,
       ggplot2::aes(.data$kkt, .data$algorithm, fill = .data$algorithm)
     ) +
+      # Many residuals are exactly 0 (floored at 1e-12): the Sheather-Jones
+      # bandwidth fails on such ties, so Silverman's rule is used directly.
       ggdist::stat_slab(
         side = "top",
         scale = 0.6,
         alpha = 0.6,
-        normalize = "groups"
+        normalize = "groups",
+        density = ggdist::density_unbounded(bandwidth = "nrd0")
       ) +
       ggdist::stat_dots(side = "bottom", scale = 0.5, dotsize = 0.8) +
       .panel_facets(df) +
@@ -970,9 +977,14 @@ plot_kkt_raincloud <- function(data) {
         y = NULL,
         title = "First-order optimality of every estimate",
         subtitle = page,
-        caption = "Projected score at the estimate on the simplex; 0 at a maximum of the DeCovarT likelihood."
+        caption = paste0(
+          "Projected score at the estimate on the simplex; 0 at a maximum of the DeCovarT likelihood.\n",
+          "Half-eyes: kernel density with Silverman's rule-of-thumb bandwidth (bw.nrd0). Many residuals are repeated\n",
+          "values (exact zeros, floored at 1e-12), on which the default plug-in bandwidth (Sheather-Jones) cannot be computed."
+        )
       ) +
-      .page_theme()
+      .page_theme() +
+      ggplot2::theme(plot.caption = ggplot2::element_text(size = 7))
   })
 }
 
@@ -1010,7 +1022,12 @@ plot_resource <- function(data, metric) {
     memory_mib = c("Peak memory per bulk (MiB, log10)", "Memory")
   )[[metric]]
   data$value <- data[[metric]]
-  data <- data[is.finite(data$value) & data$value > 0, ]
+  data <- data[is.finite(data$value), ]
+  # The timer counts milliseconds: a bulk timed at 0 is drawn at 0.5 ms.
+  floor_value <- if (identical(metric, "elapsed_sec")) 5e-4 else 0
+  n_floored <- sum(data$value <= 0)
+  data$value <- pmax(data$value, floor_value)
+  data <- data[data$value > 0, ]
   limits <- range(data$value)
   lapply(levels(droplevels(data$page)), function(page) {
     df <- data[data$page == page, ]
@@ -1020,7 +1037,7 @@ plot_resource <- function(data, metric) {
     ) +
       ggplot2::geom_boxplot(outlier.shape = NA, width = 0.5) +
       ggplot2::geom_point(
-        position = ggplot2::position_jitter(height = 0.15, seed = 1L),
+        position = ggplot2::position_jitter(width = 0, height = 0.15, seed = 1L),
         size = 1,
         alpha = 0.6
       ) +
@@ -1033,7 +1050,15 @@ plot_resource <- function(data, metric) {
         y = NULL,
         title = paste(spec[[2L]], "of every method"),
         subtitle = page,
-        caption = "Point estimate only; interval computations are not included. Competitors: batch time divided by the bulks."
+        caption = paste0(
+          "Point estimate only; interval computations are not included. Competitors: batch time divided by the bulks.",
+          if (n_floored > 0L && floor_value > 0) {
+            sprintf(
+              "\n%d bulks timed at 0 (below the 1 ms timer resolution) are drawn at 0.5 ms.",
+              n_floored
+            )
+          }
+        )
       ) +
       .page_theme()
   })
@@ -1115,146 +1140,333 @@ plot_nuisance_ratio <- function(data) {
   )
 }
 
-# Boundary likelihood-ratio test (fig05) ---------------------------------------
+# RMSE mechanisms (fig05) ------------------------------------------------------
 
-# Rejection rate of p_2 = 0 at the 5% level, per scenario and arm, split by
-# whether the bulk holds a type-2 cell (power) or none (size).
-.data_boundary_lrt <- function(benchmark, layout, level = 0.05) {
-  tests <- benchmark$boundary_lrt
-  tests$truth <- ifelse(
-    tests$p2_realised > 0,
-    "type 2 present: power",
-    "type 2 absent: size"
-  )
-  per_scenario <- tests |>
-    dplyr::filter(is.finite(.data$p_value)) |>
+# Mean RMSE per scenario and method next to the scenario descriptors:
+# Gaussian overlap of the component laws (MixSim), covariance contrast
+# |rho_1 - rho_2|, and the ratio of each method's RMSE to lsei's.
+.data_rmse_mechanism <- function(benchmark, layout, errors) {
+  descriptors <- layout[c(
+    "ID",
+    "centroids",
+    "proportions",
+    "correlation_celltype1",
+    "correlation_celltype2",
+    "overlap",
+    "covariance_contrast"
+  )]
+  errors <- dplyr::left_join(errors, descriptors, by = "ID")
+  lsei <- errors[errors$algorithm == "lsei", c("ID", "rmse")]
+  names(lsei)[2L] <- "rmse_lsei"
+  errors <- dplyr::left_join(errors, lsei, by = "ID")
+  errors$log2_ratio <- log2(errors$rmse / errors$rmse_lsei)
+  paired <- benchmark$paired |>
     dplyr::summarise(
-      rejected = mean(.data$p_value < level),
-      n = dplyr::n(),
-      .by = c("ID", "arm", "truth")
-    )
-  pooled <- tests |>
-    dplyr::filter(is.finite(.data$p_value)) |>
-    dplyr::left_join(layout[c("ID", "proportions", "n_cells")], by = "ID") |>
-    dplyr::summarise(
-      rate = coverage_mc_interval(.data$p_value < level)$coverage,
-      lower = coverage_mc_interval(.data$p_value < level)$lower,
-      upper = coverage_mc_interval(.data$p_value < level)$upper,
-      n = dplyr::n(),
-      .by = c("proportions", "n_cells", "arm", "truth")
-    )
-  per_scenario <- dplyr::left_join(
-    per_scenario,
-    layout[c("ID", "proportions", "n_cells")],
-    by = "ID"
+      rmse_single_cell = sqrt(mean((.data$p1_single_cell - .data$p1_true)^2)),
+      rmse_population = sqrt(mean((.data$p1_population - .data$p1_true)^2)),
+      .by = c("ID", "method")
+    ) |>
+    dplyr::mutate(
+      log2_ratio = log2(.data$rmse_single_cell / .data$rmse_population),
+      method = factor(.data$method, c("Scalar MLE", "lsei"))
+    ) |>
+    dplyr::left_join(descriptors, by = "ID") |>
+    .with_layout(layout)
+  # The scatter has one page per centroid gap.
+  scatter <- errors
+  scatter$page <- factor(
+    sub("_CLD", " centroid gap", scatter$centroids),
+    c("small centroid gap", "large centroid gap")
   )
-  list(per_scenario = per_scenario, pooled = pooled, level = level)
+  list(errors = errors, paired = paired, scatter = scatter)
 }
 
-plot_boundary_lrt <- function(data) {
-  arm_palette <- c(oracle = "#1D4E89", nominal = "#8EB0D6")
-  dodge <- ggplot2::position_dodge(width = 0.25)
-  pooled <- data$pooled
-  pooled$truth <- factor(
-    pooled$truth,
-    c("type 2 present: power", "type 2 absent: size")
+.likelihood_ratio_methods <- c(
+  "Newton-Raphson",
+  "L-BFGS-B",
+  "Marquardt-Levenberg",
+  "Firth",
+  "Scalar MLE"
+)
+
+# log2 RMSE ratio on the (rho_1, rho_2) grid with the MixSim overlap as
+# contours. `which = "lsei"`: each likelihood method against lsei on the
+# same bulks; `which = "population"`: single-cell RMSE against the paired
+# population RMSE (common random numbers), for the scalar MLE and lsei.
+# MixSim overlap contours on the (rho_1, rho_2) grid; none when the overlap
+# is the same at every pair (0 at the large centroid gap).
+.overlap_contour <- function(df) {
+  grid <- dplyr::distinct(
+    df,
+    .data$correlation_celltype1,
+    .data$correlation_celltype2,
+    .data$overlap
   )
-  per_scenario <- data$per_scenario
-  per_scenario$truth <- factor(per_scenario$truth, levels(pooled$truth))
-  # Cells with no bulk of that kind (e.g. no balanced bulk lacks type 2).
-  empty <- dplyr::anti_join(
-    tidyr::expand_grid(
-      proportions = unique(pooled$proportions),
-      truth = factor(levels(pooled$truth), levels(pooled$truth))
-    ),
-    dplyr::distinct(pooled, .data$proportions, .data$truth),
-    by = c("proportions", "truth")
+  if (diff(range(grid$overlap)) < 1e-6) {
+    return(NULL)
+  }
+  ggplot2::geom_contour(
+    data = grid,
+    ggplot2::aes(z = .data$overlap),
+    bins = 5L,
+    colour = "grey15",
+    linewidth = 0.35
   )
-  list(
+}
+
+plot_rmse_ratio_tiles <- function(data, which = c("lsei", "population")) {
+  which <- match.arg(which)
+  df_all <- if (identical(which, "lsei")) {
+    out <- data$errors[data$errors$algorithm %in% .likelihood_ratio_methods, ]
+    out$facet <- factor(
+      as.character(out$algorithm),
+      .likelihood_ratio_methods
+    )
+    out
+  } else {
+    out <- data$paired
+    out$facet <- out$method
+    out
+  }
+  bound <- max(abs(df_all$log2_ratio[is.finite(df_all$log2_ratio)]), 0.1)
+  lapply(levels(droplevels(df_all$page)), function(page) {
+    df <- df_all[df_all$page == page, ]
     ggplot2::ggplot(
-      pooled,
-      ggplot2::aes(
-        factor(.data$n_cells),
-        .data$rate,
-        colour = .data$arm
-      )
+      df,
+      ggplot2::aes(.data$correlation_celltype1, .data$correlation_celltype2)
     ) +
-      ggplot2::geom_hline(
-        data = data.frame(
-          truth = factor("type 2 absent: size", levels(pooled$truth))
-        ),
-        ggplot2::aes(yintercept = data$level),
-        linetype = 2,
-        colour = "grey30"
+      ggplot2::geom_tile(
+        ggplot2::aes(fill = .data$log2_ratio),
+        width = 0.2,
+        height = 0.2,
+        colour = "white",
+        linewidth = 0.2
       ) +
-      ggplot2::geom_point(
-        data = per_scenario,
-        ggplot2::aes(y = .data$rejected),
-        position = ggplot2::position_jitterdodge(
-          jitter.width = 0.12,
-          dodge.width = 0.25,
-          seed = 1L
-        ),
-        size = 0.7,
-        alpha = 0.35
+      .overlap_contour(df) +
+      ggplot2::facet_wrap(~facet, nrow = 1L) +
+      colorspace::scale_fill_continuous_diverging(
+        palette = "Blue-Red 3",
+        limits = c(-bound, bound),
+        name = if (identical(which, "lsei")) {
+          "log2(RMSE / RMSE lsei)"
+        } else {
+          "log2(RMSE single cell / RMSE population)"
+        },
+        guide = ggplot2::guide_colourbar(barwidth = grid::unit(7, "cm"))
       ) +
-      ggplot2::geom_pointrange(
-        ggplot2::aes(ymin = .data$lower, ymax = .data$upper),
-        position = dodge,
-        size = 0.45,
-        linewidth = 0.8
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::summarise(
-          pooled,
-          n = max(.data$n),
-          .by = c("proportions", "n_cells", "truth")
-        ),
-        # Bulk counts in a band under the data, clear of the points.
-        ggplot2::aes(
-          factor(.data$n_cells),
-          -0.09,
-          label = paste(
-            format(.data$n, big.mark = ","),
-            ifelse(.data$n == 1, "bulk", "bulks")
-          )
-        ),
-        inherit.aes = FALSE,
-        size = 2.8,
-        colour = "grey30"
-      ) +
-      ggplot2::geom_text(
-        data = empty,
-        ggplot2::aes(x = 2, y = 0.5),
-        label = "no bulk of this kind",
-        inherit.aes = FALSE,
-        colour = "grey45",
-        size = 3.4
-      ) +
-      ggplot2::facet_grid(
-        ggplot2::vars(.data$proportions),
-        ggplot2::vars(.data$truth)
-      ) +
-      ggplot2::scale_colour_manual(
-        name = "Plug-in cell count",
-        values = arm_palette,
-        labels = c(oracle = "oracle n", nominal = "nominal n")
-      ) +
-      ggplot2::scale_y_continuous(
-        limits = c(-0.14, 1),
-        breaks = seq(0, 1, 0.25)
-      ) +
+      ggplot2::scale_x_continuous(breaks = c(-0.8, -0.4, 0, 0.4, 0.8)) +
+      ggplot2::scale_y_continuous(breaks = c(-0.8, -0.4, 0, 0.4, 0.8)) +
+      ggplot2::coord_equal(expand = FALSE) +
       ggplot2::labs(
-        x = "Nominal cells per bulk n",
-        y = "Rejection rate of p2 = 0 at 5%",
-        title = "Boundary likelihood-ratio test of an absent cell type",
-        subtitle = "Newton-Raphson at known scales, chi-bar-square calibration",
+        x = "Correlation, cell type 1",
+        y = "Correlation, cell type 2",
+        title = if (identical(which, "lsei")) {
+          "Where the covariance-aware fit gains over lsei on the same bulks"
+        } else {
+          "Linear against quadratic covariance law on the same random draws"
+        },
+        subtitle = page,
         caption = paste(
-          "Small dots: one scenario (9 x 9 correlations); point and bar: pooled rate",
-          "with its Wilson 95% interval; grey counts: bulks pooled.\nSize: bulks with no type-2 cell;",
-          "dashed line at 5%."
+          if (identical(which, "lsei")) {
+            "Fill: log2 of the mean RMSE of p1-hat over the lsei RMSE, same bulks; blue: lower than lsei."
+          } else {
+            paste(
+              "Fill: log2 of the RMSE under the single-cell law sum_j p_j R_j over the RMSE under the population",
+              "law sum_j p_j^2 R_j,\nthe two bulks built from the same standard-normal draw; blue: the single-cell bulk is estimated better."
+            )
+          },
+          if (is.null(.overlap_contour(df))) {
+            "\nNo overlap contours: the MixSim overlap of the component laws is the same (0) at every pair."
+          } else {
+            paste(
+              "\nGrey contours: Gaussian overlap of the component laws N(mu_j, R_j) (MixSim, 5 levels),",
+              "the same for both laws; it does not measure |rho_1 - rho_2|."
+            )
+          }
         )
       ) +
       .page_theme()
+  })
+}
+
+# RMSE against the overlap of the component laws, coloured by the
+# covariance contrast |rho_1 - rho_2|: overlap and contrast are separate
+# axes of the design.
+plot_rmse_overlap_scatter <- function(data) {
+  df_all <- data$scatter
+  lapply(levels(droplevels(df_all$page)), function(page) {
+    df <- df_all[df_all$page == page, ]
+    df$proportions <- factor(
+      df$proportions,
+      c("balanced", "moderately unbalanced", "highly unbalanced")
+    )
+    ggplot2::ggplot(
+      df,
+      ggplot2::aes(.data$overlap, .data$rmse, colour = .data$covariance_contrast)
+    ) +
+      ggplot2::geom_point(size = 1.4, alpha = 0.8) +
+      ggplot2::facet_grid(
+        ggplot2::vars(.data$proportions),
+        ggplot2::vars(.data$algorithm),
+        labeller = ggplot2::labeller(.cols = ggplot2::label_wrap_gen(12))
+      ) +
+      ggplot2::scale_y_log10() +
+      ggplot2::scale_colour_viridis_c(
+        name = "|rho_1 - rho_2|",
+        option = "C",
+        end = 0.9,
+        guide = ggplot2::guide_colourbar(barwidth = grid::unit(6, "cm"))
+      ) +
+      ggplot2::labs(
+        x = "Overlap of the component laws (MixSim, mean pairwise)",
+        y = "Mean RMSE of p1-hat (log scale)",
+        title = "Accuracy against component overlap, coloured by covariance contrast",
+        subtitle = page,
+        caption = "One point per correlation pair (81 per panel)."
+      ) +
+      .page_theme()
+  })
+}
+
+# Boundary likelihood-ratio test (fig05) ---------------------------------------
+
+# Power: rejection rate of p_2 = 0 at the 5% level on every bulk of the
+# main run (chi-bar-square), per scenario and pooled by centroid gap and
+# composition. Size: the p = (1, 0) scenarios, chi-bar-square against the
+# Monte Carlo test under the null.
+.data_boundary_lrt <- function(benchmark, layout, level = 0.05) {
+  tests <- benchmark$boundary_lrt
+  wilson <- function(x) coverage_mc_interval(x)
+  power <- tests$power |>
+    dplyr::filter(is.finite(.data$p_value)) |>
+    dplyr::left_join(layout[c("ID", "centroids", "proportions")], by = "ID")
+  per_scenario <- dplyr::summarise(
+    power,
+    rejected = mean(.data$p_value < level),
+    .by = c("ID", "centroids", "proportions")
+  )
+  pooled <- dplyr::summarise(
+    power,
+    rate = wilson(.data$p_value < level)$coverage,
+    lower = wilson(.data$p_value < level)$lower,
+    upper = wilson(.data$p_value < level)$upper,
+    n = dplyr::n(),
+    .by = c("centroids", "proportions")
+  )
+  size <- tests$size |>
+    tidyr::pivot_longer(
+      c("p_chibar", "p_monte_carlo"),
+      names_to = "calibration",
+      values_to = "p"
+    ) |>
+    dplyr::summarise(
+      rate = wilson(.data$p < level)$coverage,
+      lower = wilson(.data$p < level)$lower,
+      upper = wilson(.data$p < level)$upper,
+      n = dplyr::n(),
+      .by = c("ID", "calibration")
+    ) |>
+    dplyr::left_join(tests$null_config, by = "ID") |>
+    dplyr::mutate(
+      centroids = factor(.data$centroids, c("small_CLD", "large_CLD")),
+      rho = sprintf(
+        "(%+.1f, %+.1f)",
+        .data$correlation_celltype1,
+        .data$correlation_celltype2
+      ),
+      calibration = c(
+        p_chibar = "chi-bar-square",
+        p_monte_carlo = sprintf("Monte Carlo, B = %d", tests$settings$b_null)
+      )[.data$calibration]
+    )
+  list(
+    per_scenario = per_scenario,
+    pooled = pooled,
+    size = size,
+    level = level
+  )
+}
+
+plot_boundary_lrt <- function(data) {
+  gap_palette <- c(small_CLD = "#1D4E89", large_CLD = "#D55E00")
+  composition <- c("balanced", "moderately unbalanced", "highly unbalanced")
+  dodge <- ggplot2::position_dodge(width = 0.4)
+  pooled <- data$pooled
+  pooled$proportions <- factor(pooled$proportions, composition)
+  per_scenario <- data$per_scenario
+  per_scenario$proportions <- factor(per_scenario$proportions, composition)
+  power <- ggplot2::ggplot(
+    pooled,
+    ggplot2::aes(.data$proportions, .data$rate, colour = .data$centroids)
+  ) +
+    ggplot2::geom_point(
+      data = per_scenario,
+      ggplot2::aes(y = .data$rejected),
+      position = ggplot2::position_jitterdodge(
+        jitter.width = 0.15,
+        dodge.width = 0.4,
+        seed = 1L
+      ),
+      size = 0.7,
+      alpha = 0.35
+    ) +
+    ggplot2::geom_pointrange(
+      ggplot2::aes(ymin = .data$lower, ymax = .data$upper),
+      position = dodge,
+      size = 0.45,
+      linewidth = 0.8
+    ) +
+    ggplot2::geom_hline(yintercept = data$level, linetype = 2, colour = "grey30") +
+    ggplot2::scale_colour_manual(
+      name = "Centroid gap",
+      values = gap_palette,
+      labels = c(small_CLD = "small", large_CLD = "large")
+    ) +
+    ggplot2::scale_y_continuous(limits = c(0, 1)) +
+    ggplot2::labs(
+      x = NULL,
+      y = "Rejection rate of p2 = 0 at 5%",
+      subtitle = "Power at the design composition (chi-bar-square)"
+    ) +
+    .page_theme()
+  size <- ggplot2::ggplot(
+    data$size,
+    ggplot2::aes(.data$rho, .data$rate, colour = .data$calibration)
+  ) +
+    ggplot2::geom_hline(yintercept = data$level, linetype = 2, colour = "grey30") +
+    ggplot2::geom_pointrange(
+      ggplot2::aes(ymin = .data$lower, ymax = .data$upper),
+      position = dodge,
+      size = 0.45,
+      linewidth = 0.8
+    ) +
+    ggplot2::facet_wrap(
+      ~centroids,
+      labeller = ggplot2::as_labeller(
+        c(small_CLD = "small centroid gap", large_CLD = "large centroid gap")
+      )
+    ) +
+    ggplot2::scale_colour_manual(
+      name = "Calibration",
+      values = c("#7B3294", "#009E73")
+    ) +
+    ggplot2::labs(
+      x = "(rho_1, rho_2)",
+      y = "Rejection rate at 5%",
+      subtitle = "Size at p = (1, 0)"
+    ) +
+    .page_theme()
+  list(
+    patchwork::wrap_plots(power, size, ncol = 1L, heights = c(1, 1)) +
+      patchwork::plot_annotation(
+        title = "Boundary likelihood-ratio test of an absent cell type",
+        subtitle = "Scalar likelihood at the known scales; null p2 = 0 on a face of the simplex",
+        caption = paste(
+          "Top: small dots, one scenario (9 x 9 correlations); point and bar: pooled rate with its Wilson 95% interval.",
+          "\nBottom: one point per null scenario with its Wilson 95% interval; the Monte Carlo test",
+          "compares each statistic with statistics simulated under the null.\nDashed line at 5%."
+        ),
+        theme = .page_theme()
+      )
   )
 }

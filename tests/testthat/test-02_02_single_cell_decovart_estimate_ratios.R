@@ -679,8 +679,9 @@ test_that("Newton restarts and the L-BFGS-B warm start reach the L-BFGS-B optimu
   expect_identical(restarts$fit$fit_type, "profile")
 })
 
-test_that("the bivariate single-cell scenario script builds and runs", {
-  skip_if_not_installed("MixSim")
+# Sourcing a temp copy of the fig05 script defines its builders without
+# running the pipeline.
+.fig05_env <- function() {
   script <- file.path(
     testthat::test_path(),
     "..",
@@ -689,28 +690,147 @@ test_that("the bivariate single-cell scenario script builds and runs", {
     "fig05_bivariate_single_cell.R"
   )
   skip_if_not(file.exists(script))
-  # A temp copy: sourcing defines the builders without running the pipeline.
-  tmp <- withr::local_tempfile(fileext = ".R")
+  tmp <- withr::local_tempfile(fileext = ".R", .local_envir = parent.frame())
   file.copy(script, tmp)
   env <- new.env()
   sys.source(tmp, envir = env)
+  env
+}
+
+test_that("the bivariate single-cell scenario script builds and runs", {
+  skip_if_not_installed("MixSim")
+  env <- .fig05_env()
   config <- env$build_bivariate_single_cell_config()
-  expect_identical(nrow(config), 729L)
+  expect_identical(nrow(config), 486L)
   expect_identical(anyDuplicated(config$ID), 0L)
+  theta <- config$true_theta[[122L]]
+  # Sigma_W,j / n is the unit-diagonal R_j of fig02.
+  R <- theta$sigma / theta$n_cells
+  expect_equal(unname(R[,, 1L]), env$corr2(config$correlation_celltype1[[122L]]))
+  expect_equal(unname(R[,, 2L]), env$corr2(config$correlation_celltype2[[122L]]))
   methods <- env$bivariate_single_cell_deconvolution_functions(
-    intervals = FALSE,
-    dwls = FALSE
+    intervals = FALSE
   )
   out <- withr::with_seed(
     1,
     run_simulation_benchmark(
       config,
       methods,
-      n = 2,
-      likelihood = single_cell_likelihood(),
-      scenarios = 122L
+      n = 3,
+      likelihood = env$fixed_count_single_cell_likelihood(),
+      scenarios = 122L,
+      return_data = TRUE
     )
   )
   expect_setequal(unique(out$optimisation$algorithm), names(methods))
   expect_true(all(out$optimisation$numerical_converged))
+  # Fixed counts: every target is the design composition.
+  expect_equal(
+    out$data[[1L]]$truth,
+    matrix(theta$p, 2L, 3L, dimnames = dimnames(out$data[[1L]]$truth))
+  )
+})
+
+test_that("fig05 overlaps match fig02's homoscedastic scenarios", {
+  skip_if_not_installed("MixSim")
+  env <- .fig05_env()
+  fig02 <- new.env()
+  sys.source(
+    file.path(testthat::test_path(), "..", "..", "scripts", "fig02_bivariate_toy.R"),
+    envir = fig02
+  )
+  keys <- c("centroids", "proportions", "correlation_celltype1", "correlation_celltype2")
+  population <- fig02$build_bivariate_scenario_config()
+  population <- population[population$variance == "homoscedastic", c(keys, "overlap")]
+  single_cell <- env$build_bivariate_single_cell_config()[c(keys, "overlap")]
+  joined <- merge(single_cell, population, by = keys)
+  expect_identical(nrow(joined), 486L)
+  expect_equal(joined$overlap.x, joined$overlap.y)
+})
+
+test_that("the fixed-count generator has the analytic moments", {
+  env <- .fig05_env()
+  config <- env$build_bivariate_single_cell_config()
+  theta <- config$true_theta[[100L]]
+  sim <- withr::with_seed(
+    3,
+    env$fixed_count_single_cell_likelihood()$simulate(
+      theta$mu,
+      theta$sigma,
+      theta,
+      20000L
+    )
+  )
+  z <- sim$Y / theta$n_cells
+  R <- theta$sigma / theta$n_cells
+  v <- env$mixture_covariance(theta$p[[1L]], R, "linear")$V
+  expect_equal(rowMeans(z), drop(theta$mu %*% theta$p), tolerance = 0.02)
+  expect_equal(unname(stats::cov(t(z))), unname(v), tolerance = 0.05)
+  expect_identical(unique(sim$nuisance["mean_scale", ]), theta$n_cells)
+})
+
+test_that("the scalar likelihood has the analytic score, Hessian and Fisher split", {
+  env <- .fig05_env()
+  mu <- matrix(c(20, 22, 22, 20), 2L, dimnames = list(NULL, c("ct1", "ct2")))
+  R <- array(c(env$corr2(-0.6), env$corr2(0.4)), c(2L, 2L, 2L))
+  z <- c(21.3, 20.6)
+  h <- 1e-5
+  for (law in c("linear", "quadratic")) {
+    ll <- function(q) env$sc_terms(q, z, mu, R, law)$loglik
+    at <- env$sc_terms(0.63, z, mu, R, law)
+    expect_equal(at$score, (ll(0.63 + h) - ll(0.63 - h)) / (2 * h), tolerance = 1e-6)
+    expect_equal(
+      at$hessian,
+      (ll(0.63 + h) - 2 * ll(0.63) + ll(0.63 - h)) / h^2,
+      tolerance = 1e-4
+    )
+    fisher <- env$fisher_split(c(0.63, 0.37), mu, R, law)
+    expect_equal(unname(fisher), c(at$fisher_mean, at$fisher_cov))
+  }
+  # Equal covariances: no covariance information under the linear law, some
+  # under the quadratic law away from p = 1/2.
+  R_equal <- array(c(env$corr2(0.5), env$corr2(0.5)), c(2L, 2L, 2L))
+  expect_identical(env$fisher_split(c(0.85, 0.15), mu, R_equal, "linear")[["cov"]], 0)
+  expect_gt(env$fisher_split(c(0.85, 0.15), mu, R_equal, "quadratic")[["cov"]], 0)
+  expect_equal(env$fisher_split(c(0.5, 0.5), mu, R_equal, "quadratic")[["cov"]], 0)
+})
+
+test_that("the scalar MLE keeps the endpoints and beats the package solver", {
+  skip_if_not_installed("limSolve")
+  env <- .fig05_env()
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    2L,
+    dimnames = list(c("gene_1", "gene_2"), c("celltype_1", "celltype_2"))
+  )
+  R <- array(c(env$corr2(-0.8), env$corr2(0.8)), c(2L, 2L, 2L))
+  # A bulk beyond the type-1 centroid: the maximum sits at p1 = 1.
+  expect_identical(env$fit_sc_scalar(c(19, 23), mu, R)$p[[1L]], 1)
+  n <- 1000L
+  sigma <- n * R
+  dimnames(sigma) <- list(rownames(mu), rownames(mu), colnames(mu))
+  withr::with_seed(11, {
+    for (k in 1:5) {
+      z <- drop(mu %*% c(0.85, 0.15)) +
+        drop(t(chol(env$mixture_covariance(0.85, R)$V)) %*% stats::rnorm(2L))
+      ref <- env$fit_sc_scalar(z, mu, R)
+      pkg <- deconvolute_single_cell(
+        n * z,
+        mu,
+        sigma,
+        mean_scale = n,
+        variance_scale = n,
+        profile = FALSE,
+        optimiser = "lbfgsb"
+      )
+      # Same likelihood up to a constant that does not depend on p.
+      offset <- pkg$loglik - loglik_single_cell(ref$p, n * z, mu, sigma, n, n)
+      expect_lte(offset, 1e-7)
+      expect_equal(
+        env$fit_lsei_scalar(z, mu),
+        deconvolute_ratios_deconrnaseq(z, mu),
+        tolerance = 1e-7
+      )
+    }
+  })
 })

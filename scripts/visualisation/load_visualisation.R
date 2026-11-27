@@ -274,21 +274,45 @@ figure_plot_data <- function(
       "plot_loglik_slices",
       .data_loglik_slices(benchmark, "mean_shift"),
       density,
-      12,
-      11
+      11,
+      12
     )
     books$loglik_correlation_slice <- .book(
       "plot_loglik_slices",
       .data_loglik_slices(benchmark, "correlation"),
       density,
-      12,
-      9
+      11,
+      10
     )
     books$boundary_lrt <- .book(
       "plot_boundary_lrt",
       .data_boundary_lrt(benchmark, layout),
       performance,
+      11,
+      11
+    )
+    mechanism <- .data_rmse_mechanism(benchmark, layout, errors)
+    books$heatmap_rmse_ratio_lsei <- .book(
+      "plot_rmse_ratio_tiles",
+      mechanism[c("errors", "paired")],
+      performance,
+      17,
+      6.5,
+      which = "lsei"
+    )
+    books$heatmap_rmse_ratio_population <- .book(
+      "plot_rmse_ratio_tiles",
+      mechanism[c("paired", "errors")],
+      performance,
       10,
+      7,
+      which = "population"
+    )
+    books$rmse_overlap_scatter <- .book(
+      "plot_rmse_overlap_scatter",
+      mechanism["scatter"],
+      performance,
+      16,
       9
     )
     # Drawn page by page: one SVG per page (local) and one PDF per stem.

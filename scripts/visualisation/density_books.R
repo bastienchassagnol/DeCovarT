@@ -20,16 +20,18 @@
   data.frame(gene_1 = xy[, 1L], gene_2 = xy[, 2L])
 }
 
-# Exact densities on a grid shared by every page: the p-weighted mixture of
-# the purified Gaussians, and the convolution N(mu p, sum_j p_j^2 Sigma_j)
-# that DeCovarT fits; 95% ellipses and centroids of the purified types.
-# fig05 (single cell, a = 1) is drawn per cell, y / n: the purified laws
-# are the bulks of one type, N(mu_j, Sigma_W,j / n), the bulk law is
-# N(mu p, S_W(p) / n), and each page (one n) has its own gene axes.
+# Exact densities of the p-weighted mixture of the purified Gaussians and of
+# the bulk law that DeCovarT fits; 95% ellipses and centroids of the
+# purified types. fig02: bulk N(mu p, sum_j p_j^2 Sigma_j). fig05 (single
+# cell, a = 1) is drawn per cell, y / n: the purified laws are the bulks of
+# one type, N(mu_j, Sigma_W,j / n) = N(mu_j, R_j) as in fig02, and the bulk
+# law is N(mu p, sum_j p_j R_j). Each page and each layer (purified, bulk)
+# has its own square window, fitted to the laws drawn on it, so the small
+# centroid gap is not drawn on the axes of the large one.
 .data_gene_densities <- function(
   benchmark,
   layout,
-  n_grid = 90L,
+  n_grid = 120L,
   figure = "fig02"
 ) {
   corners <- layout[layout$corner, ]
@@ -41,42 +43,65 @@
       th
     })
   }
-  axis_of <- function(ths) {
-    centres <- do.call(cbind, lapply(ths, `[[`, "mu"))
-    spread <- 4 *
-      sqrt(max(unlist(lapply(ths, function(th) apply(th$sigma, 3L, diag)))))
-    seq(min(centres) - spread, max(centres) + spread, length.out = n_grid)
+  bulk_law <- function(th) {
+    p <- as.numeric(th$p)
+    list(
+      mean = drop(th$mu %*% p),
+      sigma = if (per_cell) {
+        .single_cell_mixture(p, th$sigma)$matrix
+      } else {
+        .compute_global_variance(p, th$sigma)
+      }
+    )
+  }
+  # Centroids and the laws of the layer, padded by 3.5 standard deviations.
+  window <- function(ths, layer) {
+    centres <- unlist(lapply(ths, `[[`, "mu"))
+    reach <- unlist(lapply(ths, function(th) {
+      if (identical(layer, "purified")) {
+        sd <- sqrt(apply(th$sigma, 3L, diag))
+        c(th$mu - 3.5 * sd, th$mu + 3.5 * sd)
+      } else {
+        law <- bulk_law(th)
+        sd <- sqrt(diag(law$sigma))
+        c(law$mean - 3.5 * sd, law$mean + 3.5 * sd)
+      }
+    }))
+    r <- range(centres, reach)
+    # Margin so that centroids on the edge of the laws stay inside the panel.
+    r + c(-1, 1) * 0.06 * diff(r)
   }
   page_of <- as.character(layout$page[match(corners$ID, layout$ID)])
-  axes <- if (per_cell) {
-    lapply(split(thetas, page_of), axis_of)
-  } else {
-    list(axis_of(thetas))
-  }
+  layers <- c("purified", "bulk")
+  limits <- lapply(stats::setNames(layers, layers), function(layer) {
+    lapply(split(thetas, page_of), window, layer = layer)
+  })
   densities <- purrr::map_dfr(seq_len(nrow(corners)), function(i) {
     th <- thetas[[i]]
     p <- as.numeric(th$p)
-    axis <- if (per_cell) axes[[page_of[[i]]]] else axes[[1L]]
-    grid <- as.matrix(expand.grid(gene_1 = axis, gene_2 = axis))
-    purified <- Reduce(
-      `+`,
-      lapply(seq_along(p), function(j) {
-        p[[j]] * .dmvnorm_rows(grid, th$mu[, j], th$sigma[,, j])
-      })
-    )
-    bulk_sigma <- if (per_cell) {
-      .single_cell_mixture(p, th$sigma)$matrix
-    } else {
-      .compute_global_variance(p, th$sigma)
-    }
-    bulk <- .dmvnorm_rows(grid, drop(th$mu %*% p), bulk_sigma)
-    tibble::tibble(
-      ID = corners$ID[[i]],
-      gene_1 = grid[, 1L],
-      gene_2 = grid[, 2L],
-      purified = purified,
-      bulk = bulk
-    )
+    purrr::map_dfr(layers, function(layer) {
+      lim <- limits[[layer]][[page_of[[i]]]]
+      axis <- seq(lim[[1L]], lim[[2L]], length.out = n_grid)
+      grid <- as.matrix(expand.grid(gene_1 = axis, gene_2 = axis))
+      density <- if (identical(layer, "purified")) {
+        Reduce(
+          `+`,
+          lapply(seq_along(p), function(j) {
+            p[[j]] * .dmvnorm_rows(grid, th$mu[, j], th$sigma[,, j])
+          })
+        )
+      } else {
+        law <- bulk_law(th)
+        .dmvnorm_rows(grid, law$mean, law$sigma)
+      }
+      tibble::tibble(
+        ID = corners$ID[[i]],
+        layer = layer,
+        gene_1 = grid[, 1L],
+        gene_2 = grid[, 2L],
+        density = density
+      )
+    })
   })
   types <- purrr::map_dfr(seq_len(nrow(corners)), function(i) {
     th <- thetas[[i]]
@@ -93,17 +118,20 @@
   list(
     densities = .with_layout(densities, layout),
     types = .with_layout(types, layout),
-    limits = lapply(axes, range),
+    limits = limits,
     per_cell = per_cell
   )
 }
+
+# Cell type 1 (centroid (20, 22)) red, cell type 2 green.
+.celltype_palette <- c("Cell type 1" = "#E41A1C", "Cell type 2" = "#4DAF4A")
 
 plot_gene_densities <- function(data, which) {
   per_cell <- isTRUE(data$per_cell)
   title <- if (per_cell) {
     c(
       purified = "Bulks of one cell type, per cell, weighted by the composition",
-      bulk = "Bulk law per cell, N(mu p, S_W(p) / n)"
+      bulk = "Bulk law per cell, N(mu p, sum_j p_j R_j)"
     )[[which]]
   } else {
     c(
@@ -114,30 +142,33 @@ plot_gene_densities <- function(data, which) {
   caption <- if (per_cell) {
     c(
       purified = paste(
-        "Fill: exact density of sum_j p_j N(mu_j, Sigma_W,j / n), not the bulk law.",
-        "Outlines: 95% regions of a bulk of n cells of one type; points: centroids."
+        "Fill: exact density of sum_j p_j N(mu_j, R_j), R_j = Sigma_W,j / n, not the bulk law.\n",
+        "Outlines: 95% regions of a bulk of n cells of one type; points: centroids",
+        "\n(cell type 1: red circle, solid outline; cell type 2: green triangle, dashed outline)."
       ),
       bulk = paste(
         "Fill: exact density of y / n for a bulk of n cells; points: centroids of",
-        "the cell types. Gene axes shrink with n (one range per page)."
+        "the cell types (cell type 1: red circle; cell type 2: green triangle). Gene axes fitted to each page."
       )
     )[[which]]
   } else {
     c(
       purified = paste(
-        "Fill: exact density of sum_j p_j N(mu_j, Sigma_j), not the bulk law.",
-        "Outlines: 95% regions of each purified type; points: centroids."
+        "Fill: exact density of sum_j p_j N(mu_j, Sigma_j), not the bulk law.\n",
+        "Outlines: 95% regions of each purified type; points: centroids",
+        "\n(cell type 1: red circle, solid outline; cell type 2: green triangle, dashed outline)."
       ),
       bulk = paste(
         "Fill: exact density of the bulk law; points: centroids of the",
-        "purified types. Same gene axes on every page."
+        "purified types (cell type 1: red circle; cell type 2: green triangle). Gene axes fitted to each page."
       )
     )[[which]]
   }
   lapply(levels(droplevels(data$densities$page)), function(page) {
-    limits <- if (per_cell) data$limits[[page]] else data$limits[[1L]]
-    dens <- data$densities[data$densities$page == page, ]
-    dens$density <- dens[[which]]
+    limits <- data$limits[[which]][[page]]
+    dens <- data$densities[
+      data$densities$page == page & data$densities$layer == which,
+    ]
     types <- data$types[data$types$page == page, ]
     centres <- dplyr::distinct(
       types,
@@ -151,18 +182,23 @@ plot_gene_densities <- function(data, which) {
         ggplot2::aes(fill = .data$density),
         interpolate = TRUE
       ) +
-      ggplot2::scale_fill_viridis_c(name = "Density") +
+      ggplot2::scale_fill_viridis_c(
+        name = "Density",
+        n.breaks = 4L,
+        guide = ggplot2::guide_colourbar(barwidth = grid::unit(5, "cm"))
+      ) +
       ggplot2::geom_point(
         data = centres,
-        ggplot2::aes(.data$centre_1, .data$centre_2, shape = .data$cell_type),
-        colour = "white",
-        size = 2.6
+        ggplot2::aes(
+          .data$centre_1,
+          .data$centre_2,
+          shape = .data$cell_type,
+          colour = .data$cell_type
+        ),
+        size = 2.8
       ) +
-      ggplot2::scale_shape_manual(
-        name = NULL,
-        values = c(16, 17),
-        guide = ggplot2::guide_legend(override.aes = list(colour = "black"))
-      ) +
+      ggplot2::scale_shape_manual(name = NULL, values = c(16, 17)) +
+      ggplot2::scale_colour_manual(name = NULL, values = .celltype_palette) +
       ggplot2::facet_wrap(~panel, ncol = 2L) +
       ggplot2::coord_equal(
         xlim = limits,
@@ -176,20 +212,22 @@ plot_gene_densities <- function(data, which) {
         subtitle = page,
         caption = caption
       ) +
-      .page_theme()
+      .page_theme() +
+      # Room between facets so the last x label does not touch the next one.
+      ggplot2::theme(panel.spacing = grid::unit(1.2, "lines"))
     if (identical(which, "purified")) {
       p <- p +
         ggplot2::geom_path(
           data = types,
-          ggplot2::aes(group = .data$cell_type, linetype = .data$cell_type),
-          colour = "white",
-          linewidth = 0.5
+          ggplot2::aes(
+            group = .data$cell_type,
+            linetype = .data$cell_type,
+            colour = .data$cell_type
+          ),
+          linewidth = 0.7
         ) +
-        ggplot2::scale_linetype_manual(
-          name = NULL,
-          values = c(1, 2),
-          guide = ggplot2::guide_legend(override.aes = list(colour = "black"))
-        )
+        ggplot2::scale_linetype_manual(name = NULL, values = c(1, 2)) +
+        ggplot2::theme(legend.key.width = grid::unit(1.4, "cm"))
     }
     p
   })
@@ -686,7 +724,13 @@ plot_loglik_rgl <- function(data) {
       box = TRUE
     )
     rgl::aspect3d(1, 1, 0.6)
-    rgl::view3d(theta = 35, phi = 30, zoom = 0.9)
+    # (p1, p2) on the floor, log10(L / max L) vertical: tilt the z axis up
+    # (rgl's screen y), after a 35 degree turn about it.
+    rgl::view3d(
+      userMatrix = rgl::rotationMatrix(-70 * pi / 180, 1, 0, 0) %*%
+        rgl::rotationMatrix(-35 * pi / 180, 0, 0, 1),
+      zoom = 0.9
+    )
     rgl::axes3d(cex = 0.8, nticks = 4L)
     rgl::title3d(
       xlab = data$axis_labels[[1L]],
@@ -1324,117 +1368,131 @@ plot_latent_projections <- function(data) {
   })
 }
 
-# Likelihood slices at a fixed composition (fig05) ------------------------------
+# Likelihood slices, population (fig02) against single cell (fig05) -----------
 
-# Expected log-likelihood of p_1 at known scales (c = phi = n), while one
-# feature of cell type 1 moves: its mean slides onto the mean of cell type 2
-# (`mean_shift`, t from 0 to 1), or its gene-gene correlation sweeps
-# (-0.95, 0.95) (`correlation`). Global view: log10(L / max L) over p_1 for
-# every slice value. Local view: the Fisher information of p_1 at p*, split
-# into its mean part n d' S_W^-1 d and its covariance part
-# tr[(S_W^-1 (Sigma_W,1 - Sigma_W,2))^2] / 2.
+# Expected log-likelihood of p_1 for the bulk per cell, z ~ N(mu* p*, V*(p*)),
+# scored under N(mu p, V(p)), without -log(2 pi); V is the mixture
+# covariance of `law` (mixture_covariance() of the fig05 script).
+.expected_loglik_law <- function(p1, p1_star, mu, R, law, R_star = R) {
+  model <- chol(mixture_covariance(p1, R, law)$V)
+  truth <- mixture_covariance(p1_star, R_star, law)$V
+  inverse <- chol2inv(model)
+  gap <- drop(mu %*% c(p1_star - p1, p1 - p1_star))
+  -sum(log(diag(model))) -
+    0.5 * (sum(inverse * truth) + sum(gap * drop(inverse %*% gap)))
+}
+
+# Two slices through the expected log-likelihood of p_1, at every centroid
+# gap and composition, for the population law sum_j p_j^2 R_j (fig02) and
+# the single-cell law sum_j p_j R_j (fig05), on the same means and R_j:
+#  mean_shift   the mean of type 1 slides onto that of type 2,
+#               mu_1(t) = (1 - t) mu_1 + t mu_2; local view: the Fisher
+#               information of p_1 at p*, mean and covariance parts.
+#  correlation  working-covariance sensitivity: the truth is fixed at
+#               (p*, rho_1*, rho_2) and the model uses a working rho_1;
+#               local view: the maximiser of the expected log-likelihood.
 .data_loglik_slices <- function(
   benchmark,
   kind = c("mean_shift", "correlation"),
-  n_cells = c(100, 1000, 10000),
   compositions = list(
     "balanced" = c(0.5, 0.5),
-    "moderately unbalanced" = c(0.85, 0.15)
+    "moderately unbalanced" = c(0.85, 0.15),
+    "highly unbalanced" = c(0.99, 0.01)
   ),
-  n_grid = 197L
+  n_grid = 201L
 ) {
   kind <- match.arg(kind)
-  template <- benchmark$theta_true[[1L]]
-  mu0 <- template$mu
-  variance <- template$sigma[1L, 1L, 1L]
-  sigma_of <- function(rho1, rho2) {
-    out <- template$sigma
-    out[,, 1L] <- variance * matrix(c(1, rho1, rho1, 1), 2L)
-    out[,, 2L] <- variance * matrix(c(1, rho2, rho2, 1), 2L)
-    out
-  }
-  slices <- if (identical(kind, "mean_shift")) {
-    tidyr::expand_grid(
-      value = seq(0, 0.98, by = 0.02),
-      setting = c("rho = (0, 0)", "rho = (+0.8, -0.8)")
-    )
+  config <- benchmark$config
+  centroids <- intersect(c("small_CLD", "large_CLD"), config$centroids)
+  laws <- c("population (fig02)" = "quadratic", "single cell" = "linear")
+  settings <- list("rho = (0, 0)" = c(0, 0), "rho = (-0.8, +0.8)" = c(-0.8, 0.8))
+  values <- if (identical(kind, "mean_shift")) {
+    seq(0, 0.98, by = 0.02)
   } else {
-    tidyr::expand_grid(
-      value = seq(-0.95, 0.95, by = 0.025),
-      setting = "rho_2 = 0"
-    )
+    seq(-0.95, 0.95, by = 0.025)
   }
-  p1_axis <- seq(0.005, 0.995, length.out = n_grid)
+  R_of <- function(rho) {
+    array(c(corr2(rho[[1L]]), corr2(rho[[2L]])), c(2L, 2L, 2L))
+  }
+  p1_axis <- seq(0, 1, length.out = n_grid)
   pieces <- list()
-  for (comp in names(compositions)) {
-    p_star <- compositions[[comp]]
-    for (n in n_cells) {
-      for (k in seq_len(nrow(slices))) {
-        value <- slices$value[[k]]
-        setting <- slices$setting[[k]]
-        if (identical(kind, "mean_shift")) {
-          rho <- if (identical(setting, "rho = (0, 0)")) {
-            c(0, 0)
-          } else {
-            c(0.8, -0.8)
-          }
-          sigma <- sigma_of(rho[[1L]], rho[[2L]])
-          mu <- mu0
-          mu[, 1L] <- mu0[, 1L] + value * (mu0[, 2L] - mu0[, 1L])
-        } else {
-          sigma <- sigma_of(value, 0)
-          mu <- mu0
-        }
-        loglik <- vapply(
-          p1_axis,
-          function(p1) {
-            .expected_loglik_single_cell_known(
-              c(p1, 1 - p1),
-              p_star,
-              mu,
-              sigma,
-              n,
-              n
+  p_star_of <- numeric()
+  for (cld in centroids) {
+    mu0 <- benchmark$theta_true[[config$ID[match(cld, config$centroids)]]]$mu
+    for (comp in names(compositions)) {
+      p_star <- compositions[[comp]]
+      page <- paste(sub("_CLD", " centroid gap", cld), comp, sep = " / ")
+      p_star_of[[page]] <- p_star[[1L]]
+      for (setting in names(settings)) {
+        rho <- settings[[setting]]
+        R_star <- R_of(rho)
+        for (model in names(laws)) {
+          law <- laws[[model]]
+          for (value in values) {
+            mu <- mu0
+            R <- R_star
+            if (identical(kind, "mean_shift")) {
+              mu[, 1L] <- (1 - value) * mu0[, 1L] + value * mu0[, 2L]
+            } else {
+              R <- R_of(c(value, rho[[2L]]))
+            }
+            loglik <- vapply(
+              p1_axis,
+              .expected_loglik_law,
+              numeric(1),
+              p1_star = p_star[[1L]],
+              mu = mu,
+              R = R,
+              law = law,
+              R_star = R_star
             )
-          },
-          numeric(1)
-        )
-        fisher <- fig05_fisher_split(p_star, mu, sigma, n)
-        pieces[[length(pieces) + 1L]] <- list(
-          surface = tibble::tibble(
-            composition = comp,
-            n_cells = n,
-            setting = setting,
-            value = value,
-            p1 = p1_axis,
-            relative = pmax((loglik - max(loglik)) / log(10), .loglik_floor)
-          ),
-          fisher = tibble::tibble(
-            composition = comp,
-            n_cells = n,
-            setting = setting,
-            value = value,
-            component = c("mean part", "covariance part", "total"),
-            information = c(fisher[["mean"]], fisher[["cov"]], sum(fisher))
-          )
-        )
+            key <- tibble::tibble(
+              page = page,
+              setting = setting,
+              model = model,
+              value = value
+            )
+            local <- if (identical(kind, "mean_shift")) {
+              fisher <- fisher_split(p_star, mu, R, law)
+              tibble::tibble(
+                key,
+                component = c("mean part", "covariance part", "total"),
+                information = c(fisher[["mean"]], fisher[["cov"]], sum(fisher))
+              )
+            } else {
+              tibble::tibble(key, p1_max = p1_axis[[which.max(loglik)]])
+            }
+            pieces[[length(pieces) + 1L]] <- list(
+              surface = tibble::tibble(
+                key,
+                p1 = p1_axis,
+                relative = pmax(
+                  (loglik - max(loglik)) / log(10),
+                  .loglik_floor
+                )
+              ),
+              ridge = tibble::tibble(key, p1 = p1_axis[[which.max(loglik)]]),
+              local = local
+            )
+          }
+        }
       }
     }
   }
   bind <- function(name) {
     out <- dplyr::bind_rows(lapply(pieces, `[[`, name))
-    out$page <- factor(out$composition, names(compositions))
-    out$n_label <- factor(
-      paste("n =", formatC(out$n_cells, format = "d", big.mark = ",")),
-      paste("n =", formatC(n_cells, format = "d", big.mark = ","))
-    )
+    out$page <- factor(out$page, names(p_star_of))
+    out$setting <- factor(out$setting, names(settings))
+    out$model <- factor(out$model, names(laws))
     out
   }
   list(
     kind = kind,
-    p_star = vapply(compositions, `[[`, numeric(1), 1L),
+    p_star = p_star_of,
+    rho_star = vapply(settings, `[[`, numeric(1), 1L),
     surface = bind("surface"),
-    fisher = bind("fisher")
+    ridge = bind("ridge"),
+    local = bind("local")
   )
 }
 
@@ -1443,129 +1501,153 @@ plot_loglik_slices <- function(data) {
   y_label <- if (mean_shift) {
     "t: mean of type 1 moved towards type 2"
   } else {
-    "Gene-gene correlation of cell type 1"
+    "Working correlation of cell type 1"
   }
   # Drop of 1.92 in log-likelihood: the 95% likelihood-ratio cut-off.
   cutoff <- -stats::qchisq(0.95, 1L) / 2 / log(10)
+  truth_rho <- data.frame(
+    setting = factor(names(data$rho_star), levels(data$surface$setting)),
+    rho = unname(data$rho_star)
+  )
   lapply(levels(droplevels(data$surface$page)), function(page) {
     surface <- data$surface[data$surface$page == page, ]
-    fisher <- data$fisher[data$fisher$page == page, ]
+    ridge <- data$ridge[data$ridge$page == page, ]
+    local <- data$local[data$local$page == page, ]
     p_star <- data$p_star[[page]]
-    global <- ggplot2::ggplot(
+    # The 95% contour only in panels whose surface crosses the cut-off.
+    crossing <- dplyr::filter(
       surface,
-      ggplot2::aes(.data$p1, .data$value)
-    ) +
+      min(.data$relative) < cutoff,
+      .by = c("setting", "model")
+    )
+    global <- ggplot2::ggplot(surface, ggplot2::aes(.data$p1, .data$value)) +
       ggplot2::geom_raster(ggplot2::aes(fill = .data$relative)) +
-      ggplot2::geom_contour(
-        ggplot2::aes(z = .data$relative),
-        breaks = cutoff,
-        colour = "white",
-        linewidth = 0.5
+      if (nrow(crossing) > 0L) {
+        ggplot2::geom_contour(
+          data = crossing,
+          ggplot2::aes(z = .data$relative),
+          breaks = cutoff,
+          colour = "white",
+          linewidth = 0.5
+        )
+      }
+    global <- global +
+      ggplot2::geom_path(
+        data = ridge,
+        ggplot2::aes(.data$p1, .data$value),
+        colour = "#E41A1C",
+        linewidth = 0.6,
+        linetype = 3
       ) +
-      ggplot2::geom_vline(
-        xintercept = p_star,
-        linetype = 2,
-        colour = "white"
-      ) +
-      ggplot2::facet_grid(
-        ggplot2::vars(.data$setting),
-        ggplot2::vars(.data$n_label)
-      ) +
+      ggplot2::geom_vline(xintercept = p_star, linetype = 2, colour = "white") +
+      ggplot2::facet_grid(ggplot2::vars(.data$setting), ggplot2::vars(.data$model)) +
       ggplot2::scale_fill_viridis_c(
         name = "log10(L / max L)",
         limits = c(.loglik_floor, 0),
         guide = ggplot2::guide_colourbar(barwidth = grid::unit(6, "cm"))
       ) +
-      ggplot2::scale_x_continuous(expand = c(0, 0)) +
+      ggplot2::scale_x_continuous(
+        expand = c(0, 0),
+        breaks = c(0, 0.25, 0.5, 0.75, 1),
+        labels = c("0", "0.25", "0.5", "0.75", "1")
+      ) +
       ggplot2::scale_y_continuous(expand = c(0, 0)) +
       ggplot2::labs(
         x = "p1",
         y = y_label,
         subtitle = "Global: expected log-likelihood of p1 for every slice"
       ) +
-      .page_theme()
-    # Direct labels at the right end of the lines of the last column.
-    ends <- fisher[
-      fisher$n_label == utils::tail(levels(droplevels(fisher$n_label)), 1L),
-    ] |>
-      dplyr::slice_max(.data$value, n = 1L, by = c("setting", "component"))
-    ends$information <- pmax(ends$information, 1e-3)
-    local <- ggplot2::ggplot(
-      fisher,
-      ggplot2::aes(.data$value, .data$information, colour = .data$component)
-    ) +
-      ggplot2::geom_line(linewidth = 0.8) +
-      ggrepel::geom_text_repel(
-        data = ends,
-        ggplot2::aes(label = .data$component),
-        direction = "y",
-        hjust = 0,
-        nudge_x = 0.06,
-        xlim = c(-Inf, Inf),
-        min.segment.length = Inf,
-        size = 3.2,
-        show.legend = FALSE
-      ) +
-      ggplot2::coord_cartesian(clip = "off") +
-      # Row strips on the left leave the right margin to the line labels.
-      ggplot2::facet_grid(
-        ggplot2::vars(.data$setting),
-        ggplot2::vars(.data$n_label),
-        switch = "y"
-      ) +
-      # A zero covariance part (equal covariances) is drawn at the floor.
-      ggplot2::scale_y_log10(
-        limits = c(1e-3, NA),
-        oob = function(x, range) {
-          scales::squish(x, range, only.finite = FALSE)
-        }
-      ) +
-      ggplot2::scale_x_continuous(
-        breaks = if (mean_shift) {
-          c(0, 0.25, 0.5, 0.75)
-        } else {
-          c(-0.8, -0.4, 0, 0.4, 0.8)
-        }
-      ) +
-      ggplot2::scale_colour_manual(
-        name = NULL,
-        values = c(
-          "mean part" = "#1D4E89",
-          "covariance part" = "#D55E00",
-          "total" = "grey20"
-        ),
-        guide = "none"
-      ) +
-      ggplot2::labs(
-        x = y_label,
-        y = "Fisher information of p1 at p*",
-        subtitle = "Local: curvature at p*, mean and covariance parts"
-      ) +
       .page_theme() +
-      ggplot2::theme(
-        strip.placement = "outside",
-        plot.margin = ggplot2::margin(5.5, 95, 5.5, 5.5),
-        panel.spacing.x = grid::unit(1.2, "lines")
-      )
-    patchwork::wrap_plots(global, local, ncol = 1L, heights = c(3, 2)) +
+      ggplot2::theme(panel.spacing.x = grid::unit(1.5, "lines"))
+    if (!mean_shift) {
+      global <- global +
+        ggplot2::geom_hline(
+          data = truth_rho,
+          ggplot2::aes(yintercept = .data$rho),
+          linetype = 2,
+          colour = "white"
+        )
+    }
+    local_plot <- if (mean_shift) {
+      # A zero covariance part (equal covariances) is drawn at the floor.
+      local$information <- pmax(local$information, 1e-3)
+      ggplot2::ggplot(
+        local,
+        ggplot2::aes(.data$value, .data$information, colour = .data$component)
+      ) +
+        ggplot2::geom_line(linewidth = 0.8) +
+        ggplot2::facet_grid(
+          ggplot2::vars(.data$setting),
+          ggplot2::vars(.data$model)
+        ) +
+        ggplot2::scale_y_log10(limits = c(1e-3, NA)) +
+        ggplot2::scale_colour_manual(
+          name = NULL,
+          values = c(
+            "mean part" = "#1D4E89",
+            "covariance part" = "#D55E00",
+            "total" = "grey20"
+          )
+        ) +
+        ggplot2::labs(
+          x = y_label,
+          y = "Fisher information of p1 at p*",
+          subtitle = "Local: curvature at p*, mean (Mahalanobis) and covariance parts"
+        ) +
+        .page_theme()
+    } else {
+      ggplot2::ggplot(
+        local,
+        ggplot2::aes(.data$value, .data$p1_max, colour = .data$model)
+      ) +
+        ggplot2::geom_hline(yintercept = p_star, linetype = 2, colour = "grey40") +
+        ggplot2::geom_vline(
+          data = truth_rho,
+          ggplot2::aes(xintercept = .data$rho),
+          linetype = 2,
+          colour = "grey40"
+        ) +
+        ggplot2::geom_line(linewidth = 0.8) +
+        ggplot2::facet_grid(cols = ggplot2::vars(.data$setting)) +
+        ggplot2::scale_colour_manual(
+          name = NULL,
+          values = c("population (fig02)" = "#7B3294", "single cell" = "#009E73")
+        ) +
+        ggplot2::coord_cartesian(ylim = c(0, 1)) +
+        ggplot2::labs(
+          x = y_label,
+          y = "Maximiser of E[l(p1)]",
+          subtitle = "Local: where the expected log-likelihood peaks under the working correlation"
+        ) +
+        .page_theme()
+    }
+    patchwork::wrap_plots(global, local_plot, ncol = 1L, heights = c(3, 2)) +
       patchwork::plot_annotation(
         title = if (mean_shift) {
-          "Moving one mean onto the other flattens the likelihood unless the covariances differ"
+          "With equal means, only a composition-dependent covariance still locates p1"
         } else {
-          "The correlation of one cell type adds information that does not grow with n"
+          "Working-covariance sensitivity: a wrong correlation of type 1 moves the maximiser of p1"
         },
         subtitle = sprintf(
-          "%s, p* = (%.2f, %.2f); known scales c = phi = n",
+          "%s, p* = (%.2f, %.2f); population law sum_j p_j^2 R_j against single-cell law sum_j p_j R_j",
           page,
           p_star,
           1 - p_star
         ),
-        caption = paste(
-          "Expected log-likelihood E[l(p)] at the true composition, scales known (a = 1); its maximiser is p*",
-          "(dashed) for every slice.\nWhite contour: drop of 1.92 in log-likelihood (expected 95% likelihood-ratio region).",
-          "\nPer-cell covariance 500 R_j, means (20, 22) and (22, 20);",
-          "the covariance part is the same for every n, the mean part grows as n; parts below 1e-3 sit on the floor."
-        ),
+        caption = if (mean_shift) {
+          paste(
+            "Expected log-likelihood E[l(p1)] of the bulk per cell, data and model sharing the moved means; its maximiser is p*",
+            "(dashed) for every t.\nRed dotted: maximiser on the grid; white contour: drop of 1.92 (expected 95% likelihood-ratio region).",
+            "\nFisher information: mean part d' V^-1 d (blue), covariance part tr[(V^-1 V')^2] / 2 (orange).",
+            "\nWith R_1 = R_2 the single-cell covariance part is 0 (drawn at the floor); the population one is not, unless p* = 1/2."
+          )
+        } else {
+          paste(
+            "Data from the true law (p*, rho_1*, rho_2), scored with a working rho_1 (y axis); white dashed: true rho_1*;",
+            "red dotted: maximiser on the grid;\nwhite contour: drop of 1.92 from the maximum of each row",
+            "(expected 95% likelihood-ratio region under the working model)."
+          )
+        },
         theme = .page_theme()
       )
   })
