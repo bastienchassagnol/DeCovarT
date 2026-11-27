@@ -290,7 +290,10 @@ quantile ([Wilks
 1938](#ref-wilksLargeSampleDistributionLikelihood1938)). It does not
 depend on the chart and stays in \[0,1\]. An endpoint that lands on a
 face is not a Wilks interval and must be read with the boundary test of
-[Sec. 6](#sec-sc-tests).
+[Sec. 6](#sec-sc-tests). When both scales are given (`mean_scale`,
+`variance_scale`), no nuisance parameter is profiled: the interval is
+then the ordinary inversion of the likelihood-ratio test at those
+scales.
 
 **Firth penalty.** The `"firth"` interval maximises
 \ell^{\ast}(\boldsymbol{\rho})+\tfrac12\log\det\\-\nabla^{2}\ell^{\ast}(\boldsymbol{\rho})\\
@@ -313,7 +316,11 @@ c\\\tilde{\boldsymbol{\mu}}\hat{\boldsymbol{p}},\hat\phi\\\boldsymbol{S}\_W(\hat
 refits the profile model, and returns percentile intervals for the
 composition and for both scales ([Efron
 1979](#ref-efronBootstrapMethodsAnother1979)). The reference moments
-stay fixed.
+stay fixed. When the true composition lies on a face of the simplex, the
+bootstrap distribution of the estimate is not consistent
+([**andrewsInconsistencyBootstrapWhen2000?**](#ref-andrewsInconsistencyBootstrapWhen2000));
+a type that may be absent is tested with [Sec. 6](#sec-sc-tests) rather
+than read from a percentile interval.
 
 **Reference bootstrap.** The `"reference"` interval
 ([`reference_bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.md))
@@ -361,7 +368,8 @@ for one linear constraint equals G\log(1+F/\nu) for an F\_{1,\nu}
 statistic. As \nu\to\infty it tends to \chi^{2}\_{1}. The bootstrap
 methods ignore `variance`, because they draw \hat\phi afresh in every
 replicate. The Monte Carlo check of these calibrations is
-`scripts/benchmark_metrics/check_confidence_interval_coverage.R`: the
+`scripts/benchmark_metrics/check_confidence_interval_coverage.R`
+([Morris et al. 2019](#ref-morrisUsingSimulationStudies2019)): the
 maximum-likelihood intervals under-cover with G=10 genes, and the REML
 calibration brings them back to the nominal level.
 
@@ -400,7 +408,15 @@ type with orthogonal information the statistic follows
 1987](#ref-selfAsymptoticPropertiesMaximum1987)).
 [`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md)
 counts the null proportions on the boundary and switches to the
-chi-bar-square calibration automatically. The restricted fit on a face,
+chi-bar-square calibration automatically. The chi-bar-square law is a
+limit. With one bulk and few genes, it can be checked by simulating
+bulks under the restricted fit, recomputing the statistic on each, and
+reporting the Monte Carlo p-value (1+\\\\T_b\ge T\\)/(B+1)
+([**northNoteCalculationEmpirical2002?**](#ref-northNoteCalculationEmpirical2002)).
+That simulation is under the null, not a resampling of the estimate,
+which is not consistent at the boundary
+([**andrewsInconsistencyBootstrapWhen2000?**](#ref-andrewsInconsistencyBootstrapWhen2000)).
+The restricted fit on a face,
 [`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md),
 uses the same trust-region Newton driver on the remaining coordinates,
 with the scales concentrated out. The theory and the chi-bar-square
@@ -475,6 +491,10 @@ Firth, David. 1993. ‘Bias Reduction of Maximum Likelihood Estimates’.
 
 Jørgensen, Bent. 1987. ‘Small Dispersion Asymptotics’. *Brazilian
 Journal of Probability and Statistics* 1 (1): 59–90.
+
+Morris, Tim P., Ian R. White, and Michael J. Crowther. 2019. ‘Using
+Simulation Studies to Evaluate Statistical Methods’. *Statistics in
+Medicine* 38 (11): 2074–102. <https://doi.org/10.1002/sim.8086>.
 
 Self, Steven G., and Kung-Yee Liang. 1987. ‘Asymptotic Properties of
 Maximum Likelihood Estimators and Likelihood Ratio Tests Under

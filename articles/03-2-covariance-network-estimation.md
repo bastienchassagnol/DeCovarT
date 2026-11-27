@@ -1846,7 +1846,7 @@ structures](https://www.bnlearn.com/examples/compare-dags/)):
 > on the selected support. Cluster genes with Leiden
 > ([`igraph::cluster_leiden()`](https://igraph.org/r/html/1.3.4/cluster_leiden.html)):
 > the weights enter the quality function directly, so modules reflect
-> **strength of conditional dependence**, not just binary adjacency.
+> the strength of conditional dependence rather than a binary adjacency.
 > Compare partitions across the three estimators (adjusted Rand index)
 > and across types (rewiring of modules). Do not feed the dense
 > \check{\boldsymbol{\Omega}} into Leiden.

@@ -137,8 +137,9 @@ platform scale 1 or 5).
 - [§2.4 Bivariate toy, single-cell model (G = 2, J =
   2)](https://bastienchassagnol.github.io/DeCovarT/articles/R3-bivariate-single-cell.md):
 
-  The two-gene, two-type toy of §2.2 rebuilt on the single-cell model,
-  with known technical scales.
+  The two-gene, two-type toy of §2.2 rebuilt on the single-cell model:
+  same means, compositions and correlations, fixed cell counts, known
+  technical scales.
 
 - [§2.5 Single-cell scenario: four cell types in two lineages (G = 20 or
   200, J =

@@ -514,14 +514,14 @@ Table 2: Biological interpretability of undirected topology families.
 > distributions rather than degree alone, Takahashi and colleagues
 > classified eight protein–protein interaction networks as scale-free
 > ([Takahashi et al.
-> 2012](#ref-takahashiDiscriminatingDifferentClasses2012)). Importantly,
-> this was a relative model-selection result: BA-like networks fitted
-> better than the two candidate alternatives, Erdős–Rényi and
-> Watts–Strogatz networks. It did not show that a power law was an
-> adequate absolute model, that preferential attachment generated the
-> observed networks, or that unobserved interactions would preserve the
-> classification. The authors explicitly noted both the restricted
-> candidate set and possible sampling artefacts.
+> 2012](#ref-takahashiDiscriminatingDifferentClasses2012)). This was a
+> relative model-selection result: BA-like networks fitted better than
+> the two candidate alternatives, Erdős–Rényi and Watts–Strogatz
+> networks. It did not show that a power law was an adequate absolute
+> model, that preferential attachment generated the observed networks,
+> or that unobserved interactions would preserve the classification. The
+> authors explicitly noted both the restricted candidate set and
+> possible sampling artefacts.
 >
 > A broader test of 928 real-world network data sets reached a more
 > cautious conclusion ([Broido and Clauset
