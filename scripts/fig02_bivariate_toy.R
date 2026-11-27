@@ -311,7 +311,7 @@ if (
   cli::cli_h1("Figure 02: bivariate toy model")
 
   if (!POSTPROCESS_ONLY) {
-    set.seed(SEED)
+    withr::local_seed(SEED)
     scenario_config <- build_bivariate_scenario_config()
     cli::cli_alert_info(
       "{.val {nrow(scenario_config)}} scenarios, N = {.val {N_REPLICATES}}, {.val {CORES}} workers."

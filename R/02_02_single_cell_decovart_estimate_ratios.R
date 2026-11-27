@@ -462,7 +462,7 @@ hessian_loglik_single_cell_ilr <- function(
 #' @examples
 #' mu <- matrix(c(2, 0.2, 0.2, 2, 0.2, 3, 0.2, 3), nrow = 4)
 #' sigma <- array(rep(diag(0.05, 4), 2), c(4, 4, 2))
-#' set.seed(1)
+#' withr::local_seed(1)
 #' y <- 30 * drop(mu %*% c(0.6, 0.4)) + rnorm(4, sd = 0.5)
 #' single_cell_nuisance_scales(y, mu, sigma)
 #' @export
@@ -956,7 +956,7 @@ vcov_single_cell <- function(
 #' sigma <- array(0, c(4, 4, 2), dimnames = list(genes, genes, cts))
 #' sigma[,, 1] <- diag(0.05, 4)
 #' sigma[,, 2] <- diag(0.05, 4)
-#' set.seed(1)
+#' withr::local_seed(1)
 #' sim <- simulate_bulk_from_cells(
 #'   mu,
 #'   sigma,

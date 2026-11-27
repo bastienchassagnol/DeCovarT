@@ -283,7 +283,7 @@
 #' \insertAllCited{}
 #' @seealso [compute_average_overlap()], [compute_average_riemannian()]
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' theta <- list(
 #'   p = c(0.5, 0.5),
 #'   mu = cbind(c(0, 0), c(3, 0)),
@@ -480,7 +480,7 @@ compute_average_riemannian <- function(true_theta, J = NULL) {
 #' @export
 #' @seealso [overlap_gaussian_mc()], [compute_average_jeffreys()]
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' theta <- list(
 #'   p = c(0.5, 0.5),
 #'   mu = cbind(c(0, 0), c(3, 0)),
@@ -578,7 +578,7 @@ compute_average_overlap <- function(
 #' @export
 #' @seealso [compute_average_overlap()], [compute_average_riemannian()]
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' theta <- list(
 #'   mu = cbind(c(0, 0), c(3, 0)),
 #'   sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))

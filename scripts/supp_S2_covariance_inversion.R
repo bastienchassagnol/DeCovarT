@@ -61,7 +61,7 @@ dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 N_TIMING_REPS <- as.integer(Sys.getenv("N_TIMING_REPS", "20"))
 
 SEED <- 20260905L
-set.seed(SEED)
+withr::local_seed(SEED)
 
 
 # ==============================================================================
@@ -225,7 +225,7 @@ p_eq <- rep(1 / J_FIXED, J_FIXED)
 
 # For each G, produce three Sigma arrays (dense, band-5, block-diagonal)
 .make_sigma_dense <- function(G, j, seed) {
-  set.seed(seed)
+  withr::local_seed(seed)
   A <- matrix(rnorm(G * G), G, G)
   S <- crossprod(A) / G + diag(G)
   S
@@ -247,7 +247,7 @@ p_eq <- rep(1 / J_FIXED, J_FIXED)
 .make_sigma_block <- function(G) {
   half <- G %/% 2L
   # Two independent blocks; each is a random SPD matrix
-  set.seed(SEED + G)
+  withr::local_seed(SEED + G)
   A1 <- matrix(rnorm(half^2), half, half)
   A2 <- matrix(rnorm((G - half)^2), G - half, G - half)
   S <- matrix(0, G, G)

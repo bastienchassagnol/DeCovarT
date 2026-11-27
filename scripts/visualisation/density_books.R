@@ -1205,8 +1205,7 @@ plot_pairwise_distances <- function(data, figure) {
   n_per_type = 400L
 ) {
   refs <- .reference_ids(layout, figure)
-  scree <- list()
-  projections <- purrr::map_dfr(seq_len(nrow(refs)), function(i) {
+  pieces <- lapply(seq_len(nrow(refs)), function(i) {
     th <- benchmark$theta_true[[refs$ID[[i]]]]
     J <- ncol(th$mu)
     draws <- withr::with_seed(20261024L + i, {
@@ -1247,12 +1246,13 @@ plot_pairwise_distances <- function(data, figure) {
       )
     )
     # Share of the total variance of the first ten components.
-    scree[[i]] <<- tibble::tibble(
-      page = page,
-      component = seq_len(min(10L, length(share))),
-      share = share[seq_len(min(10L, length(share)))]
-    )
-    dplyr::bind_rows(
+    list(
+      scree = tibble::tibble(
+        page = page,
+        component = seq_len(min(10L, length(share))),
+        share = share[seq_len(min(10L, length(share)))]
+      ),
+      projection = dplyr::bind_rows(
       tibble::tibble(
         page = page,
         method = sprintf(
@@ -1272,8 +1272,10 @@ plot_pairwise_distances <- function(data, figure) {
         dim_2 = dr$dir[, 2L]
       )
     )
+    )
   })
-  attr(projections, "scree") <- dplyr::bind_rows(scree)
+  projections <- dplyr::bind_rows(lapply(pieces, `[[`, "projection"))
+  attr(projections, "scree") <- dplyr::bind_rows(lapply(pieces, `[[`, "scree"))
   projections
 }
 

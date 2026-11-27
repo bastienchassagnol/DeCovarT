@@ -18,7 +18,7 @@
 #'   and any facet columns.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
@@ -109,7 +109,7 @@ algorithm_similarity <- function(
 #' @return A `ggplot` object.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))

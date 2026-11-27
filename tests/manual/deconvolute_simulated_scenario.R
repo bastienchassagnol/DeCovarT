@@ -32,7 +32,7 @@
 ## call is recorded to compare computational cost.
 
 pkgload::load_all(".", quiet = TRUE)
-set.seed(20260807)
+withr::local_seed(20260807)
 
 true_grn_moments <- readRDS(
   file.path("data", "synthetic_networks", "true_grn_moments.rds")
@@ -128,7 +128,8 @@ solvers <- list(
 ## Wall-clock time (ms) is recorded around the solver call only (excludes
 ## tibble bookkeeping) so that per-algorithm cost is directly comparable.
 deconvolve_one_sample <- function(solver_fn, y, mean_signature_matrix, Sigma) {
-  warnings_seen <- character()
+  warnings_seen <- new.env(parent = emptyenv())
+  warnings_seen$messages <- character()
   elapsed_ms <- NA_real_
   estimated_p <- tryCatch(
     withCallingHandlers(
@@ -139,16 +140,17 @@ deconvolve_one_sample <- function(solver_fn, y, mean_signature_matrix, Sigma) {
           mean_signature_matrix = mean_signature_matrix,
           Sigma = Sigma
         )
-        # Plain `<-`, not `<<-`: this block is evaluated directly in
-        # deconvolve_one_sample()'s own frame (a `{ }` block passed as an
-        # argument introduces no new scope), so `elapsed_ms` here already
-        # *is* the local variable declared above -- `<<-` would instead
-        # skip that frame and leak a stray binding into the global env.
+        # This `{ }` block is evaluated in deconvolve_one_sample()'s frame,
+        # so `elapsed_ms` is the local binding. The warning handler is a
+        # separate function, so it records into an environment.
         elapsed_ms <- 1000 * (proc.time()[["elapsed"]] - start_time)
         out
       },
       warning = function(w) {
-        warnings_seen <<- c(warnings_seen, conditionMessage(w))
+        warnings_seen$messages <- c(
+          warnings_seen$messages,
+          conditionMessage(w)
+        )
         invokeRestart("muffleWarning")
       }
     ),
@@ -156,7 +158,7 @@ deconvolve_one_sample <- function(solver_fn, y, mean_signature_matrix, Sigma) {
   )
   list(
     estimate = estimated_p,
-    warnings = warnings_seen,
+    warnings = warnings_seen$messages,
     elapsed_ms = elapsed_ms
   )
 }

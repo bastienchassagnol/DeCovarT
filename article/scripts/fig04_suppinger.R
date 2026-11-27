@@ -541,7 +541,7 @@ contrast_one <- function(clr_early, clr_standard) {
   )
 }
 props$cell_type <- factor(props$cell_type, levels = scored)
-set.seed(seed)
+withr::local_seed(seed)
 j_data <- do.call(rbind, lapply(split(props, list(props$time, props$cell_type), drop = TRUE), function(g) {
   data.frame(
     time = g$time[1L], cell_type = g$cell_type[1L],

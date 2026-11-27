@@ -784,7 +784,7 @@ build_covariance_array_from_precision <- function(precision_array) {
 #' * `objectives`: `mean_abs_cosine` and `sum_euclidean_distance`.
 #'
 #' @examples
-#' set.seed(42)
+#' withr::local_seed(42)
 #' moments <- simulate_hierarchical_grn_moments(
 #'   n_genes = 40L,
 #'   n_celltypes = 3L,

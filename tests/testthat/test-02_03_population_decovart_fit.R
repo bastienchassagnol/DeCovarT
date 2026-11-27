@@ -135,18 +135,19 @@ test_that("log2 mixing is rejected; collinear signatures warn (RE2.2, RE2.4)", {
 
   mu_dup <- mu
   mu_dup[, 2] <- mu_dup[, 1]
-  warn_dup <- character()
+  warn_dup <- new.env(parent = emptyenv())
+  warn_dup$messages <- character()
   withCallingHandlers(
     try(
       fit_decovart(mu_dup, y, Sigma = Sigma, itmax = 10),
       silent = TRUE
     ),
     warning = function(w) {
-      warn_dup <<- c(warn_dup, conditionMessage(w))
+      warn_dup$messages <- c(warn_dup$messages, conditionMessage(w))
       invokeRestart("muffleWarning")
     }
   )
-  expect_true(any(grepl("collinear|identical", warn_dup)))
+  expect_true(any(grepl("collinear|identical", warn_dup$messages)))
 
   cts3 <- c("child_1", "child_2", "parent")
   mu3 <- cbind(
@@ -162,18 +163,19 @@ test_that("log2 mixing is rejected; collinear signatures warn (RE2.2, RE2.4)", {
   y3 <- matrix(mu3 %*% c(0.2, 0.3, 0.5), ncol = 1)
   dimnames(y3) <- list(genes, "s1")
   expect_lt(qr(mu3)$rank, 3L)
-  warn_parent <- character()
+  warn_parent <- new.env(parent = emptyenv())
+  warn_parent$messages <- character()
   withCallingHandlers(
     try(
       fit_decovart(mu3, y3, Sigma = Sigma3, itmax = 10),
       silent = TRUE
     ),
     warning = function(w) {
-      warn_parent <<- c(warn_parent, conditionMessage(w))
+      warn_parent$messages <- c(warn_parent$messages, conditionMessage(w))
       invokeRestart("muffleWarning")
     }
   )
-  expect_true(any(grepl("collinear", warn_parent)))
+  expect_true(any(grepl("collinear", warn_parent$messages)))
 })
 
 test_that("Marquardt-Levenberg is stable under small bulk noise (RE5.9)", {
@@ -197,7 +199,7 @@ test_that("Marquardt-Levenberg is stable under small bulk noise (RE5.9)", {
     method = "Marquardt-Levenberg",
     itmax = 80
   ))
-  set.seed(2)
+  withr::local_seed(2)
   y_pert <- y0 + rnorm(3, sd = 0.05)
   fit_pert <- suppressWarnings(fit_decovart(
     mu,

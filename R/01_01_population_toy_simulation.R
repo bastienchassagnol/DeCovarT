@@ -59,7 +59,7 @@
 #'   \eqn{\mathcal{X}\times_{2}\boldsymbol{p}}.
 #'
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))

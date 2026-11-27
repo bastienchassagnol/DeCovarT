@@ -65,7 +65,7 @@ cli::cli_h1("Supplementary S4 · Covariance modelling")
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
 
 SEED <- 20260907L
-set.seed(SEED)
+withr::local_seed(SEED)
 
 J_FIXED <- 3L
 G_FIXED <- 50L
@@ -94,7 +94,7 @@ p_eq <- rep(1 / J_FIXED, J_FIXED)
     dimnames = list(rownames(mu), rownames(mu), colnames(mu))
   )
   for (j in seq_len(J)) {
-    set.seed(seed + j)
+    withr::local_seed(seed + j)
     adj <- generate_random_network_skeleton(
       G,
       "erdos_renyi",

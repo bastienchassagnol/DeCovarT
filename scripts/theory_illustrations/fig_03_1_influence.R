@@ -67,7 +67,7 @@ library(patchwork)
 library(DeCovarT) # theme_decovart_facets(), the repository theme
 
 seed <- 20261101
-set.seed(seed)
+withr::local_seed(seed)
 
 out_dir <- file.path("vignettes", "figures")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)

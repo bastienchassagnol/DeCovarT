@@ -711,7 +711,7 @@ fit_firth_single_cell <- function(
 #' colnames(mu) <- c("ct1", "ct2")
 #' sigma <- array(rep(diag(0.05, 4), 2), c(4, 4, 2))
 #' y <- 20 * drop(mu %*% c(0.7, 0.3)) + c(0.3, -0.2, 0.1, -0.1)
-#' set.seed(1)
+#' withr::local_seed(1)
 #' bootstrap_single_cell(y, mu, sigma, n_boot = 5)$interval
 bootstrap_single_cell <- function(
   y,
@@ -841,7 +841,7 @@ bootstrap_single_cell <- function(
 #' @family decovart_inference
 #' @export
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' mu <- cbind(ct1 = c(2, 2, 0.2, 0.2), ct2 = c(0.2, 0.2, 3, 3))
 #' sigma <- array(rep(diag(0.05, 4), 2), c(4, 4, 2))
 #' refs <- lapply(seq_len(2), function(j) {

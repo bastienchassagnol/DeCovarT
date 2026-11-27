@@ -64,7 +64,7 @@
 #' colnames(mu) <- paste0("ct", 1:2)
 #' Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 #' y <- drop(mu %*% c(0.6, 0.4))
-#' set.seed(1)
+#' withr::local_seed(1)
 #' bootstrap_decovart(y, mu, Sigma, n_boot = 20)$interval
 bootstrap_decovart <- function(
   y,
@@ -342,7 +342,7 @@ bootstrap_decovart <- function(
 #' @family decovart_inference
 #' @export
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' mu <- matrix(c(20, 40, 15, 40, 20, 25), nrow = 3)
 #' colnames(mu) <- paste0("ct", 1:2)
 #' Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))

@@ -41,7 +41,8 @@
 #' @param n_samples Number of bulk samples when `p` is a vector.
 #'   Ignored when `p` already has one column per sample, unless it
 #'   matches that number.
-#' @param seed Optional seed, passed to [set.seed()] before the draws.
+#' @param seed Optional seed. Draws then use [withr::local_seed()], which
+#'   restores the RNG on exit.
 #'
 #' @return A list with `Y` (\eqn{G\times N}), nominal `p`, realised
 #'   `p_realised` (\eqn{\boldsymbol{m}/n}), `counts` (\eqn{\boldsymbol{m}}),
@@ -61,7 +62,7 @@
 #' sigma <- array(0, c(4, 4, 2), dimnames = list(genes, genes, cts))
 #' sigma[,, 1] <- diag(0.05, 4)
 #' sigma[,, 2] <- diag(0.05, 4)
-#' set.seed(1)
+#' withr::local_seed(1)
 #' sim <- simulate_bulk_from_cells(
 #'   mu,
 #'   sigma,
@@ -85,7 +86,7 @@ simulate_bulk_from_cells <- function(
   seed = NULL
 ) {
   if (!is.null(seed)) {
-    set.seed(seed)
+    withr::local_seed(seed)
   }
   mean_signature_matrix <- as.matrix(mean_signature_matrix)
   n_genes <- nrow(mean_signature_matrix)

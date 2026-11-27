@@ -122,7 +122,7 @@ TARGET_GRAM <- matrix(
 cli::cli_h1("Figure 03: covariance-driven scenario")
 
 if (!POSTPROCESS_ONLY) {
-  set.seed(SEED)
+  withr::local_seed(SEED)
   mu <- generate_mean_signature_matrix(
     n_genes = N_GENES,
     n_celltypes = N_CELLTYPES,

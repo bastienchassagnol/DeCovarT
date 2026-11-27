@@ -19,7 +19,7 @@
 #'   `error`, `sample_id`, and any scenario metadata columns.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
@@ -380,7 +380,7 @@ theme_decovart_facets <- function(base_size = 11, ...) {
 #' @return A `ggplot` object.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
@@ -672,7 +672,7 @@ plot_mc_raincloud <- function(
 #' @return A `ggplot` object.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
@@ -862,7 +862,7 @@ plot_mc_forest <- function(
 #' @return A `ggplot` object.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))

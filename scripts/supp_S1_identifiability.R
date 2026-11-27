@@ -60,7 +60,7 @@ cli::cli_h1("Supplementary S1 · Identifiability")
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "1000"))
 
 SEED <- 20260904L
-set.seed(SEED)
+withr::local_seed(SEED)
 
 
 # ==============================================================================
@@ -74,7 +74,7 @@ set.seed(SEED)
 #   achieve nominal coverage near a simplex face.
 J_1a <- 3L
 G_1a <- 10L
-set.seed(SEED + 1L)
+withr::local_seed(SEED + 1L)
 mu_1a <- generate_mean_signature_matrix(
   n_genes = G_1a,
   n_celltypes = J_1a,
@@ -184,10 +184,10 @@ Sigma_int <- array(
 Sigma_int[,, 1L] <- diag(c(1.0, 1.2, 0.8))
 Sigma_int[,, 2L] <- diag(c(1.5, 0.9, 1.1))
 p_int <- c(0.6, 0.4)
-set.seed(SEED)
+withr::local_seed(SEED)
 y_int <- drop(mu_int %*% p_int + stats::rnorm(3, sd = 0.2))
 starts_int <- lapply(c(11L, 22L, 33L), function(s) {
-  set.seed(s)
+  withr::local_seed(s)
   starting_simplex(2L, "dirichlet", nms = cts_int)
 })
 p_ml_starts <- vapply(

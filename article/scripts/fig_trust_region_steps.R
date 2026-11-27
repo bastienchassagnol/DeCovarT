@@ -97,9 +97,10 @@ hessian <- function(z) hessian_profile_loglik_single_cell_ilr(z, y, mu, sigma)
 # A start near the corner p = (0.02, 0.02, 0.96), far from the maximum, so
 # that the radius has to grow, overshoot and shrink.
 z_start <- isometric_log_ratio(c(0.02, 0.02, 0.96))
-events <- list()
+events <- new.env(parent = emptyenv())
+events$log <- list()
 record <- function(type, z) {
-  events[[length(events) + 1L]] <<- list(type = type, z = z)
+  events$log[[length(events$log) + 1L]] <- list(type = type, z = z)
 }
 fit <- stats::nlminb(
   z_start,
@@ -115,6 +116,7 @@ fit <- stats::nlminb(
   control = list(rel.tol = 1e-8, x.tol = 1e-8, xf.tol = 1e-8, abs.tol = 0)
 )
 stopifnot(fit$convergence == 0L)
+events <- events$log
 
 # Every objective call after the first is a trial step from the latest
 # point where the gradient was requested (the current iterate). A trial is

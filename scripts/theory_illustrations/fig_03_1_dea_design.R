@@ -20,7 +20,7 @@
 library(ggplot2)
 library(DeCovarT) # theme_decovart_facets(), the repository theme
 
-set.seed(20261101)
+withr::local_seed(20261101)
 
 out_dir <- file.path("vignettes", "figures", "src", "dea_design")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)

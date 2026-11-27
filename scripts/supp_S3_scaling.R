@@ -62,7 +62,7 @@ cli::cli_h1("Supplementary S3 · High-dimensional scaling")
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "100"))
 
 SEED <- 20260906L
-set.seed(SEED)
+withr::local_seed(SEED)
 
 
 # ==============================================================================

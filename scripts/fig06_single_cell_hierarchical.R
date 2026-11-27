@@ -291,7 +291,7 @@ build_single_cell_config <- function() {
 cli::cli_h1("Figure 06: single-cell reference, two lineages")
 
 if (!POSTPROCESS_ONLY) {
-  set.seed(SEED)
+  withr::local_seed(SEED)
   scenario_config_5 <- build_single_cell_config()
   interval_menu <- function(methods, optimiser = "newton") {
     list(methods = methods, optimiser = optimiser)

@@ -82,7 +82,7 @@ test_that("First-generation deconvolution solvers return a valid simplex", {
   # ------------------------------------------------------------------ #
   # CIBERSORT-style nu-SVR (e1071); needs more genes than hold-out SVM #
   # ------------------------------------------------------------------ #
-  set.seed(42L)
+  withr::local_seed(42L)
   n_genes <- 20L
   n_ct <- 2L
   cibersort_mu <- matrix(

@@ -128,7 +128,7 @@ test_that(".parse_true_theta accepts valid and sample-wise theta", {
 
 test_that("compute_average_overlap: closer means overlap more", {
   skip_if_not_installed("MixSim")
-  set.seed(1)
+  withr::local_seed(1)
   far <- list(
     p = c(0.5, 0.5),
     mu = cbind(c(0, 0), c(8, 0)),

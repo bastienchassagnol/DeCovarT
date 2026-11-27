@@ -583,7 +583,7 @@ plot_estimate_laws <- function(data, style) {
       .likelihood_methods &
       opt$ID %in% layout$ID[layout$corner],
   ]
-  info_population <- list()
+  info_population <- new.env(parent = emptyenv())
   rows <- lapply(seq_len(nrow(opt)), function(i) {
     id <- opt$ID[[i]]
     s <- as.integer(sub("sample_", "", opt$sample_id[[i]]))
@@ -621,7 +621,7 @@ plot_estimate_laws <- function(data, style) {
       z_true <- isometric_log_ratio(p_true)
       if (is.null(info_population[[id]])) {
         jac <- jacobian_isometric_logistic(z_true)
-        info_population[[id]] <<- crossprod(
+        info_population[[id]] <- crossprod(
           jac,
           expected_fisher_unconstrained(p_true, th$mu, th$sigma) %*% jac
         )

@@ -52,7 +52,7 @@ library(grid)
 library(DeCovarT) # theme_decovart_facets(), the repository theme
 
 t_start <- proc.time()
-set.seed(20261101)
+withr::local_seed(20261101)
 
 out_dir <- file.path("vignettes", "figures")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)

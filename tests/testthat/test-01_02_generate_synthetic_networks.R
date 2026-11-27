@@ -210,7 +210,7 @@ test_that("prop_inhibitory controls sign balance on weighted edges", {
 })
 
 test_that("pre-built adjacency list yields cell-type-specific supports", {
-  set.seed(10L)
+  withr::local_seed(10L)
   a1 <- generate_random_network_skeleton(12L, "hub", list(n_hubs = 1L))
   a2 <- generate_random_network_skeleton(12L, "erdos_renyi", list())
   a3 <- generate_random_network_skeleton(12L, "scale_free", list())

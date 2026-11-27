@@ -493,7 +493,7 @@ hessian_loglik_constrained <- function(
 #'
 #' @examples
 #' starting_simplex(3L)
-#' set.seed(1)
+#' withr::local_seed(1)
 #' starting_simplex(3L, "dirichlet")
 #' @export
 #' @seealso [multistart_decovart()], [deconvolute_ratios_deconrnaseq()]
@@ -605,7 +605,7 @@ starting_simplex <- function(
 #' colnames(mu) <- paste0("ct", 1:2)
 #' Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 #' y <- drop(mu %*% c(0.6, 0.4))
-#' set.seed(1)
+#' withr::local_seed(1)
 #' multistart_decovart(y, mu, Sigma, n_starts = 3L)$multimodal
 #' # First start supplied by the user, e.g. another method's estimate
 #' multistart_decovart(y, mu, Sigma, n_starts = 2L, initial_p = c(0.5, 0.5))$loglik
@@ -800,7 +800,7 @@ multistart_decovart <- function(
 #'   Benchmark metrics are computed by [deconvolute_ratios()].
 #'
 #' @examples
-#' set.seed(1)
+#' withr::local_seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
